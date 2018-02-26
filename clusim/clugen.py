@@ -5,7 +5,7 @@ import itertools
 import mpmath
 import copy
 
-from clustering import Clustering
+from clusim.clustering import Clustering
 
 
 def make_equal_clustering(n_elements, n_clusters):
@@ -173,7 +173,7 @@ def shuffle_memberships_pa(clustering, Nsteps = 1, constant_num_clusters = True)
     Nclusters = clustering.n_clusters
 
     cluster_list = clustering.to_cluster_list()
-    cluster_size_prob = np.array(map(len, cluster_list)) * n_elements_norm
+    cluster_size_prob = np.array(list(map(len, cluster_list))) * n_elements_norm
     clusternames = range(Nclusters)
 
     for istep in range(Nsteps):
@@ -192,7 +192,7 @@ def shuffle_memberships_pa(clustering, Nsteps = 1, constant_num_clusters = True)
                 cluster_size_prob[new_cluster] += n_elements_norm
 
     new_clustering = Clustering()
-    new_clustering.clustering_from_cluster_list(cluster_list)
+    new_clustering.from_cluster_list(cluster_list)
 
     return new_clustering
 

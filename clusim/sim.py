@@ -471,7 +471,7 @@ def southwood_index(clustering1, clustering2):
 """
 These are the Information Theoretic Measures
 """
-def nmi(clustering1, clustering2 = None, norm_type = 'sum'):
+def nmi(clustering1, clustering2, norm_type = 'sum'):
     
     cont_tbl = contingency_table(clustering1, clustering2)
 
@@ -493,7 +493,8 @@ def nmi(clustering1, clustering2 = None, norm_type = 'sum'):
 
     return (e1 + e2 - e12) / normterm
 
-def vi(clustering1, clustering2 = None, norm_type = 'none'):
+
+def vi(clustering1, clustering2, norm_type = 'none'):
     cont_tbl = contingency_table(clustering1, clustering2)
 
     e1 = entropy(np.array(clustering1.clus_size_seq, dtype = float)/clustering1.n_elements)
@@ -530,7 +531,7 @@ def expected_mi(n_elements, n_clusters1 = 2, n_clusters2 = 2, clus_size_seq1 = N
     elif 'all' in random_model:
         bn = mpmath.bell(n_elements)
         cluster_size_range1 = range(1, n_elements + 1)
-        cluster_counts1 = [mpmath.binomial(n_elements, ai)*mpmath.bell(n_elements - ai)/bn for ai in xrange(1, n_elements + 1)]
+        cluster_counts1 = [mpmath.binomial(n_elements, ai)*mpmath.bell(n_elements - ai)/bn for ai in range(1, n_elements + 1)]
 
     # find the counts for clustering 2
     if random_model in ['perm', 'perm1', 'num1', 'all1']:
@@ -657,7 +658,7 @@ def overlap_quality(clustering1, clustering2):
     num_memberships2 = [len(clustering2.elm2clus_dict[el]) for el in clustering2.elements]
 
     overlap_dist = np.zeros((max(num_memberships1) + 1, max(num_memberships2) + 1), dtype = float)
-    for i_el in xrange(clustering1.n_elements):
+    for i_el in range(clustering1.n_elements):
         overlap_dist[num_memberships1[i_el], num_memberships2[i_el]] += 1
     
     overlap_dist = overlap_dist/np.sum(overlap_dist)
@@ -692,7 +693,7 @@ def nmi_lfk(clustering1, clustering2):
     e_r2_cond_r1 = (entropy_rv12_pure + entropy_rv12_mixing).T - entropy_rv1
 
     e_r2_cond_Boldr1 = np.zeros(clustering2.n_clusters)
-    for k2 in xrange(clustering2.n_clusters):
+    for k2 in range(clustering2.n_clusters):
         if np.any(minimize_conditions_rv12.T[k2]):
             e_r2_cond_Boldr1[k2] = e_r2_cond_r1[k2,minimize_conditions_rv12.T[k2]].min() / entropy_rv2[k2]
         else:
@@ -703,7 +704,7 @@ def nmi_lfk(clustering1, clustering2):
     e_r1_cond_r2 = (entropy_rv12_pure + entropy_rv12_mixing) - entropy_rv2
 
     e_r1_cond_Boldr2 = np.zeros(clustering1.n_clusters)
-    for k1 in xrange(clustering1.n_clusters):
+    for k1 in range(clustering1.n_clusters):
         if np.any(minimize_conditions_rv12[k1]):
             e_r1_cond_Boldr2[k1] = e_r1_cond_r2[k1,minimize_conditions_rv12[k1]].min() / entropy_rv1[k1]
         else:
@@ -746,8 +747,8 @@ def omega_index(clustering1, clustering2):
     t_0_1 = M - spsparse.triu((A1 != 0), k = 1).sum()
     t_0_2 = M - spsparse.triu((A2 != 0), k = 1).sum()
 
-    t_k_1 = [spsparse.triu((A1 == i), k = 1).sum() for i in xrange(1, maxNover)]
-    t_k_2 = [spsparse.triu((A2 == i), k = 1).sum() for i in xrange(1, maxNover)]
+    t_k_1 = [spsparse.triu((A1 == i), k = 1).sum() for i in range(1, maxNover)]
+    t_k_2 = [spsparse.triu((A2 == i), k = 1).sum() for i in range(1, maxNover)]
 
     omega_e = (t_0_1*t_0_2 + np.dot(t_k_1, t_k_2) ) / M**2
 

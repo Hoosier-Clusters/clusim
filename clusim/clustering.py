@@ -1,6 +1,9 @@
 """ mainly clustering class """
 import copy
 from collections import defaultdict
+import networkx as nx
+
+from clusim.dag import DAG, Dendrogram
 
 class Clustering(object):
     """Base class for clusterings.
@@ -17,6 +20,18 @@ class Clustering(object):
     """
 
     def __init__(self, elm2clus_dict=None, clus2elm_dict=None):
+
+        self.empty_start()
+        
+        if elm2clus_dict is not None:
+            # create clustering from elm2clus_dict
+            self.from_elm2clus_dict(elm2clus_dict)
+
+        elif clus2elm_dict is not None:
+            # create clustering from clus2elm_dict
+            self.from_clus2elm_dict(clus2elm_dict)
+
+    def empty_start(self):
         # number of elements
         self.n_elements = 0
         # number of clusters
@@ -36,16 +51,8 @@ class Clustering(object):
         self.clus_size_seq = []
         # disjoint partitions?
         self.is_disjoint = False
-
-
-        if elm2clus_dict is not None:
-            # create clustering from elm2clus_dict
-            self.from_elm2clus_dict(elm2clus_dict)
-
-        elif clus2elm_dict is not None:
-            # create clustering from clus2elm_dict
-            self.from_clus2elm_dict(clus2elm_dict)
-
+        # hierarchical partitions?
+        self.is_hierarchical = False
 
 
     def from_elm2clus_dict(self, elm2clus_dict):
@@ -72,7 +79,7 @@ class Clustering(object):
         self.n_elements = len(self.elements)
 
         self.clus2elm_dict = self.to_clus2elm_dict()
-        self.clusters = self.clus2elm_dict.keys()
+        self.clusters = list(self.clus2elm_dict.keys())
         self.n_clusters = len(self.clusters)
 
         self.clus_size_seq = self.find_clus_size_seq()
@@ -100,7 +107,7 @@ class Clustering(object):
         """
 
         self.clus2elm_dict = copy.deepcopy(clus2elm_dict)
-        self.clusters = self.clus2elm_dict.keys()
+        self.clusters =  list(self.clus2elm_dict.keys())
         self.n_clusters = len(self.clusters)
 
         self.elm2clus_dict = self.to_elm2clus_dict()
@@ -144,7 +151,7 @@ class Clustering(object):
             [ [el1, el2, ...], [el5, ...], ... ]
 
         """
-        return map(list, self.clus2elm_dict.values())
+        return list(map(list, self.clus2elm_dict.values()))
         
     def from_membership_list(self, membership_list):
         """
@@ -240,5 +247,73 @@ class Clustering(object):
         """
         return sum([len(self.elm2clus_dict[elm]) > 1 for elm in self.elements])
 
-    
+    def merge_clusters(self, c1, c2, new_name = None):
+        if new_name is None:
+            new_name = c1
 
+        new_clus = self.clus2elm_dict[c1] | self.clus2elm_dict[c2]
+        del self.clus2elm_dict[c1]
+        del self.clus2elm_dict[c2]
+
+        self.clus2elm_dict[new_name] = new_clus
+        self.from_clus2elm_dict(self.clus2elm_dict)
+        
+
+class HierClustering(Clustering):
+
+    def __init__(self, elm2clus_dict=None, clus2elm_dict=None, hier_graph = None):
+        
+        self.empty_start()
+        self.is_hierarchical = True
+        self.hier_clusdict = None
+        
+        if not elm2clus_dict is None:
+            self.from_elm2clus_dict(elm2clus_dict)
+            
+        elif not clus2elm_dict is None:
+            self.from_clus2elm_dict(clus2elm_dict)
+            
+        if not (hier_graph is None):
+            self.from_digraph(hier_graph)
+
+        
+    def from_digraph(self, hier_graph = None):
+        if True: #nx.is_acyclic(hier_graph):
+            self.hiergraph = hier_graph
+            self.clusters = list(hier_graph.nodes())
+            self.n_clusters = len(self.clusters)
+        else:
+            print("Graph must be acyclic!")
+            
+    def from_linkage(self, linkage_matrix, dist_rescaled = False):
+        self.hiergraph = Dendrogram().from_linkage(linkage_matrix, dist_rescaled)
+        
+    def cut_at_depth(self, depth = 0, cuttype = 'shortestpath', rescale_path_type = 'max'):
+        clusters_at_depth = self.hiergraph.cut_at_depth(depth = depth, 
+                                                        cuttype = cuttype, 
+                                                        rescale_path_type = rescale_path_type)
+        
+        new_cluster_dict = {c:self.downstream_elements(c) for c in clusters_at_depth}
+        flat_clustering = Clustering(clus2elm_dict = new_cluster_dict)
+        return flat_clustering
+    
+    def downstream_elements(self, cluster):
+        try:
+            return self.clus2elm_dict[cluster]
+        except KeyError:
+            el = set([])
+            for c in nx.dfs_preorder_nodes(self.hiergraph, cluster):
+                try:
+                    el.update(self.clus2elm_dict[c])
+                except KeyError:
+                    pass
+
+            return el
+    
+    def hierclusdict(self):
+        if self.hier_clusdict is None:
+            self.hier_clusdict = {}
+            for cluster in self.hiergraph.nodes():
+                self.hier_clusdict[cluster] = self.downstream_elements(cluster)
+        return self.hier_clusdict
+    
