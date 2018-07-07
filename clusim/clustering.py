@@ -19,7 +19,7 @@ class Clustering(object):
         Each cluster is a key with value a list of elements which belong to it.
     """
 
-    def __init__(self, elm2clus_dict=None, clus2elm_dict=None):
+    def __init__(self, elm2clus_dict=None, clus2elm_dict=None, hier_graph= None):
 
         self.empty_start()
         
@@ -30,6 +30,11 @@ class Clustering(object):
         elif clus2elm_dict is not None:
             # create clustering from clus2elm_dict
             self.from_clus2elm_dict(clus2elm_dict)
+
+        if hier_graph is not None:
+            self.is_hierarchical = True
+            self.hier_graph = hier_graph
+            self.hier_clusdict()
 
     def empty_start(self):
         # number of elements
@@ -46,6 +51,8 @@ class Clustering(object):
         self.elm2clus_dict = defaultdict(set)
         # representation as an clus2elm_dict
         self.clus2elm_dict = defaultdict(set)
+        # represetation as an acyclic graph
+        self.hier_graph = nx.DiGraph()
 
         # cluster size sequence
         self.clus_size_seq = []
@@ -53,7 +60,20 @@ class Clustering(object):
         self.is_disjoint = False
         # hierarchical partitions?
         self.is_hierarchical = False
+        # representation as an hiercluster dict
+        self.hierclusdict = None
 
+    def copy(self):
+        """
+        Return a copy of the clustering.
+
+        >>> import clusim
+        >>> clu = clusim.Clustering()
+        >>> clu2 = clu.copy()
+        >>> clusim.print_clustering(clu)
+        >>> clusim.print_clustering(clu)
+        """
+        return copy.deepcopy(self)
 
     def from_elm2clus_dict(self, elm2clus_dict):
         """
@@ -175,6 +195,18 @@ class Clustering(object):
         """ 
         self.from_elm2clus_dict({elm:set([clu]) for elm, clu in enumerate(membership_list)})
 
+    def to_membership_list(self):
+        """
+        This method returns the clustering as a membership list:
+        [ clu_for_el1, clu_for_el2, ... ],  a list of integers
+        the ith entry corresponds to the cluster membership of the ith element.  
+
+        .. note:: Membership Lists can only represent partitions (no overlaps)
+        """ 
+        
+        if self.is_disjoint and not self.is_hierarchical:
+            return [list(self.elm2clus_dict[elm])[0] for elm in sorted(self.elements)]
+
     def clustering_from_igraph_cover(self, igraphcover):
         """
         This method creates a clustering from an igraph VertexCover object.
@@ -248,6 +280,22 @@ class Clustering(object):
         return sum([len(self.elm2clus_dict[elm]) > 1 for elm in self.elements])
 
     def merge_clusters(self, c1, c2, new_name = None):
+        """ 
+        This method merges the elements in two clusters from the clustering. 
+        The merged clustering will be named new_name if provided, otherwise 
+        it will assume the name of cluster c1.
+
+        Returns
+        -------
+        self : Clustering
+        
+        >>> import clusim
+        >>> elm2clus_dict = {0:[0], 1:[0], 2:[0], 3:[1], 4:[2], 5:[2]}
+        >>> clu = Clustering(elm2clus_dict = elm2clus_dict)
+        >>> clu.merge_clusters(1,2, new_name = 3)
+        >>> clu.elm2clus_dict
+        * {0:[0], 1:[0], 2:[0], 3:[3], 4:[3], 5:[3]}
+        """
         if new_name is None:
             new_name = c1
 
@@ -257,63 +305,85 @@ class Clustering(object):
 
         self.clus2elm_dict[new_name] = new_clus
         self.from_clus2elm_dict(self.clus2elm_dict)
-        
-
-class HierClustering(Clustering):
-
-    def __init__(self, elm2clus_dict=None, clus2elm_dict=None, hier_graph = None):
-        
-        self.empty_start()
-        self.is_hierarchical = True
-        self.hier_clusdict = None
-        
-        if not elm2clus_dict is None:
-            self.from_elm2clus_dict(elm2clus_dict)
-            
-        elif not clus2elm_dict is None:
-            self.from_clus2elm_dict(clus2elm_dict)
-            
-        if not (hier_graph is None):
-            self.from_digraph(hier_graph)
-
-        
-    def from_digraph(self, hier_graph = None):
-        if True: #nx.is_acyclic(hier_graph):
-            self.hiergraph = hier_graph
-            self.clusters = list(hier_graph.nodes())
-            self.n_clusters = len(self.clusters)
-        else:
-            print("Graph must be acyclic!")
-            
-    def from_linkage(self, linkage_matrix, dist_rescaled = False):
-        self.hiergraph = Dendrogram().from_linkage(linkage_matrix, dist_rescaled)
-        
-    def cut_at_depth(self, depth = 0, cuttype = 'shortestpath', rescale_path_type = 'max'):
-        clusters_at_depth = self.hiergraph.cut_at_depth(depth = depth, 
-                                                        cuttype = cuttype, 
-                                                        rescale_path_type = rescale_path_type)
-        
-        new_cluster_dict = {c:self.downstream_elements(c) for c in clusters_at_depth}
-        flat_clustering = Clustering(clus2elm_dict = new_cluster_dict)
-        return flat_clustering
+        return self
     
+    # extra support for hierarchical clusterings
+
     def downstream_elements(self, cluster):
-        try:
+        """ 
+        This method finds all elements contained in a cluster from a 
+        hierarchical clustering by visiting all downstream clusters 
+        and adding their elements.
+
+        Returns
+        -------
+        el : element list
+        
+        >>> import clusim
+        
+        """
+        if cluster in self.hier_graph.leaves():
             return self.clus2elm_dict[cluster]
-        except KeyError:
+        else:
             el = set([])
-            for c in nx.dfs_preorder_nodes(self.hiergraph, cluster):
+            for c in nx.dfs_preorder_nodes(self.hier_graph, cluster):
                 try:
                     el.update(self.clus2elm_dict[c])
                 except KeyError:
                     pass
 
             return el
+
+    def from_linkage(self, linkage_matrix, dist_rescaled = False):
+        self.hier_graph = Dendrogram().from_linkage(linkage_matrix, dist_rescaled)
+
+    def to_dendropy_tree(self, taxon_namespace, weighted = False):
+        import dendropy
+
+        tree = dendropy.Tree(taxon_namespace=taxon_namespace)
+
+        seed_node = self.hier_graph.roots()[0]
+        
+        if weighted:
+            edge_length = lambda par, child: np.abs(self.hier_graph.linkage_dist[par] - self.hier_graph.linkage_dist[child])
+        else:
+            edge_length = lambda par, child: 1.0
+        
+        tree_dict = {seed_node:tree.seed_node}
+        for clus in nx.topological_sort(self.hier_graph):
+            for child in self.hier_graph.successors(clus):
+                tree_dict[child] = tree_dict[clus].new_child(edge_length = edge_length(clus, child))
+
+        for clus in self.hier_graph.leaves():
+            tree_dict[clus].taxon = taxon_namespace.get_taxon(str(list(self.clus2elm_dict[clus])[0]))
+        
+        return tree
+
+    def from_digraph(self, hier_graph = None):
+        if True: #nx.is_acyclic(hier_graph):
+            self.hier_graph = hier_graph
+            self.clusters = list(hier_graph.nodes())
+            self.n_clusters = len(self.clusters)
+        else:
+            print("Graph must be acyclic!")
+
+    def cut_at_depth(self, depth = 0, cuttype = 'shortestpath', rescale_path_type = 'max'):
+        clusters_at_depth = self.hier_graph.cut_at_depth(depth = depth, 
+                                                        cuttype = cuttype, 
+                                                        rescale_path_type = rescale_path_type)
+        
+        new_cluster_dict = {c:self.downstream_elements(c) for c in clusters_at_depth}
+        flat_clustering = Clustering(clus2elm_dict = new_cluster_dict)
+        return flat_clustering
+             
+    def hier_clusdict(self):
+        if self.hierclusdict is None:
+            self.hierclusdict = {}
+            for cluster in self.hier_graph.nodes():
+                self.hierclusdict[cluster] = self.downstream_elements(cluster)
+            self.clusters = list(self.hierclusdict.keys())
+            self.n_clusters = len(self.clusters)
+        return self.hierclusdict
+
     
-    def hierclusdict(self):
-        if self.hier_clusdict is None:
-            self.hier_clusdict = {}
-            for cluster in self.hiergraph.nodes():
-                self.hier_clusdict[cluster] = self.downstream_elements(cluster)
-        return self.hier_clusdict
     

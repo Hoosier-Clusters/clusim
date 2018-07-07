@@ -6,7 +6,8 @@ import mpmath
 import copy
 
 from clusim.clustering import Clustering
-
+#from clusim.clustering import HierClustering
+from clusim.dag import Dendrogram
 
 def make_equal_clustering(n_elements, n_clusters):
     """
@@ -34,7 +35,7 @@ def make_equal_clustering(n_elements, n_clusters):
     new_clustering = Clustering(new_elm2clus_dict)
     return new_clustering
 
-def make_random_clustering(n_elements, n_clusters=1, random_model = 'all', tol = 1.0e-15):
+def make_random_clustering(n_elements=1, n_clusters=1, clu_size_seq = [1,2], random_model = 'all', tol = 1.0e-15):
     """
         This function creates a random clustering according to one of three random models.
 
@@ -53,7 +54,7 @@ def make_random_clustering(n_elements, n_clusters=1, random_model = 'all', tol =
 
             'num' : uniform distrubtion over the set of all clusterings of n_elements in n_clusters
 
-            'uniform' : uniform distrubtion over the set of all clusterings with n_elements
+            'perm' : 
 
         tol : float, optional
             The tolerance used by the algorithm for 'all' clusterings
@@ -67,19 +68,14 @@ def make_random_clustering(n_elements, n_clusters=1, random_model = 'all', tol =
         >>> clu = make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'num')
         >>> print_clustering(clu)
     """
-    if random_model == 'all':
+    if random_model in ['all', 'all1']:
         new_clustering = generate_random_partition_all(n_elements = n_elements, tol = tol)
     
-    elif random_model == 'num':
-        new_cluster_list = generate_random_partition_num(n_elements = n_elements, n_clusters = n_clusters)
-        new_clustering = Clustering()
-        new_clustering.from_cluster_list(new_cluster_list)
-
-    elif random_model == 'uniform':
-        clu_list = range(n_clusters)
-        new_elm2clus_dict = {el:[np.random.choice(clu_list)] for el in range(n_elements)}
-        new_clustering = Clustering(new_elm2clus_dict)
+    elif random_model in ['num', 'num1']:
+        new_clustering = generate_random_partition_num(n_elements = n_elements, n_clusters = n_clusters)
     
+    elif random_model in ['perm']:
+        new_clustering = generate_random_partition_perm(clu_size_seq)
     return new_clustering
 
 def make_singleton_clustering(n_elements):
@@ -102,6 +98,29 @@ def make_singleton_clustering(n_elements):
     """
     new_clsutering = make_regular_clustering(n_elements = n_elements, n_clusters = n_elements)
     return new_clsutering
+
+
+def make_random_dendrogram(n_elements):
+    """
+        This function creates a clustering with each element in its own cluster.
+
+        Parameters
+        ----------
+        n_elements : int
+            The number of elements
+
+        Returns
+        -------
+        new_clsutering : Clustering
+            The new clustering.
+
+        >>> import clusim
+        >>> clu = make_singleton_clustering(n_elements = 9)
+        >>> print_clustering(clu)
+    """
+    dendro_graph = Dendrogram()
+    dendro_graph.make_random_dendrogram_aglomerative(N = n_elements)
+    return HierClustering(clus2elm_dict = {e:set([e]) for e in dendro_graph.leaves()}, hier_graph = dendro_graph)
 
 def shuffle_memberships(clustering, percent = 1.0):
     """
@@ -130,14 +149,16 @@ def shuffle_memberships(clustering, percent = 1.0):
     shuffled_el = np.random.permutation(el_to_shuffle)
     newkeys = dict(zip(el_to_shuffle, shuffled_el))
 
-    new_elm2clus_dict = defaultdict(set)
-    for el in clustering.elements:
-        if el in shuffled_el:
-            new_elm2clus_dict[newkeys[el]] = clustering.elm2clus_dict[el]
-        else:
-            new_elm2clus_dict[el] = clustering.elm2clus_dict[el]
+    new_elm2clus_dict = copy.deepcopy(clustering.elm2clus_dict)
+    for el in shuffled_el:
+        new_elm2clus_dict[el] = clustering.elm2clus_dict[newkeys[el]]
 
-    new_clustering = Clustering(new_elm2clus_dict)
+    #new_clustering = copy.deepcopy(clustering)
+    #new_clustering.from_elm2clus_dict(new_elm2clus_dict)
+    if clustering.is_hierarchical:
+        new_clustering = HierClustering(elm2clus_dict = new_elm2clus_dict, hier_graph = copy.deepcopy(clustering.hiergraph))
+    else:
+        new_clustering = Clustering(elm2clus_dict = new_elm2clus_dict)
     return new_clustering
 
 def shuffle_memberships_pa(clustering, Nsteps = 1, constant_num_clusters = True):
@@ -196,32 +217,20 @@ def shuffle_memberships_pa(clustering, Nsteps = 1, constant_num_clusters = True)
 
     return new_clustering
 
-def generate_random_partition_num(n_elements, n_clusters):
-    """
-        A recursive function to generate a random partition uniformly selected from 'Num',
-        the set of all clusterings with n_elements in n_clusters.
+def generate_random_partition_perm(clu_size_seq):
+    n_elements = sum(clu_size_seq)
+    n_clusters = len(clu_size_seq)
+    elm_list = np.random.permutation(np.arange(n_elements))
+    clu_idx = np.hstack([[0], np.cumsum(clu_size_seq)])
 
-        Based on this blog post: `b link`_.
+    cluster_list = [elm_list[clu_idx[iclus]:clu_idx[iclus + 1]] for iclus in range(n_clusters)]
 
-        .. _b link: http://thousandfold.net/cz/2013/09/25/sampling-uniformly-from-the-set-of-partitions-in-a-fixed-number-of-nonempty-sets/
-
-        Parameters
-        ----------
-        n_elements : int
-            The number of elements
-
-        n_clusters : int
-            The number of clusters
-
-        Returns
-        -------
-        new_clsutering : Clustering
-            The new clustering.
-
-        >>> import clusim
-        >>> clu = generate_random_partition_num(n_elements = 10, n_clusters = 3)
-        >>> print_clustering(clu)
-    """
+    new_clustering = Clustering()
+    new_clustering.from_cluster_list(cluster_list)
+    return new_clustering
+    
+def _random_partition_num_iterator(n_elements, n_clusters):
+    '''http://thousandfold.net/cz/2013/09/25/sampling-uniformly-from-the-set-of-partitions-in-a-fixed-number-of-nonempty-sets/'''
 
     assert n_clusters <= n_elements
 
@@ -232,15 +241,22 @@ def generate_random_partition_num(n_elements, n_clusters):
         stirling_prob = mpmath.stirling2(n_elements - 1, n_clusters - 1) / mpmath.stirling2(n_elements, n_clusters)
 
         if np.random.random() < stirling_prob:
-            current_partition = generate_random_partition_num(n_elements = n_elements - 1, n_clusters = n_clusters - 1)
+            current_partition = _random_partition_num_iterator(n_elements = n_elements - 1, n_clusters = n_clusters - 1)
             current_partition.append([n_elements - 1])
         else:
-            current_partition = generate_random_partition_num(n_elements = n_elements - 1, n_clusters = n_clusters)
+            current_partition = _random_partition_num_iterator(n_elements = n_elements - 1, n_clusters = n_clusters)
             current_clu = np.random.randint(n_clusters)
             current_partition[current_clu].append(n_elements - 1)
 
     return current_partition
 
+def generate_random_partition_num(n_elements, n_clusters):
+
+    clu_list = _random_partition_num_iterator(n_elements, n_clusters)
+
+    new_clustering = Clustering()
+    new_clustering.from_cluster_list(clu_list)
+    return new_clustering
 
 all_partition_weight_dict = {}
 def generate_random_partition_all(n_elements, tol = 1.0e-15):
@@ -283,53 +299,9 @@ def generate_random_partition_all(n_elements, tol = 1.0e-15):
     new_clustering = Clustering()
     new_clustering.from_membership_list(colors)
     return new_clustering
-
-def clustering_ensemble_generator(clustering, random_model = 'perm'):
-    """
-        A generator for every partition in one of three random models.
-
-        Parameters
-        ----------
-        clustering : Clustering
-            The seed clustering
-
-        random_model : string
-            The random model to use:
-
-            'all' : uniform distrubtion over the set of all clusterings of n_elements
-
-            'num' : uniform distrubtion over the set of all clusterings of n_elements in n_clusters
-
-            'perm' : uniform distrubtion over all permutations of the elements within the clustering
-
-        Returns
-        -------
-        new_clustering: Clustering
-            The new clustering.
-
-        >>> import clusim
-        >>> seed_clu = make_equal_clustering(n_elements = 9, n_clusters = 3)
-        >>> for clu in clustering_ensemble_generator(seed_clu, random_model = 'perm'):
-        >>>     print_clustering(clu)
-    """
-
-    if random_model == 'all':
-        num_clusters_range = range(1, clustering.n_elements + 1)
-    elif random_model == 'perm' or random_model == 'num':
-        num_clusters_range = [clustering.n_clusters]
-    else:
-        print("Random model not supported")
-
-    sort_clus_size_seq = sorted(clustering.clus_size_seq)
-    for nclus in num_clusters_range:
-        for cluster_list in clustering_ensemble_generator_num(clustering.n_elements, nclus):
-            new_clustering= Clustering()
-            new_clustering.from_cluster_list(cluster_list)
-            if random_model != 'perm' or sorted(new_clustering.clus_size_seq) == sort_clus_size_seq:
-                yield new_clustering
     
 
-def clustering_ensemble_generator_num(n_elements, n_clusters):
+def enumerate_random_partition_num(n_elements, n_clusters):
     """
         A generator for every partition in 'Num', the set of all clusterings with n_elements in n_clusters.
 
@@ -435,6 +407,6 @@ def clustering_ensemble_generator_num(n_elements, n_clusters):
         return [[[i] for i in elm_list]]
     else:
         a = [0] * (n_elements + 1)
-        for j in xrange(1, n_clusters + 1):
+        for j in range(1, n_clusters + 1):
             a[n_elements - n_clusters + j] = j - 1
     return f(n_clusters, n_elements, 0, n_elements, a)

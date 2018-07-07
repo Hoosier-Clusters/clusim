@@ -32,8 +32,12 @@ from collections import defaultdict, Counter
 import numpy as np
 import scipy.sparse as spsparse
 import mpmath
+import itertools
 
-available_similarity_measures = ['jaccard_index', 'rand_index', 'fowlkes_mallows_index', 'rogers_tanimoto_index', 'southwood_index',
+from clusim.clugen import *
+
+available_similarity_measures = ['jaccard_index', 'rand_index', 'fowlkes_mallows_index', 'rogers_tanimoto_index', 'southwood_index', 
+'czekanowski_index', 'dice_index', 'sorensen_index', 'pearson_correlation', 'classification_error',
 'fmeasure', 'nmi', 'vi', 'geometric_accuracy', 'overlap_quality', 'nmi_lfk', 'omega_index']
 
 available_random_models = ['perm', 'perm1', 'num', 'num1', 'all', 'all1']
@@ -99,12 +103,12 @@ def count_pairwise_cooccurence(clustering1, clustering2):
         >>> N11, N10, N01, N00 = count_pairwise_cooccurence(clustering1, clustering2)
         >>> print_clustering(clustering1)
         >>> print_clustering(clustering2)
-        >>> print N11, "element pairs assigned to the same clusters in both clusterings"
-        >>> print N10, "element pairs assigned to the same clusters in clustering1, but 
-            different clusters in clustering2"
-        >>> print N01, "element pairs assigned to different clusters in clustering1, but 
-            the same clusters in clustering2"
-        >>> print N00, "element pairs assigned to different clusters in both clusterings"
+        >>> print(N11, "element pairs assigned to the same clusters in both clusterings")
+        >>> print(N10, "element pairs assigned to the same clusters in clustering1, but 
+            different clusters in clustering2")
+        >>> print(N01, "element pairs assigned to different clusters in clustering1, but 
+            the same clusters in clustering2")
+        >>> print(N00, "element pairs assigned to different clusters in both clusterings")
     """
 
     cont_tbl = contingency_table(clustering1, clustering2)
@@ -134,6 +138,47 @@ def hyper(n, a, b, N):
 
 
 '''
+The classification error
+'''
+def classification_error(clustering1, clustering2, measure_type = 'distance'):
+    """
+        This function calculates the Jaccard index between two clusterings.
+
+        J = N11/(N11+N10+N01)  
+
+        Parameters
+        ----------
+        clustering1 : Clustering
+            The first clustering
+
+        clustering2 : Clustering
+            The second clustering
+
+        measure_type : str
+            'distance' - returns a distance measure (0 = most similar, 1 = least similar)
+            'similarity' - returns a similarity measure (0 = least similar, 1 = most similar)
+
+        Returns
+        -------
+        J : float
+            The Jaccard index (between 0.0 and 1.0)
+
+        >>> import clusim
+        >>> clustering1 = clusim.make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'num')
+        >>> clustering2 = clusim.make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'num')
+        >>> print(clusim.classification_error(clustering1, clustering2))
+    """
+
+    cont_tbl = contingency_table(clustering1, clustering2)
+    percent_misclassification = 1.0 / clustering1.n_elements * np.sum(np.max(cont_tbl, axis = np.argmin([clustering2.n_clusters, clustering1.n_clusters])))
+    if measure_type == 'distance':
+        return 1 - percent_misclassification
+    elif measure_type == 'similarity':
+        return percent_misclassification
+
+
+
+'''
 These are the Pairwise Co-occurence Measures
 '''
 
@@ -157,9 +202,9 @@ def jaccard_index(clustering1, clustering2):
             The Jaccard index (between 0.0 and 1.0)
 
         >>> import clusim
-        >>> clustering1 = make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'num')
-        >>> clustering2 = make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'num')
-        >>> print jaccard_index(clustering1, clustering2)
+        >>> clustering1 = clusim.make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'num')
+        >>> clustering2 = clusim.make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'num')
+        >>> print(clusim.jaccard_index(clustering1, clustering2) )
     """
 
     N11, N10, N01, N00 = count_pairwise_cooccurence(clustering1, clustering2)
@@ -192,9 +237,9 @@ def rand_index(clustering1, clustering2):
             The Rand index (between 0.0 and 1.0)
 
         >>> import clusim
-        >>> clustering1 = make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'num')
-        >>> clustering2 = make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'num')
-        >>> print rand_index(clustering1, clustering2)
+        >>> clustering1 = clusim.make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'num')
+        >>> clustering2 = clusim.make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'num')
+        >>> print(clusim.rand_index(clustering1, clustering2))
     """
 
     N11, N10, N01, N00 = count_pairwise_cooccurence(clustering1, clustering2)
@@ -246,12 +291,12 @@ def expected_rand_index(n_elements, random_model = 'num', n_clusters1 = 2, n_clu
             The expected Rand index (between 0.0 and 1.0)
 
         >>> import clusim
-        >>> print expected_rand_index(n_elements = 5, random_model = 'all')
-        >>> print expected_rand_index(n_elements = 5, random_model = 'all1', clus_size_seq2 = [1,1,3])
-        >>> print expected_rand_index(n_elements = 5, , random_model = 'num', n_clusters1 = 2, n_clusters2 = 3)
-        >>> print expected_rand_index(n_elements = 5, random_model = 'num1', n_clusters1 = 2, clus_size_seq2 = [1,1,3])
-        >>> print expected_rand_index(n_elements = 5, random_model = 'perm', clus_size_seq1 = [2,3], clus_size_seq2 = [1,1,3])
-        >>> print expected_rand_index(n_elements = 5, random_model = 'perm1', clus_size_seq1 = [2,3], clus_size_seq2 = [1,1,3])
+        >>> print(clusim.expected_rand_index(n_elements = 5, random_model = 'all'))
+        >>> print(clusim.expected_rand_index(n_elements = 5, random_model = 'all1', clus_size_seq2 = [1,1,3]))
+        >>> print(clusim.expected_rand_index(n_elements = 5, , random_model = 'num', n_clusters1 = 2, n_clusters2 = 3))
+        >>> print(clusim.expected_rand_index(n_elements = 5, random_model = 'num1', n_clusters1 = 2, clus_size_seq2 = [1,1,3]))
+        >>> print(clusim.expected_rand_index(n_elements = 5, random_model = 'perm', clus_size_seq1 = [2,3], clus_size_seq2 = [1,1,3]))
+        >>> print(clusim.expected_rand_index(n_elements = 5, random_model = 'perm1', clus_size_seq1 = [2,3], clus_size_seq2 = [1,1,3]))
     """
     if random_model == 'perm' or random_model == 'perm1':
         npairs = mpmath.binomial(n_elements, 2)
@@ -320,14 +365,14 @@ def adjrand_index(clustering1, clustering2, random_model = 'perm'):
             The adjusted_rand Rand index
 
         >>> import clusim
-        >>> clustering1 = make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'all')
-        >>> clustering2 = make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'all')
-        >>> print adjrand_index(clustering1, clustering2, random_model = 'all')
-        >>> print adjrand_index(clustering1, clustering2, random_model = 'all1')
-        >>> print adjrand_index(clustering1, clustering2, random_model = 'num')
-        >>> print adjrand_index(clustering1, clustering2, random_model = 'num1')
-        >>> print adjrand_index(clustering1, clustering2, random_model = 'perm')
-        >>> print adjrand_index(clustering1, clustering2, random_model = 'perm1')
+        >>> clustering1 = clusim.make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'all')
+        >>> clustering2 = clusim.make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'all')
+        >>> print(clusim.adjrand_index(clustering1, clustering2, random_model = 'all') )
+        >>> print(clusim.adjrand_index(clustering1, clustering2, random_model = 'all1') )
+        >>> print(clusim.adjrand_index(clustering1, clustering2, random_model = 'num') )
+        >>> print(clusim.adjrand_index(clustering1, clustering2, random_model = 'num1') )
+        >>> print(clusim.adjrand_index(clustering1, clustering2, random_model = 'perm') )
+        >>> print(clusim.adjrand_index(clustering1, clustering2, random_model = 'perm1') )
     """
 
     if random_model == 'none':
@@ -366,9 +411,9 @@ def fowlkes_mallows_index(clustering1, clustering2):
             The Fowlkes and Mallows index (between 0.0 and 1.0)
 
         >>> import clusim
-        >>> clustering1 = make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'num')
-        >>> clustering2 = make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'num')
-        >>> print fowlkes_mallows_index(clustering1, clustering2)
+        >>> clustering1 = clusim.make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'num')
+        >>> clustering2 = clusim.make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'num')
+        >>> print(clusim.fowlkes_mallows_index(clustering1, clustering2))
     """
     N11, N10, N01, N00 = count_pairwise_cooccurence(clustering1, clustering2)
 
@@ -383,6 +428,7 @@ def fowlkes_mallows_index(clustering1, clustering2):
 def fmeasure(clustering1, clustering2):
     """
         This function calculates the F-measure between two clusterings.
+        
         Also known as: 
         Czekanowski index 
         Dice Symmetric index
@@ -404,9 +450,9 @@ def fmeasure(clustering1, clustering2):
             The F-measure (between 0.0 and 1.0)
 
         >>> import clusim
-        >>> clustering1 = make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'num')
-        >>> clustering2 = make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'num')
-        >>> print fmeasure(clustering1, clustering2)
+        >>> clustering1 = clusim.make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'num')
+        >>> clustering2 = clusim.make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'num')
+        >>> print( clusim.fmeasure(clustering1, clustering2))
     """
     N11, N10, N01, N00 = count_pairwise_cooccurence(clustering1, clustering2)
 
@@ -417,6 +463,30 @@ def fmeasure(clustering1, clustering2):
         return 2*N11 / denom
     else:
         return 0.0
+
+def czekanowski_index(clustering1, clustering2):
+    """
+        This function calculates the Czekanowski index between two clusterings.
+
+        See Fmeasure
+    """
+    return fmeasure(clustering1, clustering2)
+
+def dice_index(clustering1, clustering2):
+    """
+        This function calculates the Dice index between two clusterings.
+
+        See Fmeasure
+    """
+    return fmeasure(clustering1, clustering2)
+
+def sorensen_index(clustering1, clustering2):
+    """
+        This function calculates the Sorensen index between two clusterings.
+
+        See Fmeasure
+    """
+    return fmeasure(clustering1, clustering2)
 
 
 def rogers_tanimoto_index(clustering1, clustering2):
@@ -439,9 +509,9 @@ def rogers_tanimoto_index(clustering1, clustering2):
             The Rogers and Tanimoto index (between 0.0 and 1.0)
 
         >>> import clusim
-        >>> clustering1 = make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'num')
-        >>> clustering2 = make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'num')
-        >>> print rogers_tanimoto_index(clustering1, clustering2)
+        >>> clustering1 = clusim.make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'num')
+        >>> clustering2 = clusim.make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'num')
+        >>> print( clusim.rogers_tanimoto_index(clustering1, clustering2) )
     """
 
     N11, N10, N01, N00 = count_pairwise_cooccurence(clustering1, clustering2)
@@ -461,11 +531,198 @@ def southwood_index(clustering1, clustering2):
 
     denom = N10 + N01
 
-    # catch the case every element is in its own cluster so denominator is 0
+    # catch the case where the two clusters agree
     if denom > 0:
         return N11 / denom
     else:
+        return 1.0
+
+
+def pearson_correlation(clustering1, clustering2):
+    """
+        This function calculates the Pearson Correlation between two clusterings.
+
+        PC = (N11 * N00  - N01 * N10) / ( (N11 + N10) * (N11 + N01) * (N00 + N10) * (N00 + N01) ) 
+
+        Parameters
+        ----------
+        clustering1 : Clustering
+            The first clustering
+
+        clustering2 : Clustering
+            The second clustering
+
+        Returns
+        -------
+        PC : float
+            The Pearson Correlation (between -1.0 and 1.0)
+
+        >>> import clusim
+        >>> clustering1 = clusim.make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'num')
+        >>> clustering2 = clusim.make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'num')
+        >>> print(clusim.pearson_correlation(clustering1, clustering2))
+    """
+    N11, N10, N01, N00 = count_pairwise_cooccurence(clustering1, clustering2)
+
+    numerator = N11 * N00  - N01 * N10
+    denom = (N11 + N10) * (N11 + N01) * (N00 + N10) * (N00 + N01) 
+
+    # catch the case every element is in its own cluster so denominator is 0
+    if denom > 0:
+        return numerator / denom
+    else:
         return 0.0
+
+def corrected_chance(clustering1, clustering2, measure = 'jaccard_index', random_model = 'perm', norm_type = 'sum', nsamples = 100):
+    """
+        This function calculates the adjusted Similarity for one of six random models.
+
+        .. note:: Clustering 2 is considered the gold-standard clustering for one-sided expectations
+
+        Parameters
+        ----------
+        clustering1 : Clustering
+            The first clustering.
+
+        clustering2 : Clustering
+            The second clustering.
+
+        measure : string
+            The similarity measure to evalute.  Must be one of the available_similarity_measures.
+
+        random_model : string
+            The random model to use:
+
+            'all' : uniform distrubtion over the set of all clusterings of n_elements
+
+            'all1' : one-sided selction from the uniform distrubtion over the set of all clusterings of n_elements
+
+            'num' : uniform distrubtion over the set of all clusterings of n_elements in n_clusters
+
+            'num1' : one-sided selction from the uniform distrubtion over the set of all clusterings of n_elements in n_clusters
+
+            'perm' : the permutation model for a fixed cluster size sequence
+
+            'perm1' : one-sided selction from the permutation model for a fixed cluster size sequence, same as 'perm'
+
+        nsamples : int
+            The number of random Clusterings sampled to determine the expected similarity.
+
+        Returns
+        -------
+        adjusted_sim : float
+            The adjusted Similarity measure
+
+        >>> import clusim
+        >>> clustering1 = clusim.make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'all')
+        >>> clustering2 = clusim.make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'all')
+        >>> print(clusim.corrected_chance(clustering1, clustering2, measure = 'jaccard_index', random_model = 'all') )
+        >>> print(clusim.corrected_chance(clustering1, clustering2, measure = 'jaccard_index', random_model = 'all1') )
+        >>> print(clusim.corrected_chance(clustering1, clustering2, measure = 'jaccard_index', random_model = 'num') )
+        >>> print(clusim.corrected_chance(clustering1, clustering2, measure = 'jaccard_index', random_model = 'num1') )
+        >>> print(clusim.corrected_chance(clustering1, clustering2, measure = 'jaccard_index', random_model = 'perm') )
+        >>> print(clusim.corrected_chance(clustering1, clustering2, measure = 'jaccard_index', random_model = 'perm1') )
+    """
+
+    # catch the two cases (rand_index or nmi) that can be found 
+    if measure == 'rand_index':
+        return adjrand_index(clustering1, clustering2, random_model = random_model)
+
+    elif measure == 'nmi':
+        return adj_mi(clustering1, clustering2, random_model = random_model, norm_type = norm_type)
+
+    # otherwise, make sure the measure is an available measure
+    elif measure in available_similarity_measures:
+        if random_model == 'none':
+            exp_sim = 0.0
+        else:
+            exp_sim = sample_expected_sim(clustering1, clustering2, measure = measure, random_model = random_model, nsamples = nsamples)
+
+        denom = 1. - exp_sim
+        if (denom) > 0:
+            similarity_value = evaluate(str(measure)+'(clustering1, clustering2)')
+            return (similarity_value - exp_sim) / denom
+        else:
+            return 0.0
+    else:
+        print("Measure %s not supported.  Please choose from one of the available measures:" % measure)
+        print(available_similarity_measures)
+        return None
+
+
+
+def sample_expected_sim(clustering1, clustering2, measure = 'jaccard_index', random_model = 'perm', nsamples = 1, keep_samples = False):
+    """
+        This function calculates the expected Similarity for all pair-wise comparisons between Clusterings drawn from one of 
+        six random models.
+
+        .. note:: Clustering 2 is considered the gold-standard clustering for one-sided expectations
+
+        Parameters
+        ----------
+        clustering1 : Clustering
+            The first clustering.
+
+        clustering2 : Clustering
+            The second clustering.
+
+        measure : string
+            The similarity measure to evalute.  Must be one of the available_similarity_measures.
+
+        random_model : string
+            The random model to use:
+
+            'all' : uniform distrubtion over the set of all clusterings of n_elements
+
+            'all1' : one-sided selction from the uniform distrubtion over the set of all clusterings of n_elements
+
+            'num' : uniform distrubtion over the set of all clusterings of n_elements in n_clusters
+
+            'num1' : one-sided selction from the uniform distrubtion over the set of all clusterings of n_elements in n_clusters
+
+            'perm' : the permutation model for a fixed cluster size sequence
+
+            'perm1' : one-sided selction from the permutation model for a fixed cluster size sequence, same as 'perm'
+
+        nsamples : int
+            The number of random Clusterings sampled to determine the expected similarity.
+
+        Returns
+        -------
+        expected_sim : float
+            The expected Similarity measure for all pair-wise comparisons under a random model
+
+        >>> import clusim
+        >>> clustering1 = make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'all')
+        >>> clustering2 = make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'all')
+        >>> print(corrected_chance(clustering1, clustering2, measure = 'jaccard_index', random_model = 'all') )
+        >>> print(corrected_chance(clustering1, clustering2, measure = 'jaccard_index', random_model = 'all1') )
+        >>> print(corrected_chance(clustering1, clustering2, measure = 'jaccard_index', random_model = 'num') )
+        >>> print(corrected_chance(clustering1, clustering2, measure = 'jaccard_index', random_model = 'num1') )
+        >>> print(corrected_chance(clustering1, clustering2, measure = 'jaccard_index', random_model = 'perm') )
+        >>> print(corrected_chance(clustering1, clustering2, measure = 'jaccard_index', random_model = 'perm1') )
+    """
+
+    # draw nsamples random samples from the random model
+    random_clustering1_list = [make_random_clustering(n_elements = clustering1.n_elements, n_clusters = clustering1.n_clusters, 
+        clu_size_seq = clustering1.clus_size_seq,
+        random_model = random_model, tol = 1.0e-15) for isample in range(nsamples)]
+
+    if '1' in random_model:
+        # this is a one-sided model so only compare to the gold-standard clustering
+        random_clustering2_list = [clustering2]
+    else:
+        # this is a two-sided model so draw another nsamples from the random model
+        random_clustering2_list = [make_random_clustering(n_elements = clustering2.n_elements, n_clusters = clustering2.n_clusters, 
+            clu_size_seq = clustering2.clus_size_seq,
+            random_model = random_model, tol = 1.0e-15) for isample in range(nsamples)]
+
+    pairwise_comparisons = [eval(measure + '(c1, c2)') for c1, c2 in itertools.product(random_clustering1_list, random_clustering2_list)]
+    
+    if keep_samples:
+        return pairwise_comparisons
+    else:
+        return np.mean(pairwise_comparisons)
 
 
 """
