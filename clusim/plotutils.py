@@ -1,16 +1,5 @@
 """ useful functions for plotting """
-from six import iteritems
 
-import numpy as np
-
-try:
-    import matplotlib.pyplot as plt
-
-    import matplotlib.patches as mpatches
-    from matplotlib.collections import PatchCollection
-
-except ImportError:
-    print("For drawing functions to be enabled, please install matplotlib.")
 
 def cm2inch(*tupl):
     """ convert cm to inches """
@@ -20,11 +9,12 @@ def cm2inch(*tupl):
     else:
         return tuple(i/cm_per_inch for i in tupl)
 
+
 def blank_axis(axs):
     """ remove spines, ticks, and axis lines from the axis object """
 
     # Remove top and right axes lines ("spines")
-    spines_to_remove = ['top', 'right', 'left', 'bottom']#, 'left', 'bottom']
+    spines_to_remove = ['top', 'right', 'left', 'bottom']  # 'left', 'bottom']
     for spine in spines_to_remove:
         axs.spines[spine].set_visible(False)
 
@@ -35,7 +25,7 @@ def blank_axis(axs):
 
     axs.set_xticks([])
     axs.set_yticks([])
-    #ax.set(aspect = 1)
+    # ax.set(aspect = 1)
 
     for xlabel in axs.axes.get_xticklabels():
         xlabel.set_visible(False)
@@ -44,6 +34,7 @@ def blank_axis(axs):
         ylabel.set_visible(False)
 
     return axs
+
 
 def print_clustering(clustering):
     """
@@ -58,4 +49,5 @@ def print_clustering(clustering):
         >>> clu = make_equal_clustering(n_elements = 9, n_clusters = 3)
         >>> print_clustering(clu)
     """
-    print('|'.join("".join(map(str, loe)) for loe in clustering.clu2elm_dict.values()))
+    print('|'.join("".join(map(str, loe)) for loe
+                   in clustering.clu2elm_dict.values()))
