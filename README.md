@@ -1,14 +1,11 @@
-# clusim
-
-CluSim: An extended package for clustering similarity
-=======================================================
+# CluSim: a package for calculating clustering similarity
 
 This package implements a series of methods used to compare Clusterings.
 
-Installation:
--------------
+Installation
+------------
 
-This package (will be) available in Pypi. Just run the following command on terminal to install.
+This package (will be) available in PyPI. Just run the following command on terminal to install.
 
 ```
     $ pip install clusim
@@ -16,13 +13,13 @@ This package (will be) available in Pypi. Just run the following command on term
 
 You can also source the code directly from the github [project page](https://github.com/ajgates42/clusim).
 
-Docs:
--------
+Docs
+----
 
-The full documentation can be found at: [ajgates42.github.io/clussim](https://ajgates42.github.io/clusim)
+The full documentation can be found at: [ajgates42.github.io/clusim](https://ajgates42.github.io/clusim)
 
-Papers:
----------
+Papers
+------
 
 - A.J. Gates and YY Ahn [2017] "[The Impact of Random Models on Clustering Similarity.](http://jmlr.org/papers/volume18/17-039/17-039.pdf)" *JMLR* **18**, 1-28.
 
