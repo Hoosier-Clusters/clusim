@@ -5,31 +5,47 @@ import networkx as nx
 
 from clusim.dag import DAG, Dendrogram
 
+class ClusterError(ValueError):
+    """Exception raised for errors in the clustering.
+
+    Attributes:
+        expression -- input expression in which the error occurred
+        message -- explanation of the error
+    """
+
+    def __init__(self, expression, message):
+        self.expression = expression
+        self.message = message
+
 class Clustering(object):
     """Base class for clusterings.
 
     Parameters
     ----------
-    elm2clus_dict : dict, optional
-        Initialize based on an elm2clus_dict: { elementid: [clu1, clu2, ... ] }.  
+    elm2clu_dict : dict, optional
+        Initialize based on an elm2clu_dict: { elementid: [clu1, clu2, ... ] }.  
         Each element is a key with value a list of clusters to which it belongs.
 
-    clus2elm_dict : dict, optional
-        Initialize based on an clus2elm_dict: { clusid: [el1, el2, ... ]}.  
+    clu2elm_dict : dict, optional
+        Initialize based on an clu2elm_dict: { clusid: [el1, el2, ... ]}.  
         Each cluster is a key with value a list of elements which belong to it.
+
+    hier_graph : networkx graph, optional
+        Initialize based on a hierarchical acyclic graph capturing the cluster 
+        membership at each scale.
     """
 
-    def __init__(self, elm2clus_dict=None, clus2elm_dict=None, hier_graph= None):
+    def __init__(self, elm2clu_dict=None, clu2elm_dict=None, hier_graph= None):
 
         self.empty_start()
         
-        if elm2clus_dict is not None:
-            # create clustering from elm2clus_dict
-            self.from_elm2clus_dict(elm2clus_dict)
+        if elm2clu_dict is not None:
+            # create clustering from elm2clu_dict
+            self.from_elm2clu_dict(elm2clu_dict)
 
-        elif clus2elm_dict is not None:
-            # create clustering from clus2elm_dict
-            self.from_clus2elm_dict(clus2elm_dict)
+        elif clu2elm_dict is not None:
+            # create clustering from clu2elm_dict
+            self.from_clu2elm_dict(clu2elm_dict)
 
         if hier_graph is not None:
             self.is_hierarchical = True
@@ -47,15 +63,15 @@ class Clustering(object):
         # list of clusters
         self.clusters = []
 
-        # representation as an elm2clus_dict
-        self.elm2clus_dict = defaultdict(set)
-        # representation as an clus2elm_dict
-        self.clus2elm_dict = defaultdict(set)
+        # representation as an elm2clu_dict
+        self.elm2clu_dict = defaultdict(set)
+        # representation as an clu2elm_dict
+        self.clu2elm_dict = defaultdict(set)
         # represetation as an acyclic graph
         self.hier_graph = nx.DiGraph()
 
         # cluster size sequence
-        self.clus_size_seq = []
+        self.clu_size_seq = []
         # disjoint partitions?
         self.is_disjoint = False
         # hierarchical partitions?
@@ -75,66 +91,66 @@ class Clustering(object):
         """
         return copy.deepcopy(self)
 
-    def from_elm2clus_dict(self, elm2clus_dict):
+    def from_elm2clu_dict(self, elm2clu_dict):
         """
-        This method creates a clustering from an elm2clus_dict dictionary:
+        This method creates a clustering from an elm2clu_dict dictionary:
         { elementid: [clu1, clu2, ... ] } where each element is a key with 
         value a list of clusters to which it belongs.  Clustering features
         are then calculated.
 
         Parameters
         ----------
-        elm2clus_dict : dict
+        elm2clu_dict : dict
             { elementid: [clu1, clu2, ... ] }
 
         >>> import clusim
-        >>> elm2clus_dict = {0:[0], 1:[0], 2:[0,1], 3:[1], 4:[2], 5:[2]}
+        >>> elm2clu_dict = {0:[0], 1:[0], 2:[0,1], 3:[1], 4:[2], 5:[2]}
         >>> clu = Clustering()
-        >>> clu.from_elm2clus_dict(elm2clus_dict)
+        >>> clu.from_elm2clu_dict(elm2clu_dict)
         >>> print_clustering(clu)
         """
 
-        self.elm2clus_dict = copy.deepcopy(elm2clus_dict)
-        self.elements = list(self.elm2clus_dict.keys())
+        self.elm2clu_dict = copy.deepcopy(elm2clu_dict)
+        self.elements = list(self.elm2clu_dict.keys())
         self.n_elements = len(self.elements)
 
-        self.clus2elm_dict = self.to_clus2elm_dict()
-        self.clusters = list(self.clus2elm_dict.keys())
+        self.clu2elm_dict = self.to_clu2elm_dict()
+        self.clusters = list(self.clu2elm_dict.keys())
         self.n_clusters = len(self.clusters)
 
-        self.clus_size_seq = self.find_clus_size_seq()
+        self.clu_size_seq = self.find_clu_size_seq()
 
         self.is_disjoint = self.find_num_overlap() == 0
 
-    def from_clus2elm_dict(self, clus2elm_dict):
+    def from_clu2elm_dict(self, clu2elm_dict):
         """
-        This method creates a clustering from an clus2elm_dict dictionary:
+        This method creates a clustering from an clu2elm_dict dictionary:
         { clusid: [el1, el22, ... ] } where each cluster is a key with 
         value a list of elements which belong to it.  Clustering features
         are then calculated.
 
         Parameters
         ----------
-        clus2elm_dict : dict
+        clu2elm_dict : dict
             { clusid: [el1, el2, ... ] }
 
 
         >>> import clusim
-        >>> clus2elm_dict = {0:[0,1,2], 1:[2,3], 2:[4,5]}
+        >>> clu2elm_dict = {0:[0,1,2], 1:[2,3], 2:[4,5]}
         >>> clu = Clustering()
-        >>> clu.from_clus2elm_dict(clus2elm_dict)
+        >>> clu.from_clu2elm_dict(clu2elm_dict)
         >>> print_clustering(clu)
         """
 
-        self.clus2elm_dict = copy.deepcopy(clus2elm_dict)
-        self.clusters =  list(self.clus2elm_dict.keys())
+        self.clu2elm_dict = copy.deepcopy(clu2elm_dict)
+        self.clusters =  list(self.clu2elm_dict.keys())
         self.n_clusters = len(self.clusters)
 
-        self.elm2clus_dict = self.to_elm2clus_dict()
-        self.elements = list(self.elm2clus_dict.keys())
+        self.elm2clu_dict = self.to_elm2clu_dict()
+        self.elements = list(self.elm2clu_dict.keys())
         self.n_elements = len(self.elements)
 
-        self.clus_size_seq = self.find_clus_size_seq()
+        self.clu_size_seq = self.find_clu_size_seq()
 
         self.is_disjoint = self.find_num_overlap() == 0
 
@@ -156,7 +172,7 @@ class Clustering(object):
         >>> clu.from_cluster_list(cluster_list)
         >>> print_clustering(clu)
         """
-        self.from_clus2elm_dict({iclus:set(clist) for iclus, clist in enumerate(cluster_list)})
+        self.from_clu2elm_dict({iclus:set(clist) for iclus, clist in enumerate(cluster_list)})
 
     def to_cluster_list(self):
         """
@@ -171,7 +187,7 @@ class Clustering(object):
             [ [el1, el2, ...], [el5, ...], ... ]
 
         """
-        return list(map(list, self.clus2elm_dict.values()))
+        return list(map(list, self.clu2elm_dict.values()))
         
     def from_membership_list(self, membership_list):
         """
@@ -193,7 +209,7 @@ class Clustering(object):
         >>> clu.from_membership_list(membership_list)
         >>> print_clustering(clu)
         """ 
-        self.from_elm2clus_dict({elm:set([clu]) for elm, clu in enumerate(membership_list)})
+        self.from_elm2clu_dict({elm:set([clu]) for elm, clu in enumerate(membership_list)})
 
     def to_membership_list(self):
         """
@@ -204,8 +220,15 @@ class Clustering(object):
         .. note:: Membership Lists can only represent partitions (no overlaps)
         """ 
         
-        if self.is_disjoint and not self.is_hierarchical:
-            return [list(self.elm2clus_dict[elm])[0] for elm in sorted(self.elements)]
+        if not self.is_disjoint:
+            raise ClusterError("", "Membership Lists can only be created for disjoint clusterings. Your clustering contains overlaps.")
+
+        elif self.is_hierarchical:
+            raise ClusterError("", "Membership Lists can only be created for disjoint clusterings. Your clustering is hierarchical.")
+            
+        else:
+            return [list(self.elm2clu_dict[elm])[0] for elm in sorted(self.elements)]
+            
 
     def clustering_from_igraph_cover(self, igraphcover):
         """
@@ -215,51 +238,52 @@ class Clustering(object):
 
         """ 
         igc = igraphcover.as_cover().membership
-        self.from_elm2clus_dict({elm:set(clu) for elm, clu in enumerate(igc)})
+        self.from_elm2clu_dict({elm:set(clu) for elm, clu in enumerate(igc)})
+        return self
 
-    def to_clus2elm_dict(self):
+    def to_clu2elm_dict(self):
         """ 
         Create a clu2elm_dict: {clusterid: [el1, el2, ... ]} from the
-        stored elm2clus_dict.
+        stored elm2clu_dict.
         """
 
-        clus2elm_dict = defaultdict(set)
-        for elm in self.elm2clus_dict:
-            for clu in self.elm2clus_dict[elm]:
-                clus2elm_dict[clu].add(elm)
+        clu2elm_dict = defaultdict(set)
+        for elm in self.elm2clu_dict:
+            for clu in self.elm2clu_dict[elm]:
+                clu2elm_dict[clu].add(elm)
 
-        return clus2elm_dict
+        return clu2elm_dict
 
-    def to_elm2clus_dict(self):
+    def to_elm2clu_dict(self):
         """ 
-        Create a elm2clus_dict: {elementid: [clu1, clu2, ... ]} from the
+        Create a elm2clu_dict: {elementid: [clu1, clu2, ... ]} from the
         stored clu2elm_dict.
         """
 
-        elm2clus_dict = defaultdict(set)
-        for clu in self.clus2elm_dict:
-            for elm in self.clus2elm_dict[clu]:
-                elm2clus_dict[elm].add(clu)
+        elm2clu_dict = defaultdict(set)
+        for clu in self.clu2elm_dict:
+            for elm in self.clu2elm_dict[clu]:
+                elm2clu_dict[elm].add(clu)
 
-        return elm2clus_dict
+        return elm2clu_dict
 
-    def find_clus_size_seq(self):
+    def find_clu_size_seq(self):
         """ 
         This method finds the cluster size sequence for the clustering. 
 
         Returns
         -------
-        clus_size_seq : list of integers
+        clu_size_seq : list of integers
             A list where the ith entry corresponds to the size of the ith
             cluster.
         
         >>> import clusim
-        >>> elm2clus_dict = {0:[0], 1:[0], 2:[0,1], 3:[1], 4:[2], 5:[2]}
-        >>> clu = Clustering(elm2clus_dict = elm2clus_dict)
-        >>> print("Cluster Size Sequence:", clu.find_clus_size_seq())
+        >>> elm2clu_dict = {0:[0], 1:[0], 2:[0,1], 3:[1], 4:[2], 5:[2]}
+        >>> clu = Clustering(elm2clu_dict = elm2clu_dict)
+        >>> print("Cluster Size Sequence:", clu.find_clu_size_seq())
         * Cluster Size Sequence: [3, 2, 2]
         """
-        return [len(self.clus2elm_dict[clu]) for clu in self.clusters]
+        return [len(self.clu2elm_dict[clu]) for clu in self.clusters]
 
     def find_num_overlap(self):
         """ 
@@ -268,16 +292,16 @@ class Clustering(object):
 
         Returns
         -------
-        clus_size_seq : integer
+        clu_size_seq : integer
             The number of elements in at least two clusters.
         
         >>> import clusim
-        >>> elm2clus_dict = {0:[0], 1:[0], 2:[0,1], 3:[1], 4:[2], 5:[2]}
-        >>> clu = Clustering(elm2clus_dict = elm2clus_dict)
+        >>> elm2clu_dict = {0:[0], 1:[0], 2:[0,1], 3:[1], 4:[2], 5:[2]}
+        >>> clu = Clustering(elm2clu_dict = elm2clu_dict)
         >>> print("Overlap size:", clu.find_num_overlap())
         * Overlap size: 1
         """
-        return sum([len(self.elm2clus_dict[elm]) > 1 for elm in self.elements])
+        return sum([len(self.elm2clu_dict[elm]) > 1 for elm in self.elements])
 
     def merge_clusters(self, c1, c2, new_name = None):
         """ 
@@ -290,30 +314,40 @@ class Clustering(object):
         self : Clustering
         
         >>> import clusim
-        >>> elm2clus_dict = {0:[0], 1:[0], 2:[0], 3:[1], 4:[2], 5:[2]}
-        >>> clu = Clustering(elm2clus_dict = elm2clus_dict)
+        >>> elm2clu_dict = {0:[0], 1:[0], 2:[0], 3:[1], 4:[2], 5:[2]}
+        >>> clu = Clustering(elm2clu_dict = elm2clu_dict)
         >>> clu.merge_clusters(1,2, new_name = 3)
-        >>> clu.elm2clus_dict
+        >>> clu.elm2clu_dict
         * {0:[0], 1:[0], 2:[0], 3:[3], 4:[3], 5:[3]}
         """
         if new_name is None:
             new_name = c1
 
-        new_clus = self.clus2elm_dict[c1] | self.clus2elm_dict[c2]
-        del self.clus2elm_dict[c1]
-        del self.clus2elm_dict[c2]
+        new_clus = self.clu2elm_dict[c1] | self.clu2elm_dict[c2]
+        del self.clu2elm_dict[c1]
+        del self.clu2elm_dict[c2]
 
-        self.clus2elm_dict[new_name] = new_clus
-        self.from_clus2elm_dict(self.clus2elm_dict)
+        self.clu2elm_dict[new_name] = new_clus
+        self.from_clu2elm_dict(self.clu2elm_dict)
         return self
     
+
+
+
+    ##############################################
     # extra support for hierarchical clusterings
+    ##############################################
+
 
     def downstream_elements(self, cluster):
         """ 
         This method finds all elements contained in a cluster from a 
         hierarchical clustering by visiting all downstream clusters 
         and adding their elements.
+        
+        Parameters
+        ----------
+        cluster : the name of the parent cluster
 
         Returns
         -------
@@ -323,18 +357,41 @@ class Clustering(object):
         
         """
         if cluster in self.hier_graph.leaves():
-            return self.clus2elm_dict[cluster]
+            return self.clu2elm_dict[cluster]
         else:
             el = set([])
             for c in nx.dfs_preorder_nodes(self.hier_graph, cluster):
                 try:
-                    el.update(self.clus2elm_dict[c])
+                    el.update(self.clu2elm_dict[c])
                 except KeyError:
                     pass
 
             return el
 
-    def from_linkage(self, linkage_matrix, dist_rescaled = False):
+    def from_scipy_linkage(self, linkage_matrix, dist_rescaled = False):
+        """
+        This method creates a clustering from a scipy linkage object resulting 
+        from the agglomerative hierarchical clustering.  
+        Clustering features are then calculated.
+
+        Parameters
+        ----------
+        linkage_matrix : numpy matrix
+            the linkage matrix from scipy
+        
+        dist_rescaled : Boolean
+            if True, the linkage distances are linearlly rescaled to be in-between 0 and 1
+
+
+        >>> import clusim
+        >>> from scipy.cluster.hierarchy import dendrogram, linkage
+        >>> import numpy as np
+        >>> np.random.seed(42)
+        >>> Xdata = np.concatenate((np.random.multivariate_normal([10, 0], [[3, 1], [1, 4]], size=[100,]), np.random.multivariate_normal([0, 20], [[3, 1], [1, 4]], size=[50,])),)
+        >>> Z = linkage(X, 'ward')
+        >>> clu = Clustering()
+        >>> clu.from_scipy_linkage(Z, dist_rescaled = False)
+        """
         self.hier_graph = Dendrogram().from_linkage(linkage_matrix, dist_rescaled)
 
     def to_dendropy_tree(self, taxon_namespace, weighted = False):
@@ -355,7 +412,7 @@ class Clustering(object):
                 tree_dict[child] = tree_dict[clus].new_child(edge_length = edge_length(clus, child))
 
         for clus in self.hier_graph.leaves():
-            tree_dict[clus].taxon = taxon_namespace.get_taxon(str(list(self.clus2elm_dict[clus])[0]))
+            tree_dict[clus].taxon = taxon_namespace.get_taxon(str(list(self.clu2elm_dict[clus])[0]))
         
         return tree
 
@@ -373,7 +430,7 @@ class Clustering(object):
                                                         rescale_path_type = rescale_path_type)
         
         new_cluster_dict = {c:self.downstream_elements(c) for c in clusters_at_depth}
-        flat_clustering = Clustering(clus2elm_dict = new_cluster_dict)
+        flat_clustering = Clustering(clu2elm_dict = new_cluster_dict)
         return flat_clustering
              
     def hier_clusdict(self):

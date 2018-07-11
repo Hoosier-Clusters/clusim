@@ -58,8 +58,8 @@ def element_sim(clustering1, clustering2, alpha = 0.9, r = 1., r2 = None, rescal
 			The element-wise similarity between the two clusterings
 
 		>>> import clusim
-		>>> clustering1 = Clustering(elm2clus_dict = {0:[0], 1:[0], 2:[0,1], 3:[1], 4:[2], 5:[2]})
-		>>> clustering2 = Clustering(elm2clus_dict = {0:[0,2], 1:[0], 2:[0,1], 3:[1], 4:[2], 5:[1,2]})
+		>>> clustering1 = Clustering(elm2clu_dict = {0:[0], 1:[0], 2:[0,1], 3:[1], 4:[2], 5:[2]})
+		>>> clustering2 = Clustering(elm2clu_dict = {0:[0,2], 1:[0], 2:[0,1], 3:[1], 4:[2], 5:[1,2]})
 		>>> print(element_sim(clustering1, clustering2, alpha = 0.9)) 
 	"""
 	elementScores, relabeled_elements = element_sim_elscore(clustering1, clustering2, alpha = alpha, r = r, r2 = r2, rescale_path_type = rescale_path_type)
@@ -92,8 +92,8 @@ def element_sim_elscore(clustering1, clustering2, alpha = 0.9, r = 1., r2 = None
 			The elements maped to indices of the elementScores array.
 
 		>>> import clusim
-		>>> clustering1 = Clustering(elm2clus_dict = {0:[0], 1:[0], 2:[0,1], 3:[1], 4:[2], 5:[2]})
-		>>> clustering2 = Clustering(elm2clus_dict = {0:[0,2], 1:[0], 2:[0,1], 3:[1], 4:[2], 5:[1,2]})
+		>>> clustering1 = Clustering(elm2clu_dict = {0:[0], 1:[0], 2:[0,1], 3:[1], 4:[2], 5:[2]})
+		>>> clustering2 = Clustering(elm2clu_dict = {0:[0,2], 1:[0], 2:[0,1], 3:[1], 4:[2], 5:[1,2]})
 		>>> elementScores, relabeled_elements = element_sim_elseq(clustering1, clustering2, alpha = 0.9)
 		>>> print(elementScores) 
 	"""
@@ -164,10 +164,10 @@ def make_affinity_matrix(clustering, alpha = 0.9, r = 1., rescale_path_type = 'm
 			The element-centric affinity representation of the clustering
 
 		>>> import clusim
-		>>> clustering1 = Clustering(elm2clus_dict = {0:[0], 1:[0], 2:[1], 3:[1], 4:[2], 5:[2]})
+		>>> clustering1 = Clustering(elm2clu_dict = {0:[0], 1:[0], 2:[1], 3:[1], 4:[2], 5:[2]})
 		>>> pprmatrix = make_affinity_matrix(clustering1, alpha = 0.9)
 		>>> print(pprmatrix) 
-		>>> clustering2 = Clustering(elm2clus_dict = {0:[0], 1:[0], 2:[0,1], 3:[1], 4:[2], 5:[2]})
+		>>> clustering2 = Clustering(elm2clu_dict = {0:[0], 1:[0], 2:[0,1], 3:[1], 4:[2], 5:[2]})
 		>>> pprmatrix2 = make_affinity_matrix(clustering2, alpha = 0.9)
 		>>> print(pprmatrix2) 
 	"""
@@ -210,7 +210,7 @@ def ppr_partition(clustering, alpha = 0.9, relabeled_elements = None):
 			The element-centric affinity representation of the clustering
 
 		>>> import clusim
-		>>> clustering1 = Clustering(elm2clus_dict = {0:[0], 1:[0], 2:[1], 3:[1], 4:[2], 5:[2]})
+		>>> clustering1 = Clustering(elm2clu_dict = {0:[0], 1:[0], 2:[1], 3:[1], 4:[2], 5:[2]})
 		>>> pprmatrix = ppr_partition(clustering1, alpha = 0.9)
 		>>> print(pprmatrix) 
 	"""
@@ -220,7 +220,7 @@ def ppr_partition(clustering, alpha = 0.9, relabeled_elements = None):
 		relabeled_elements = relabel_objects(clustering1.elements)
 
 	ppr = np.zeros((clustering.n_elements, clustering.n_elements))
-	for clustername, clusterlist in clustering.clus2elm_dict.items():
+	for clustername, clusterlist in clustering.clu2elm_dict.items():
 		Csize = len(clusterlist)
 		clusterlist = [relabeled_elements[v] for v in clusterlist]
 		ppr[[[v] for v in clusterlist] , clusterlist] = alpha/Csize * np.ones((Csize, Csize)) + np.eye(Csize) * (1.0 - alpha )
@@ -249,7 +249,7 @@ def make_phctag(clustering, r = 1.0, rescale_path_type = 'max', relabeled_elemen
 			The element-centric affinity representation of the clustering
 
 		>>> import clusim
-		>>> clustering1 = Clustering(elm2clus_dict = {0:[0], 1:[0], 2:[1], 3:[1], 4:[2], 5:[2]})
+		>>> clustering1 = Clustering(elm2clu_dict = {0:[0], 1:[0], 2:[1], 3:[1], 4:[2], 5:[2]})
 		>>> pprmatrix = ppr_partition(clustering1, alpha = 0.9)
 		>>> print(pprmatrix) 
 	"""
@@ -262,16 +262,16 @@ def make_phctag(clustering, r = 1.0, rescale_path_type = 'max', relabeled_elemen
 	if clustering.is_hierarchical:
 		cluster_height = clustering.hier_graph.rescale(rescale_path_type = rescale_path_type)
 		weight_function = lambda c: np.exp( r * (cluster_height[c]))
-		clus2elm_dict = clustering.hier_clusdict()
+		clu2elm_dict = clustering.hier_clusdict()
 	else:
 		weight_function = lambda c: 1.0
-		clus2elm_dict = clustering.clus2elm_dict
+		clu2elm_dict = clustering.clu2elm_dict
 
 	relabeled_clusters = relabel_objects(clustering.clusters)
 
 	edge_seq = []
 	edge_weight_seq = []
-	for c, element_list in clus2elm_dict.items():
+	for c, element_list in clu2elm_dict.items():
 		cstrength = weight_function(c)
 		for el in element_list:
 			edge_seq.append([relabeled_elements[el], relabeled_clusters[c]])
@@ -335,7 +335,7 @@ def numerical_ppr_scores(phctag, clustering, alpha = 0.9, relabeled_elements = N
 	"""
 	
 	collect_regulargroups = collections.defaultdict(list)
-	for e, cl in clustering.elm2clus_dict.items():
+	for e, cl in clustering.elm2clu_dict.items():
 		collect_regulargroups[tuple(sorted(cl))].append(relabeled_elements[e])
 	elementgroupList = collect_regulargroups.values()
 

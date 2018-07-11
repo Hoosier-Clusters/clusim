@@ -37,7 +37,7 @@ import itertools
 from clusim.clugen import *
 
 available_similarity_measures = ['jaccard_index', 'rand_index', 'fowlkes_mallows_index', 'rogers_tanimoto_index', 'southwood_index', 
-'czekanowski_index', 'dice_index', 'sorensen_index', 'pearson_correlation', 'classification_error',
+'czekanowski_index', 'dice_index', 'sorensen_index', 'pearson_correlation', 'classification_error', 'purity_index',
 'fmeasure', 'nmi', 'vi', 'geometric_accuracy', 'overlap_quality', 'nmi_lfk', 'omega_index']
 
 available_random_models = ['perm', 'perm1', 'num', 'num1', 'all', 'all1']
@@ -67,7 +67,7 @@ def contingency_table(clustering1, clustering2):
     """
     assert clustering1.n_elements == clustering2.n_elements
 
-    return [[len(clustering1.clus2elm_dict[clu1] & clustering2.clus2elm_dict[clu2]) for clu2 in clustering2.clusters] for clu1 in clustering1.clusters]
+    return [[len(clustering1.clu2elm_dict[clu1] & clustering2.clu2elm_dict[clu2]) for clu2 in clustering2.clusters] for clu1 in clustering1.clusters]
 
 def count_pairwise_cooccurence(clustering1, clustering2):
     """
@@ -114,8 +114,8 @@ def count_pairwise_cooccurence(clustering1, clustering2):
     cont_tbl = contingency_table(clustering1, clustering2)
 
     T = np.sum(np.square(cont_tbl))
-    R = np.sum(np.square(clustering1.clus_size_seq))
-    C = np.sum(np.square(clustering2.clus_size_seq))
+    R = np.sum(np.square(clustering1.clu_size_seq))
+    C = np.sum(np.square(clustering2.clu_size_seq))
 
     N11 = 0.5 * (T - clustering1.n_elements)
     N10 = 0.5 * (R - T)
@@ -137,44 +137,8 @@ def hyper(n, a, b, N):
 
 
 
-'''
-The classification error
-'''
-def classification_error(clustering1, clustering2, measure_type = 'distance'):
-    """
-        This function calculates the Jaccard index between two clusterings.
 
-        J = N11/(N11+N10+N01)  
 
-        Parameters
-        ----------
-        clustering1 : Clustering
-            The first clustering
-
-        clustering2 : Clustering
-            The second clustering
-
-        measure_type : str
-            'distance' - returns a distance measure (0 = most similar, 1 = least similar)
-            'similarity' - returns a similarity measure (0 = least similar, 1 = most similar)
-
-        Returns
-        -------
-        J : float
-            The Jaccard index (between 0.0 and 1.0)
-
-        >>> import clusim
-        >>> clustering1 = clusim.make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'num')
-        >>> clustering2 = clusim.make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'num')
-        >>> print(clusim.classification_error(clustering1, clustering2))
-    """
-
-    cont_tbl = contingency_table(clustering1, clustering2)
-    percent_misclassification = 1.0 / clustering1.n_elements * np.sum(np.max(cont_tbl, axis = np.argmin([clustering2.n_clusters, clustering1.n_clusters])))
-    if measure_type == 'distance':
-        return 1 - percent_misclassification
-    elif measure_type == 'similarity':
-        return percent_misclassification
 
 
 
@@ -246,7 +210,7 @@ def rand_index(clustering1, clustering2):
 
     return (N11 + N00) / (N11 + N10 + N01 + N00)
 
-def expected_rand_index(n_elements, random_model = 'num', n_clusters1 = 2, n_clusters2 = 2, clus_size_seq1 = None, clus_size_seq2 = None):
+def expected_rand_index(n_elements, random_model = 'num', n_clusters1 = 2, n_clusters2 = 2, clu_size_seq1 = None, clu_size_seq2 = None):
     """
         This function calculates the expectation of the Rand index between all pairs of clusterings
         drawn from one of six random models.
@@ -264,10 +228,10 @@ def expected_rand_index(n_elements, random_model = 'num', n_clusters1 = 2, n_clu
         n_clusters2 : int, optional
             The number of clusters in the second clustering, considered the gold-standard clustering for the one-sided expecations
 
-        clus_size_seq1 : int, optional
+        clu_size_seq1 : int, optional
             The cluster size seqence of the first clustering
 
-        clus_size_seq2 : int, optional
+        clu_size_seq2 : int, optional
             The cluster size seqence of the second clustering
 
         random_model : string
@@ -292,16 +256,16 @@ def expected_rand_index(n_elements, random_model = 'num', n_clusters1 = 2, n_clu
 
         >>> import clusim
         >>> print(clusim.expected_rand_index(n_elements = 5, random_model = 'all'))
-        >>> print(clusim.expected_rand_index(n_elements = 5, random_model = 'all1', clus_size_seq2 = [1,1,3]))
+        >>> print(clusim.expected_rand_index(n_elements = 5, random_model = 'all1', clu_size_seq2 = [1,1,3]))
         >>> print(clusim.expected_rand_index(n_elements = 5, , random_model = 'num', n_clusters1 = 2, n_clusters2 = 3))
-        >>> print(clusim.expected_rand_index(n_elements = 5, random_model = 'num1', n_clusters1 = 2, clus_size_seq2 = [1,1,3]))
-        >>> print(clusim.expected_rand_index(n_elements = 5, random_model = 'perm', clus_size_seq1 = [2,3], clus_size_seq2 = [1,1,3]))
-        >>> print(clusim.expected_rand_index(n_elements = 5, random_model = 'perm1', clus_size_seq1 = [2,3], clus_size_seq2 = [1,1,3]))
+        >>> print(clusim.expected_rand_index(n_elements = 5, random_model = 'num1', n_clusters1 = 2, clu_size_seq2 = [1,1,3]))
+        >>> print(clusim.expected_rand_index(n_elements = 5, random_model = 'perm', clu_size_seq1 = [2,3], clu_size_seq2 = [1,1,3]))
+        >>> print(clusim.expected_rand_index(n_elements = 5, random_model = 'perm1', clu_size_seq1 = [2,3], clu_size_seq2 = [1,1,3]))
     """
     if random_model == 'perm' or random_model == 'perm1':
         npairs = mpmath.binomial(n_elements, 2)
-        p = sum([mpmath.binomial(ai, 2) for ai in clus_size_seq1])
-        q = sum([mpmath.binomial(bi, 2) for bi in clus_size_seq2])
+        p = sum([mpmath.binomial(ai, 2) for ai in clu_size_seq1])
+        q = sum([mpmath.binomial(bi, 2) for bi in clu_size_seq2])
         expected = 1.0 + 2*p*q / npairs**2 - (p + q) / npairs 
 
     elif random_model == 'num':
@@ -311,7 +275,7 @@ def expected_rand_index(n_elements, random_model = 'num', n_clusters1 = 2, n_clu
 
     elif random_model == 'num1':
         QA1 = mpmath.stirling2(n_elements-1, n_clusters1) / mpmath.stirling2(n_elements, n_clusters1)
-        QG1 = sum([mpmath.binomial(gi, 2) for gi in clus_size_seq2])/ mpmath.binomial(n_elements, 2)
+        QG1 = sum([mpmath.binomial(gi, 2) for gi in clu_size_seq2])/ mpmath.binomial(n_elements, 2)
         expected = QA1*QG1 + (1. - QA1)*(1. - QG1)
 
     elif random_model == 'all':
@@ -321,7 +285,7 @@ def expected_rand_index(n_elements, random_model = 'num', n_clusters1 = 2, n_clu
     elif random_model == 'all1':
 
         QA1 = mpmath.bell(n_elements-1)/mpmath.bell(n_elements)
-        QG1 = sum([mpmath.binomial(gi, 2) for gi in clus_size_seq2])/ mpmath.binomial(n_elements, 2)
+        QG1 = sum([mpmath.binomial(gi, 2) for gi in clu_size_seq2])/ mpmath.binomial(n_elements, 2)
         expected = QA1*QG1 + (1. - QA1)*(1. - QG1)
 
     else:
@@ -381,8 +345,8 @@ def adjrand_index(clustering1, clustering2, random_model = 'perm'):
         exp_rand = expected_rand_index(n_elements = clustering1.n_elements, 
                                        n_clusters1 = clustering1.n_clusters, 
                                        n_clusters2 = clustering2.n_clusters, 
-                                       clus_size_seq1 = clustering1.clus_size_seq, 
-                                       clus_size_seq2 = clustering2.clus_size_seq, 
+                                       clu_size_seq1 = clustering1.clu_size_seq, 
+                                       clu_size_seq2 = clustering2.clu_size_seq, 
                                        random_model = random_model)
 
     denom = 1. - exp_rand
@@ -463,6 +427,62 @@ def fmeasure(clustering1, clustering2):
         return 2*N11 / denom
     else:
         return 0.0
+
+def purity_index(clustering1, clustering2):
+    """
+        This function calculates the Purity index between two clusterings.
+
+        PI = 1/N * 
+
+        Parameters
+        ----------
+        clustering1 : Clustering
+            The first clustering
+
+        clustering2 : Clustering
+            The second clustering
+
+        Returns
+        -------
+        PI : float
+            The Purity index (between 0.0 and 1.0)
+
+        >>> import clusim
+        >>> clustering1 = clusim.make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'num')
+        >>> clustering2 = clusim.make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'num')
+        >>> print(clusim.purity_index(clustering1, clustering2))
+    """
+
+    cont_tbl = contingency_table(clustering1, clustering2)
+    return 1.0 / clustering1.n_elements * np.sum(np.max(cont_tbl, axis = np.argmin([clustering2.n_clusters, clustering1.n_clusters])))
+
+def classification_error(clustering1, clustering2):
+    """
+        This function calculates the Jaccard index between two clusterings.
+
+        CE = 1 - PI
+
+        Parameters
+        ----------
+        clustering1 : Clustering
+            The first clustering
+
+        clustering2 : Clustering
+            The second clustering
+
+        Returns
+        -------
+        CE : float
+            The Classification Error (between 0.0 and 1.0)
+        
+        NOTE - CE is a distance measure, it is 0 for identical clusterings
+
+        >>> import clusim
+        >>> clustering1 = clusim.make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'num')
+        >>> clustering2 = clusim.make_random_clustering(n_elements = 9, n_clusters = 3, random_model = 'num')
+        >>> print(clusim.classification_error(clustering1, clustering2))
+    """
+    return 1.0 - purity_index(clustering1, clustering2)
 
 def czekanowski_index(clustering1, clustering2):
     """
@@ -705,7 +725,7 @@ def sample_expected_sim(clustering1, clustering2, measure = 'jaccard_index', ran
 
     # draw nsamples random samples from the random model
     random_clustering1_list = [make_random_clustering(n_elements = clustering1.n_elements, n_clusters = clustering1.n_clusters, 
-        clu_size_seq = clustering1.clus_size_seq,
+        clu_size_seq = clustering1.clu_size_seq,
         random_model = random_model, tol = 1.0e-15) for isample in range(nsamples)]
 
     if '1' in random_model:
@@ -714,7 +734,7 @@ def sample_expected_sim(clustering1, clustering2, measure = 'jaccard_index', ran
     else:
         # this is a two-sided model so draw another nsamples from the random model
         random_clustering2_list = [make_random_clustering(n_elements = clustering2.n_elements, n_clusters = clustering2.n_clusters, 
-            clu_size_seq = clustering2.clus_size_seq,
+            clu_size_seq = clustering2.clu_size_seq,
             random_model = random_model, tol = 1.0e-15) for isample in range(nsamples)]
 
     pairwise_comparisons = [eval(measure + '(c1, c2)') for c1, c2 in itertools.product(random_clustering1_list, random_clustering2_list)]
@@ -732,8 +752,8 @@ def nmi(clustering1, clustering2, norm_type = 'sum'):
     
     cont_tbl = contingency_table(clustering1, clustering2)
 
-    e1 = entropy(np.array(clustering1.clus_size_seq, dtype = float)/clustering1.n_elements)
-    e2 = entropy(np.array(clustering2.clus_size_seq, dtype = float)/clustering2.n_elements)
+    e1 = entropy(np.array(clustering1.clu_size_seq, dtype = float)/clustering1.n_elements)
+    e2 = entropy(np.array(clustering2.clu_size_seq, dtype = float)/clustering2.n_elements)
 
     e12 = entropy(np.array(cont_tbl, dtype = float)/clustering1.n_elements)
 
@@ -754,8 +774,8 @@ def nmi(clustering1, clustering2, norm_type = 'sum'):
 def vi(clustering1, clustering2, norm_type = 'none'):
     cont_tbl = contingency_table(clustering1, clustering2)
 
-    e1 = entropy(np.array(clustering1.clus_size_seq, dtype = float)/clustering1.n_elements)
-    e2 = entropy(np.array(clustering2.clus_size_seq, dtype = float)/clustering2.n_elements)
+    e1 = entropy(np.array(clustering1.clu_size_seq, dtype = float)/clustering1.n_elements)
+    e2 = entropy(np.array(clustering2.clu_size_seq, dtype = float)/clustering2.n_elements)
 
     e12 = entropy(np.array(cont_tbl, dtype = float)/clustering1.n_elements)
     
@@ -764,7 +784,7 @@ def vi(clustering1, clustering2, norm_type = 'none'):
     else:
         return 2 * e12 - e1 - e2
 
-def expected_mi(n_elements, n_clusters1 = 2, n_clusters2 = 2, clus_size_seq1 = None, clus_size_seq2 = None, logbase = 2, random_model = 'num'):
+def expected_mi(n_elements, n_clusters1 = 2, n_clusters2 = 2, clu_size_seq1 = None, clu_size_seq2 = None, logbase = 2, random_model = 'num'):
 
     nf = float(n_elements)
 
@@ -776,8 +796,8 @@ def expected_mi(n_elements, n_clusters1 = 2, n_clusters2 = 2, clus_size_seq1 = N
 
     # find the counts for clustering 1
     if 'perm' in random_model:
-        counter1 = Counter(clus_size_seq1)
-        cluster_size_range1 = sorted(set(clus_size_seq1))
+        counter1 = Counter(clu_size_seq1)
+        cluster_size_range1 = sorted(set(clu_size_seq1))
         cluster_counts1 = [counter1[clu] for clu in cluster_size_range1]
 
     elif 'num' in random_model:
@@ -792,20 +812,20 @@ def expected_mi(n_elements, n_clusters1 = 2, n_clusters2 = 2, clus_size_seq1 = N
 
     # find the counts for clustering 2
     if random_model in ['perm', 'perm1', 'num1', 'all1']:
-        counter2 = Counter(clus_size_seq2)
-        cluster_size_range2 = sorted(set(clus_size_seq2))
+        counter2 = Counter(clu_size_seq2)
+        cluster_size_range2 = sorted(set(clu_size_seq2))
         cluster_counts2 = [counter2[clu] for clu in cluster_size_range2]
         symmetric_sum = False
-        for jclus, clus_size2 in enumerate(cluster_size_range2):
-            expected_H2_sum += clus_size2/nf*mpmath.log(clus_size2/nf)*cluster_counts2[jclus]
+        for jclus, clu_size2 in enumerate(cluster_size_range2):
+            expected_H2_sum += clu_size2/nf*mpmath.log(clu_size2/nf)*cluster_counts2[jclus]
 
     elif random_model == 'num' and n_clusters1 != n_clusters2:
         sn2 = mpmath.stirling2(n_elements, n_clusters2)
         cluster_size_range2 = range(1, n_elements + 1 - (n_clusters2 - 1))
         cluster_counts2 = [mpmath.binomial(n_elements, bj)*mpmath.stirling2(n_elements - bj, n_clusters2 - 1)/sn2 for bj in cluster_size_range2]
         symmetric_sum = False
-        for jclus, clus_size2 in enumerate(cluster_size_range2):
-            expected_H2_sum += clus_size2/nf*mpmath.log(clus_size2/nf)*cluster_counts2[jclus]
+        for jclus, clu_size2 in enumerate(cluster_size_range2):
+            expected_H2_sum += clu_size2/nf*mpmath.log(clu_size2/nf)*cluster_counts2[jclus]
 
     else:
         cluster_size_range2 = cluster_size_range1
@@ -813,29 +833,29 @@ def expected_mi(n_elements, n_clusters1 = 2, n_clusters2 = 2, clus_size_seq1 = N
 
         
     if symmetric_sum:
-        for iclus, clus_size1 in enumerate(cluster_size_range1):
+        for iclus, clu_size1 in enumerate(cluster_size_range1):
 
-            expected_H1_sum += clus_size1/nf*mpmath.log(clus_size1/nf)*cluster_counts1[iclus]
+            expected_H1_sum += clu_size1/nf*mpmath.log(clu_size1/nf)*cluster_counts1[iclus]
             
             for jclus in range(iclus):
-                clus_size2 = cluster_size_range1[jclus]
+                clu_size2 = cluster_size_range1[jclus]
                 
-                for nij in range(max(clus_size1 + clus_size2 - n_elements, 1), clus_size2 + 1):
-                    expected_H12_sum += 2*cluster_counts1[iclus]*cluster_counts2[jclus]*hyper(nij, clus_size1, clus_size2, n_elements)* nij/nf*mpmath.log(nij/nf)
+                for nij in range(max(clu_size1 + clu_size2 - n_elements, 1), clu_size2 + 1):
+                    expected_H12_sum += 2*cluster_counts1[iclus]*cluster_counts2[jclus]*hyper(nij, clu_size1, clu_size2, n_elements)* nij/nf*mpmath.log(nij/nf)
 
-            for nij in range(max(2*clus_size1 - n_elements, 1), clus_size1 + 1):
-                expected_H12_sum += cluster_counts1[iclus]**2 *hyper(nij, clus_size1, clus_size1, n_elements)* nij/nf*mpmath.log(nij/nf)
+            for nij in range(max(2*clu_size1 - n_elements, 1), clu_size1 + 1):
+                expected_H12_sum += cluster_counts1[iclus]**2 *hyper(nij, clu_size1, clu_size1, n_elements)* nij/nf*mpmath.log(nij/nf)
         expected_H2_sum = expected_H1_sum
 
     else:
-        for iclus, clus_size1 in enumerate(cluster_size_range1):
+        for iclus, clu_size1 in enumerate(cluster_size_range1):
 
-            expected_H1_sum += clus_size1/nf*mpmath.log(clus_size1/nf)*cluster_counts1[iclus]
+            expected_H1_sum += clu_size1/nf*mpmath.log(clu_size1/nf)*cluster_counts1[iclus]
             
-            for jclus, clus_size2 in enumerate(cluster_size_range2):
+            for jclus, clu_size2 in enumerate(cluster_size_range2):
                 
-                for nij in range(max(clus_size1 + clus_size2 - n_elements, 1), min(clus_size1, clus_size2) + 1):
-                    expected_H12_sum += cluster_counts1[iclus]*cluster_counts2[jclus]*hyper(nij, clus_size1, clus_size2, n_elements)* nij/nf*mpmath.log(nij/nf)
+                for nij in range(max(clu_size1 + clu_size2 - n_elements, 1), min(clu_size1, clu_size2) + 1):
+                    expected_H12_sum += cluster_counts1[iclus]*cluster_counts2[jclus]*hyper(nij, clu_size1, clu_size2, n_elements)* nij/nf*mpmath.log(nij/nf)
 
             
 
@@ -857,14 +877,14 @@ def adj_mi(clustering1, clustering2, random_model = 'perm', norm_type = 'none', 
         exp_mi = expected_mi(n_elements = clustering1.n_elements, 
                                        n_clusters1 = clustering1.n_clusters, 
                                        n_clusters2 = clustering2.n_clusters, 
-                                       clus_size_seq1 = clustering1.clus_size_seq, 
-                                       clus_size_seq2 = clustering2.clus_size_seq, 
+                                       clu_size_seq1 = clustering1.clu_size_seq, 
+                                       clu_size_seq2 = clustering2.clu_size_seq, 
                                        random_model = random_model,
                                        logbase = logbase)
 
     if random_model == 'perm':
-        e1 = entropy(np.array(clustering1.clus_size_seq, dtype = float)/clustering1.n_elements, logbase = logbase)
-        e2 = entropy(np.array(clustering2.clus_size_seq, dtype = float)/clustering2.n_elements, logbase = logbase)
+        e1 = entropy(np.array(clustering1.clu_size_seq, dtype = float)/clustering1.n_elements, logbase = logbase)
+        e2 = entropy(np.array(clustering2.clu_size_seq, dtype = float)/clustering2.n_elements, logbase = logbase)
 
     elif random_model == 'num':
         e1 = np.log(clustering1.n_clusters) / np.log(logbase)
@@ -900,7 +920,7 @@ def geometric_accuracy(clustering1, clustering2):
 
     cont_tbl = contingency_table(clustering1, clustering2)
 
-    Nclusters = np.sum(clustering1.clus_size_seq)
+    Nclusters = np.sum(clustering1.clu_size_seq)
     Mclusters = np.sum(cont_tbl)
 
     Sn = np.sum(np.max(cont_tbl, axis = 1))/float(Nclusters)
@@ -911,8 +931,8 @@ def geometric_accuracy(clustering1, clustering2):
 
 def overlap_quality(clustering1, clustering2):
     ''' Ahn et al. (2010) Nature'''
-    num_memberships1 = [len(clustering1.elm2clus_dict[el]) for el in clustering1.elements]
-    num_memberships2 = [len(clustering2.elm2clus_dict[el]) for el in clustering2.elements]
+    num_memberships1 = [len(clustering1.elm2clu_dict[el]) for el in clustering1.elements]
+    num_memberships2 = [len(clustering2.elm2clu_dict[el]) for el in clustering2.elements]
 
     overlap_dist = np.zeros((max(num_memberships1) + 1, max(num_memberships2) + 1), dtype = float)
     for i_el in range(clustering1.n_elements):
@@ -933,8 +953,8 @@ def nmi_lfk(clustering1, clustering2):
 
     e12 = entropy(np.array(cont_tbl, dtype = float)/clustering1.n_elements)
 
-    prob_clu1 = np.array(clustering1.clus_size_seq, dtype = float)/clustering1.n_elements
-    prob_clu2 = np.array(clustering2.clus_size_seq, dtype = float)/clustering2.n_elements
+    prob_clu1 = np.array(clustering1.clu_size_seq, dtype = float)/clustering1.n_elements
+    prob_clu2 = np.array(clustering2.clu_size_seq, dtype = float)/clustering2.n_elements
     joint_prob = np.array(cont_tbl, dtype = float)/clustering1.n_elements
 
     entropy_rv1 = binary_entropy(prob_clu1, 1.0-prob_clu1)
@@ -978,7 +998,7 @@ def make_overlapping_membership_matrix(clustering):
     A = spsparse.csr_matrix((clustering.n_elements, clustering.n_elements), dtype='int')
     for clu in clustering.clusters:
         v = np.zeros(clustering.n_elements)
-        v[list(clustering.clus2elm_dict[clu])] = 1
+        v[list(clustering.clu2elm_dict[clu])] = 1
         v = spsparse.csr_matrix(v, dtype ='int')
         A += v.T*v
     return A

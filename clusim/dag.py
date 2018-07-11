@@ -2,7 +2,11 @@ import networkx as nx
 import numpy as np
 import copy
 import itertools
-import matplotlib.pylab as plt
+
+try:
+	import matplotlib.pylab as plt
+except ImportError:
+	print("For drawing functions to be enabled, please install matplotlib.")
 
 try:
 	import dendropy

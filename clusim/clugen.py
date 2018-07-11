@@ -6,7 +6,6 @@ import mpmath
 import copy
 
 from clusim.clustering import Clustering
-#from clusim.clustering import HierClustering
 from clusim.dag import Dendrogram
 
 def make_equal_clustering(n_elements, n_clusters):
@@ -31,8 +30,8 @@ def make_equal_clustering(n_elements, n_clusters):
         >>> clu = make_equal_clustering(n_elements = 9, n_clusters = 3)
         >>> print_clustering(clu)
     """
-    new_elm2clus_dict = {el:[el%n_clusters] for el in range(n_elements)}
-    new_clustering = Clustering(new_elm2clus_dict)
+    new_elm2clu_dict = {el:[el%n_clusters] for el in range(n_elements)}
+    new_clustering = Clustering(new_elm2clu_dict)
     return new_clustering
 
 def make_random_clustering(n_elements=1, n_clusters=1, clu_size_seq = [1,2], random_model = 'all', tol = 1.0e-15):
@@ -120,7 +119,7 @@ def make_random_dendrogram(n_elements):
     """
     dendro_graph = Dendrogram()
     dendro_graph.make_random_dendrogram_aglomerative(N = n_elements)
-    return HierClustering(clus2elm_dict = {e:set([e]) for e in dendro_graph.leaves()}, hier_graph = dendro_graph)
+    return HierClustering(clu2elm_dict = {e:set([e]) for e in dendro_graph.leaves()}, hier_graph = dendro_graph)
 
 def shuffle_memberships(clustering, percent = 1.0):
     """
@@ -149,16 +148,16 @@ def shuffle_memberships(clustering, percent = 1.0):
     shuffled_el = np.random.permutation(el_to_shuffle)
     newkeys = dict(zip(el_to_shuffle, shuffled_el))
 
-    new_elm2clus_dict = copy.deepcopy(clustering.elm2clus_dict)
+    new_elm2clu_dict = copy.deepcopy(clustering.elm2clu_dict)
     for el in shuffled_el:
-        new_elm2clus_dict[el] = clustering.elm2clus_dict[newkeys[el]]
+        new_elm2clu_dict[el] = clustering.elm2clu_dict[newkeys[el]]
 
     #new_clustering = copy.deepcopy(clustering)
-    #new_clustering.from_elm2clus_dict(new_elm2clus_dict)
+    #new_clustering.from_elm2clu_dict(new_elm2clu_dict)
     if clustering.is_hierarchical:
-        new_clustering = HierClustering(elm2clus_dict = new_elm2clus_dict, hier_graph = copy.deepcopy(clustering.hiergraph))
+        new_clustering = HierClustering(elm2clu_dict = new_elm2clu_dict, hier_graph = copy.deepcopy(clustering.hiergraph))
     else:
-        new_clustering = Clustering(elm2clus_dict = new_elm2clus_dict)
+        new_clustering = Clustering(elm2clu_dict = new_elm2clu_dict)
     return new_clustering
 
 def shuffle_memberships_pa(clustering, Nsteps = 1, constant_num_clusters = True):
