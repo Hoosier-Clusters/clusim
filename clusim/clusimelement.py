@@ -1,7 +1,5 @@
 """
 Element-centric Clustering Similarity
-
-TODO: implement the hierarchical version
 """
 import numpy as np
 import networkx as nx

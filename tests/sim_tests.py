@@ -69,6 +69,7 @@ def test_model_example():
 def test_elementsim_example():
 
 	# taken from Fig 3 of Gates et al (2018) Scientific Reports
+	
 	# overlapping clustering
 	c1_elm2clu_dict = {0:[0], 1:[0], 2:[0], 3:[3], 4:['.3'], 5:['.3', '.9'], 6:['.9']}
 
