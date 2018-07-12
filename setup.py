@@ -4,6 +4,7 @@
 <<<<<<< HEAD
 from setuptools import setup, find_packages
 =======
+from distutils.core import setup
 >>>>>>> 4c6251836689be3e15e93fbe8b5da10123a9b5fa
 from clusim import __package__, __description__, __version__
 from sphinx.setup_command import BuildDoc
@@ -11,12 +12,11 @@ cmdclass = {'build_sphinx': BuildDoc}
 
 
 def readme():
-	with open('README.md') as f:
-		return f.read()
+    with open('README.md') as f:
+        return f.read()
+
 
 setup(name=__package__,
-      version=__version__, 
-      description = 'Clustering simliarity', 
       version=__version__,
       description='Clustering simliarity',
       long_description=__description__,
