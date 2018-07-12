@@ -18,7 +18,7 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('/Users/ajgates/Dropbox/DraftforYY/clusim'))
+sys.path.insert(0, os.path.abspath('../clusim'))
 
 
 # -- General configuration ------------------------------------------------

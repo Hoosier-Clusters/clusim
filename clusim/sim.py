@@ -354,7 +354,7 @@ def expected_rand_index(n_elements, random_model='num', n_clusters1=2,
         ''' TODO: random model not supported'''
         pass
 
-    return expected
+    return np.float64(expected)
 
 
 def adjrand_index(clustering1, clustering2, random_model='perm'):
@@ -1126,9 +1126,9 @@ def overlap_quality(clustering1, clustering2):
         entropy(overlap_dist)
 
 
-def nmi_lfk(clustering1, clustering2):
+def onmi(clustering1, clustering2):
     '''
-    Normalized Mutual Information for overlapping community coverings
+    Overlapping Normalized Mutual Information
 
     (cite)
     '''
