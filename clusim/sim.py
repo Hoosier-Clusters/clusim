@@ -38,7 +38,7 @@ from clusim.clugen import *
 
 available_similarity_measures = ['jaccard_index', 'rand_index', 'fowlkes_mallows_index', 'rogers_tanimoto_index', 'southwood_index', 
 'czekanowski_index', 'dice_index', 'sorensen_index', 'pearson_correlation', 'classification_error', 'purity_index',
-'fmeasure', 'nmi', 'vi', 'geometric_accuracy', 'overlap_quality', 'nmi_lfk', 'omega_index']
+'fmeasure', 'nmi', 'vi', 'geometric_accuracy', 'overlap_quality', 'onmi', 'omega_index']
 
 available_random_models = ['perm', 'perm1', 'num', 'num1', 'all', 'all1']
 
@@ -292,7 +292,7 @@ def expected_rand_index(n_elements, random_model = 'num', n_clusters1 = 2, n_clu
         ''' TODO: random model not supported'''
         pass
 
-    return expected
+    return np.float64(expected)
 
 def adjrand_index(clustering1, clustering2, random_model = 'perm'):
     """
@@ -942,9 +942,9 @@ def overlap_quality(clustering1, clustering2):
     
     return entropy(np.sum(overlap_dist, axis = 0)) + entropy(np.sum(overlap_dist, axis = 1)) + entropy(overlap_dist)
 
-def nmi_lfk(clustering1, clustering2):
+def onmi(clustering1, clustering2):
     '''
-    Normalized Mutual Information for overlapping community coverings
+    Overlapping Normalized Mutual Information
 
     (cite)
     '''

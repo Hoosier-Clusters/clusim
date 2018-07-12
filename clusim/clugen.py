@@ -95,7 +95,7 @@ def make_singleton_clustering(n_elements):
         >>> clu = make_singleton_clustering(n_elements = 9)
         >>> print_clustering(clu)
     """
-    new_clsutering = make_regular_clustering(n_elements = n_elements, n_clusters = n_elements)
+    new_clsutering = make_equal_clustering(n_elements = n_elements, n_clusters = n_elements)
     return new_clsutering
 
 
@@ -119,7 +119,8 @@ def make_random_dendrogram(n_elements):
     """
     dendro_graph = Dendrogram()
     dendro_graph.make_random_dendrogram_aglomerative(N = n_elements)
-    return HierClustering(clu2elm_dict = {e:set([e]) for e in dendro_graph.leaves()}, hier_graph = dendro_graph)
+    c = Clustering(clu2elm_dict = {e:set([e]) for e in dendro_graph.leaves()}, hier_graph = dendro_graph)
+    return c
 
 def shuffle_memberships(clustering, percent = 1.0):
     """
