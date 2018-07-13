@@ -17,10 +17,10 @@ def test_comparison_example():
 
     N11, N10, N01, N00 = clusim.count_pairwise_cooccurence(c1, c2)
 
-    assert N11 == 2, "Element Co-occurance counts for N11 does not match. %s != %s" % (N11, 2)
-    assert N10 == 2, "Element Co-occurance counts for N10 does not match. %s != %s" % (N10, 2)
-    assert N01 == 1, "Element Co-occurance counts for N01 does not match. %s != %s" % (N01, 1)
-    assert N00 == 10, "Element Co-occurance counts for N00 does not match. %s != %s" % (N00, 10)
+    assert N11 == 2
+    assert N10 == 2
+    assert N01 == 1
+    assert N00 == 10
 
     known_sim_values = {'jaccard_index':0.4, 'rand_index':0.8 , 'fowlkes_mallows_index':0.5773502691896258, 
     'rogers_tanimoto_index':2./3., 'southwood_index':2./3., 'czekanowski_index':0.5714285714285714,
