@@ -2,12 +2,15 @@
 import collections
 from six import iteritems
 
+
 def dict_intersection(dict_list):
     """ given a list of dictionaries, return a list of dictionaries with only the
     common keys. """
 
     common_keys = set.intersection(*[set(d) for d in dict_list])
-    return [{k:v for k, v in iteritems(d) if k in common_keys} for d in dict_list]
+    return [{k: v for k, v in iteritems(d) if k in common_keys}
+            for d in dict_list]
+
 
 def mem_dict_union(mem_dict_list, label_modifiers=None):
     """ TODO: unclear what this function is doing. """
