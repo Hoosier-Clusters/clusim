@@ -4,8 +4,6 @@
 
 from setuptools import setup, find_packages
 from clusim import __package__, __description__, __version__
-from sphinx.setup_command import BuildDoc
-cmdclass = {'build_sphinx': BuildDoc}
 
 
 setup(name=__package__,
@@ -22,15 +20,14 @@ setup(name=__package__,
       keywords="clustering cluster comparison similarity data science network science network community",
       url="https://github.com/ajgates42/clusim",
       author = 'Alex Gates <ajgates42@gmail.com> \n YY Ahn <yyahn@iu.edu>',
-      license="MIT", 
+      license="MIT",
       packages = find_packages(),
       install_requires=[
-		'numpy',
-		'scipy',
-		'networkx',
-            'mpmath'
-	],
-	include_package_data=True,
-      command_options={
-        'build_sphinx': {'source_dir': ('setup.py', 'doc')} }
-)
+            'numpy',
+            'scipy',
+            'networkx',
+            'mpmath',
+            'python-igraph'
+      ],
+      include_package_data=True
+      )
