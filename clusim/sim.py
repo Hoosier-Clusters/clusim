@@ -55,7 +55,7 @@ available_similarity_measures = ['jaccard_index',
                                  'vi',
                                  'geometric_accuracy',
                                  'overlap_quality',
-                                 'nmi_lfk',
+                                 'onmi',
                                  'omega_index']
 
 available_random_models = ['perm', 'perm1', 'num', 'num1', 'all', 'all1']
