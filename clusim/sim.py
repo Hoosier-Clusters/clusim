@@ -263,8 +263,7 @@ def expected_rand_index(n_elements, random_model='num', n_clusters1=2,
     This function calculates the expectation of the Rand index between all
     pairs of clusterings drawn from one of six random models.
 
-    .. note:: Clustering 2 is considered the gold-standard clustering for
-    one-sided expectations
+    .. note:: Clustering 2 is considered the gold-standard clustering for one-sided expectations
 
     Parameters
     ----------
@@ -367,8 +366,7 @@ def adjrand_index(clustering1, clustering2, random_model='perm'):
     This function calculates the adjusted Rand index for one of six random
     models.
 
-    .. note:: Clustering 2 is considered the gold-standard clustering for
-    one-sided expectations
+    .. note:: Clustering 2 is considered the gold-standard clustering for one-sided expectations
 
     Parameters
     ----------
@@ -575,7 +573,7 @@ def classification_error(clustering1, clustering2):
     CE : float
         The Classification Error (between 0.0 and 1.0)
 
-    NOTE - CE is a distance measure, it is 0 for identical clusterings
+    .. note:: CE is a distance measure, it is 0 for identical clusterings
 
     >>> import clusim.clugen as clugen
     >>> import clusim.sim as sim
@@ -714,8 +712,7 @@ def corrected_chance(clustering1, clustering2, measure='jaccard_index',
     This function calculates the adjusted Similarity for one of six random
     models.
 
-    .. note:: Clustering 2 is considered the gold-standard clustering for
-    one-sided expectations
+    .. note:: Clustering 2 is considered the gold-standard clustering for one-sided expectations
 
     Parameters
     ----------
@@ -822,8 +819,7 @@ def sample_expected_sim(clustering1, clustering2, measure='jaccard_index',
     This function calculates the expected Similarity for all pair-wise
     comparisons between Clusterings drawn from one of six random models.
 
-    .. note:: Clustering 2 is considered the gold-standard clustering for
-    one-sided expectations
+    .. note:: Clustering 2 is considered the gold-standard clustering for one-sided expectations
 
     Parameters
     ----------
