@@ -1,9 +1,9 @@
-.. clusim documentation master file, created by
-   sphinx-quickstart on Fri Jul 14 17:28:18 2017.
+.. CluSim documentation master file, created by
+   sphinx-quickstart on Thu Aug 23 00:00:27 2018.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to clusim's documentation!
+Welcome to CluSim's documentation!
 ==================================
 
 .. toctree::
