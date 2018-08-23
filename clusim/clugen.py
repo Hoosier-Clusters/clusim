@@ -26,8 +26,9 @@ def make_equal_clustering(n_elements, n_clusters):
         new_clsutering : Clustering
             The new clustering with equally sized clusters.
 
-        >>> import clusim
-        >>> clu = make_equal_clustering(n_elements = 9, n_clusters = 3)
+        >>> import clusim.clugen as clugen
+        >>> from clusim.plotutils import print_clustering
+        >>> clu = clugen.make_equal_clustering(n_elements = 9, n_clusters = 3)
         >>> print_clustering(clu)
     """
     new_elm2clu_dict = {el: [el % n_clusters] for el in range(n_elements)}
@@ -68,8 +69,9 @@ def make_random_clustering(n_elements=1, n_clusters=1, clu_size_seq=[1, 2],
         new_clsutering : Clustering
             The new clustering.
 
-        >>> import clusim
-        >>> clu = make_random_clustering(n_elements = 9, n_clusters = 3,
+        >>> import clusim.clugen as clugen
+        >>> from clusim.plotutils import print_clustering
+        >>> clu = clugen.make_random_clustering(n_elements = 9, n_clusters = 3,
                                          random_model = 'num')
         >>> print_clustering(clu)
     """
@@ -101,8 +103,9 @@ def make_singleton_clustering(n_elements):
         new_clsutering : Clustering
             The new clustering.
 
-        >>> import clusim
-        >>> clu = make_singleton_clustering(n_elements = 9)
+        >>> import import clusim.clugen as clugen
+        >>> from clusim.plotutils import print_clustering
+        >>> clu = clugen.make_singleton_clustering(n_elements = 9)
         >>> print_clustering(clu)
     """
     new_clsutering = make_regular_clustering(n_elements=n_elements,
@@ -125,8 +128,9 @@ def make_random_dendrogram(n_elements):
         new_clsutering : Clustering
             The new clustering.
 
-        >>> import clusim
-        >>> clu = make_singleton_clustering(n_elements = 9)
+        >>> import import clusim.clugen as clugen
+        >>> from clusim.plotutils import print_clustering
+        >>> clu = clugen.make_singleton_clustering(n_elements = 9)
         >>> print_clustering(clu)
     """
     dendro_graph = Dendrogram()
@@ -155,11 +159,12 @@ def shuffle_memberships(clustering, percent=1.0):
         new_clsutering : Clustering
             The new clustering.
 
-        >>> import clusim
-        >>> orig_clu = make_random_clustering(n_elements = 9, n_clusters = 3,
+        >>> import clusim.clugen as clugen
+        >>> from clusim.plotutils import print_clustering
+        >>> orig_clu = clugen.make_random_clustering(n_elements = 9, n_clusters = 3,
                                               random_model = 'num')
         >>> print_clustering(orig_clu)
-        >>> shuffle_clu = shuffle_memberships(orig_clu, percent = 0.5)
+        >>> shuffle_clu = clugen.shuffle_memberships(orig_clu, percent = 0.5)
         >>> print_clustering(shuffle_clu)
     """
     el_to_shuffle = np.random.choice(clustering.elements,
@@ -172,8 +177,6 @@ def shuffle_memberships(clustering, percent=1.0):
     for el in shuffled_el:
         new_elm2clu_dict[el] = clustering.elm2clu_dict[newkeys[el]]
 
-    # new_clustering = copy.deepcopy(clustering)
-    # new_clustering.from_elm2clu_dict(new_elm2clu_dict)
     if clustering.is_hierarchical:
         new_clustering = HierClustering(elm2clu_dict=new_elm2clu_dict,
                                         hier_graph=copy.deepcopy(clustering.hiergraph))
@@ -205,11 +208,12 @@ def shuffle_memberships_pa(clustering, Nsteps=1, constant_num_clusters=True):
         new_clsutering : Clustering
             The new clustering.
 
-        >>> import clusim
-        >>> orig_clu = make_random_clustering(n_elements=9, n_clusters=3,
+        >>> import clusim.clugen as clugen
+        >>> from clusim.plotutils import print_clustering
+        >>> orig_clu = clugen.make_random_clustering(n_elements=9, n_clusters=3,
                                               random_model='num')
         >>> print_clustering(orig_clu)
-        >>> shuffle_clu = shuffle_memberships_pa(orig_clu, Nsteps=10,
+        >>> shuffle_clu = clugen.shuffle_memberships_pa(orig_clu, Nsteps=10,
                                                  constant_num_clusters=True)
         >>> print_clustering(shuffle_clu)
     """
@@ -307,8 +311,9 @@ def generate_random_partition_all(n_elements, tol=1.0e-15):
         new_clsutering : Clustering
             The new clustering.
 
-        >>> import clusim
-        >>> clu = generate_random_partition_all(n_elements = 9)
+        >>> import import clusim.clugen as clugen
+        >>> from clusim.plotutils import print_clustering
+        >>> clu = clugen.generate_random_partition_all(n_elements = 9)
         >>> print_clustering(clu)
     """
 
@@ -357,8 +362,9 @@ def enumerate_random_partition_num(n_elements, n_clusters):
         f : cluster list
             The new clustering as a cluster list.
 
-        >>> import clusim
-        >>> for clu in clustering_ensemble_generator_num(n_elements=5, n_clusters=3):
+        >>> import import clusim.clugen as clugen
+        >>> from clusim.plotutils import print_clustering
+        >>> for clu in clugen.clustering_ensemble_generator_num(n_elements=5, n_clusters=3):
         >>>     print_clustering(clu)
     """
 

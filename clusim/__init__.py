@@ -6,7 +6,7 @@ __copyright__ = '2017, Gates, A.J., Ahn YY'
 
 __author__ = """\n""".join([
 	'Alexander J Gates <ajgates42@gmail.com>',
-	'YY Ahn <yyahn@iu.edu>'
+	'Yong-Yeol Ahn <yyahn@iu.edu>'
 ])
 
 __version__ = '0.3'

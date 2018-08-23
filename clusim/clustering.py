@@ -87,11 +87,12 @@ class Clustering(object):
         """
         Return a copy of the clustering.
 
-        >>> import clusim
+        >>> import from clusim.clustering import Clustering
+        >>> from clusim.plotutils import print_clustering
         >>> clu = clusim.Clustering()
         >>> clu2 = clu.copy()
-        >>> clusim.print_clustering(clu)
-        >>> clusim.print_clustering(clu)
+        >>> print_clustering(clu)
+        >>> print_clustering(clu)
         """
         return copy.deepcopy(self)
 
@@ -107,7 +108,8 @@ class Clustering(object):
         elm2clu_dict : dict
             { elementid: [clu1, clu2, ... ] }
 
-        >>> import clusim
+        >>> from clusim.clustering import Clustering
+        >>> from clusim.plotutils import print_clustering
         >>> elm2clu_dict = {0:[0], 1:[0], 2:[0,1], 3:[1], 4:[2], 5:[2]}
         >>> clu = Clustering()
         >>> clu.from_elm2clu_dict(elm2clu_dict)
@@ -139,7 +141,8 @@ class Clustering(object):
             { clusid: [el1, el2, ... ] }
 
 
-        >>> import clusim
+        >>> import from clusim.clustering import Clustering
+        >>> from clusim.plotutils import print_clustering
         >>> clu2elm_dict = {0:[0,1,2], 1:[2,3], 2:[4,5]}
         >>> clu = Clustering()
         >>> clu.from_clu2elm_dict(clu2elm_dict)
@@ -170,7 +173,8 @@ class Clustering(object):
         cluster_list : list of lists
             [ [el1, el2, ...], [el5, ...], ... ]
 
-        >>> import clusim
+        >>> import from clusim.clustering import Clustering
+        >>> from clusim.plotutils import print_clustering
         >>> cluster_list = [ [0,1,2], [2,3], [4,5]]
         >>> clu = Clustering()
         >>> clu.from_cluster_list(cluster_list)
@@ -208,7 +212,8 @@ class Clustering(object):
         cluster_list : list of integers
              clu_for_el1, clu_for_el2, ... ]
 
-        >>> import clusim
+        >>> import from clusim.clustering import Clustering
+        >>> from clusim.plotutils import print_clustering
         >>> membership_list = [0,0,0,1,2,2]
         >>> clu = Clustering()
         >>> clu.from_membership_list(membership_list)
@@ -287,7 +292,7 @@ class Clustering(object):
             A list where the ith entry corresponds to the size of the ith
             cluster.
 
-        >>> import clusim
+        >>> import from clusim.clustering import Clustering
         >>> elm2clu_dict = {0:[0], 1:[0], 2:[0,1], 3:[1], 4:[2], 5:[2]}
         >>> clu = Clustering(elm2clu_dict = elm2clu_dict)
         >>> print("Cluster Size Sequence:", clu.find_clu_size_seq())
@@ -305,7 +310,7 @@ class Clustering(object):
         clu_size_seq : integer
             The number of elements in at least two clusters.
 
-        >>> import clusim
+        >>> import from clusim.clustering import Clustering
         >>> elm2clu_dict = {0:[0], 1:[0], 2:[0,1], 3:[1], 4:[2], 5:[2]}
         >>> clu = Clustering(elm2clu_dict = elm2clu_dict)
         >>> print("Overlap size:", clu.find_num_overlap())
@@ -323,12 +328,13 @@ class Clustering(object):
         -------
         self : Clustering
 
-        >>> import clusim
+        >>> import from clusim.clustering import Clustering
+        >>> from clusim.plotutils import print_clustering
         >>> elm2clu_dict = {0:[0], 1:[0], 2:[0], 3:[1], 4:[2], 5:[2]}
         >>> clu = Clustering(elm2clu_dict = elm2clu_dict)
+        >>> print_clustering(clu)
         >>> clu.merge_clusters(1,2, new_name = 3)
-        >>> clu.elm2clu_dict
-        * {0:[0], 1:[0], 2:[0], 3:[3], 4:[3], 5:[3]}
+        >>> print_clustering(clu)
         """
         if new_name is None:
             new_name = c1
@@ -359,7 +365,6 @@ class Clustering(object):
         -------
         el : element list
 
-        >>> import clusim
 
         """
         if cluster in self.hier_graph.leaves():
@@ -390,7 +395,7 @@ class Clustering(object):
             in-between 0 and 1
 
 
-        >>> import clusim
+        >>> import from clusim.clustering import Clustering
         >>> from scipy.cluster.hierarchy import dendrogram, linkage
         >>> import numpy as np
         >>> np.random.seed(42)

@@ -37,7 +37,8 @@ import numpy as np
 import scipy.sparse as spsparse
 import mpmath
 
-from clusim.clugen import *
+import clusim.clugen as clugen
+from clusim.clusimelement import *
 
 available_similarity_measures = ['jaccard_index',
                                  'rand_index',
@@ -55,7 +56,7 @@ available_similarity_measures = ['jaccard_index',
                                  'vi',
                                  'geometric_accuracy',
                                  'overlap_quality',
-                                 'nmi_lfk',
+                                 'onmi',
                                  'omega_index']
 
 available_random_models = ['perm', 'perm1', 'num', 'num1', 'all', 'all1']
@@ -78,13 +79,13 @@ def contingency_table(clustering1, clustering2):
         contigency_table : list of lists
             The clustering1.n_clusters by clustering2.n_clusters contigency table
 
-        >>> import clusim
-        >>> clustering1 = make_random_clustering(n_elements=9, n_clusters=3,
+        >>> import clusim.clugen as clugen
+        >>> clustering1 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
                                                  random_model = 'num')
-        >>> clustering2 = make_random_clustering(n_elements=9, n_clusters=3,
+        >>> clustering2 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
                                                  random_model = 'num')
         >>> cont_table = contingency_table(clustering1, clustering2)
-        >>> print cont_table
+        >>> print(cont_table)
     """
     assert clustering1.n_elements == clustering2.n_elements
 
@@ -125,12 +126,14 @@ def count_pairwise_cooccurence(clustering1, clustering2):
         The number of element pairs assigned to different clusters in both
         clusterings
 
-    >>> import clusim
-    >>> clustering1 = make_random_clustering(n_elements=9, n_clusters=3,
+    >>> import clusim.clugen as clugen
+    >>> import clusim.sim as sim
+    >>> from clusim.plotutils import print_clustering
+    >>> clustering1 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
                                              random_model='num')
-    >>> clustering2 = make_random_clustering(n_elements=9, n_clusters=3,
+    >>> clustering2 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
                                              random_model='num')
-    >>> N11, N10, N01, N00 = count_pairwise_cooccurence(clustering1,
+    >>> N11, N10, N01, N00 = sim.count_pairwise_cooccurence(clustering1,
                                                         clustering2)
     >>> print_clustering(clustering1)
     >>> print_clustering(clustering2)
@@ -199,14 +202,15 @@ def jaccard_index(clustering1, clustering2):
     J : float
         The Jaccard index (between 0.0 and 1.0)
 
-    >>> import clusim
-    >>> clustering1 = clusim.make_random_clustering(n_elements=9,
+    >>> import clusim.clugen as clugen
+    >>> import clusim.sim as sim
+    >>> clustering1 = clugen..make_random_clustering(n_elements=9,
                                                     n_clusters=3,
                                                     random_model='num')
-    >>> clustering2 = clusim.make_random_clustering(n_elements=9,
+    >>> clustering2 = clugen.make_random_clustering(n_elements=9,
                                                     n_clusters=3,
                                                     random_model='num')
-    >>> print(clusim.jaccard_index(clustering1, clustering2) )
+    >>> print(sim.jaccard_index(clustering1, clustering2) )
     """
 
     N11, N10, N01, N00 = count_pairwise_cooccurence(clustering1, clustering2)
@@ -239,12 +243,13 @@ def rand_index(clustering1, clustering2):
     RI : float
         The Rand index (between 0.0 and 1.0)
 
-    >>> import clusim
-    >>> clustering1 = clusim.make_random_clustering(n_elements=9, n_clusters=3,
+    >>> import clusim.clugen as clugen
+    >>> import clusim.sim as sim
+    >>> clustering1 = clugen..make_random_clustering(n_elements=9, n_clusters=3,
                                                     random_model='num')
-    >>> clustering2 = clusim.make_random_clustering(n_elements=9, n_clusters=3,
+    >>> clustering2 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
                                                     random_model='num')
-    >>> print(clusim.rand_index(clustering1, clustering2))
+    >>> print(sim.rand_index(clustering1, clustering2))
     """
 
     N11, N10, N01, N00 = count_pairwise_cooccurence(clustering1, clustering2)
@@ -304,18 +309,18 @@ def expected_rand_index(n_elements, random_model='num', n_clusters1=2,
     expected : float
         The expected Rand index (between 0.0 and 1.0)
 
-    >>> import clusim
-    >>> print(clusim.expected_rand_index(n_elements=5, random_model='all'))
-    >>> print(clusim.expected_rand_index(n_elements=5, random_model='all1',
+    >>> import clusim.sim as sim
+    >>> print(sim.expected_rand_index(n_elements=5, random_model='all'))
+    >>> print(sim.expected_rand_index(n_elements=5, random_model='all1',
                                          clu_size_seq2=[1,1,3]))
-    >>> print(clusim.expected_rand_index(n_elements=5, , random_model='num',
+    >>> print(sim.expected_rand_index(n_elements=5, , random_model='num',
                                          n_clusters1=2, n_clusters2=3))
-    >>> print(clusim.expected_rand_index(n_elements=5, random_model='num1',
+    >>> print(sim.expected_rand_index(n_elements=5, random_model='num1',
                                          n_clusters1=2, clu_size_seq2=[1,1,3]))
-    >>> print(clusim.expected_rand_index(n_elements=5, random_model='perm',
+    >>> print(sim.expected_rand_index(n_elements=5, random_model='perm',
                                          clu_size_seq1=[2,3],
                                          clu_size_seq2=[1,1,3]))
-    >>> print(clusim.expected_rand_index(n_elements=5, random_model='perm1',
+    >>> print(sim.expected_rand_index(n_elements=5, random_model='perm1',
                                          clu_size_seq1=[2,3],
                                          clu_size_seq2=[1,1,3]))
     """
@@ -398,22 +403,23 @@ def adjrand_index(clustering1, clustering2, random_model='perm'):
     adjusted_rand : float
         The adjusted_rand Rand index
 
-    >>> import clusim
-    >>> clustering1 = clusim.make_random_clustering(n_elements=9, n_clusters=3,
+    >>> import clusim.clugen as clugen
+    >>> import clusim.sim as sim
+    >>> clustering1 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
                                                     random_model='all')
-    >>> clustering2 = clusim.make_random_clustering(n_elements=9, n_clusters=3,
+    >>> clustering2 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
                                                     random_model='all')
-    >>> print(clusim.adjrand_index(clustering1, clustering2,
+    >>> print(sim.adjrand_index(clustering1, clustering2,
                                    random_model='all'))
-    >>> print(clusim.adjrand_index(clustering1, clustering2,
+    >>> print(sim.adjrand_index(clustering1, clustering2,
                                    random_model='all1'))
-    >>> print(clusim.adjrand_index(clustering1, clustering2,
+    >>> print(sim.adjrand_index(clustering1, clustering2,
                                    random_model='num'))
-    >>> print(clusim.adjrand_index(clustering1, clustering2,
+    >>> print(sim.adjrand_index(clustering1, clustering2,
                                    random_model='num1'))
-    >>> print(clusim.adjrand_index(clustering1, clustering2,
+    >>> print(sim.adjrand_index(clustering1, clustering2,
                                    random_model='perm'))
-    >>> print(clusim.adjrand_index(clustering1, clustering2,
+    >>> print(sim.adjrand_index(clustering1, clustering2,
                                    random_model='perm1'))
     """
 
@@ -454,12 +460,13 @@ def fowlkes_mallows_index(clustering1, clustering2):
     FM : float
         The Fowlkes and Mallows index (between 0.0 and 1.0)
 
-    >>> import clusim
-    >>> clustering1 = clusim.make_random_clustering(n_elements=9, n_clusters=3,
+    >>> import clusim.clugen as clugen
+    >>> import clusim.sim as sim
+    >>> clustering1 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
                                                     random_model='num')
-    >>> clustering2 = clusim.make_random_clustering(n_elements=9, n_clusters=3,
+    >>> clustering2 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
                                                     random_model='num')
-    >>> print(clusim.fowlkes_mallows_index(clustering1, clustering2))
+    >>> print(sim.fowlkes_mallows_index(clustering1, clustering2))
     """
     N11, N10, N01, N00 = count_pairwise_cooccurence(clustering1, clustering2)
 
@@ -496,12 +503,13 @@ def fmeasure(clustering1, clustering2):
     F : float
         The F-measure (between 0.0 and 1.0)
 
-    >>> import clusim
-    >>> clustering1 = clusim.make_random_clustering(n_elements=9, n_clusters=3,
+    >>> import clusim.clugen as clugen
+    >>> import clusim.sim as sim
+    >>> clustering1 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
                                                     random_model='num')
-    >>> clustering2 = clusim.make_random_clustering(n_elements=9, n_clusters=3,
+    >>> clustering2 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
                                                     random_model='num')
-    >>> print( clusim.fmeasure(clustering1, clustering2))
+    >>> print(sim.fmeasure(clustering1, clustering2))
     """
     N11, N10, N01, N00 = count_pairwise_cooccurence(clustering1, clustering2)
 
@@ -533,12 +541,13 @@ def purity_index(clustering1, clustering2):
     PI : float
         The Purity index (between 0.0 and 1.0)
 
-    >>> import clusim
-    >>> clustering1 = clusim.make_random_clustering(n_elements=9, n_clusters=3,
+    >>> import clusim.clugen as clugen
+    >>> import clusim.sim as sim
+    >>> clustering1 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
                                                     random_model='num')
-    >>> clustering2 = clusim.make_random_clustering(n_elements=9, n_clusters=3,
+    >>> clustering2 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
                                                     random_model='num')
-    >>> print(clusim.purity_index(clustering1, clustering2))
+    >>> print(sim.purity_index(clustering1, clustering2))
     """
 
     cont_tbl = contingency_table(clustering1, clustering2)
@@ -568,12 +577,13 @@ def classification_error(clustering1, clustering2):
 
     NOTE - CE is a distance measure, it is 0 for identical clusterings
 
-    >>> import clusim
-    >>> clustering1 = clusim.make_random_clustering(n_elements=9, n_clusters=3,
+    >>> import clusim.clugen as clugen
+    >>> import clusim.sim as sim
+    >>> clustering1 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
                                                     random_model='num')
-    >>> clustering2 = clusim.make_random_clustering(n_elements=9, n_clusters=3,
+    >>> clustering2 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
                                                     random_model='num')
-    >>> print(clusim.classification_error(clustering1, clustering2))
+    >>> print(sim.classification_error(clustering1, clustering2))
     """
     return 1.0 - purity_index(clustering1, clustering2)
 
@@ -625,12 +635,13 @@ def rogers_tanimoto_index(clustering1, clustering2):
     RT : float
         The Rogers and Tanimoto index (between 0.0 and 1.0)
 
-    >>> import clusim
-    >>> clustering1 = clusim.make_random_clustering(n_elements=9, n_clusters=3,
+    >>> import clusim.clugen as clugen
+    >>> import clusim.sim as sim
+    >>> clustering1 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
                                                     random_model='num')
-    >>> clustering2 = clusim.make_random_clustering(n_elements=9, n_clusters=3,
+    >>> clustering2 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
                                                     random_model='num')
-    >>> print(clusim.rogers_tanimoto_index(clustering1, clustering2))
+    >>> print(sim.rogers_tanimoto_index(clustering1, clustering2))
     """
 
     N11, N10, N01, N00 = count_pairwise_cooccurence(clustering1, clustering2)
@@ -677,12 +688,13 @@ def pearson_correlation(clustering1, clustering2):
     PC : float
         The Pearson Correlation (between -1.0 and 1.0)
 
-    >>> import clusim
-    >>> clustering1 = clusim.make_random_clustering(n_elements=9, n_clusters=3,
+    >>> import clusim.clugen as clugen
+    >>> import clusim.sim as sim
+    >>> clustering1 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
                                                     random_model='num')
-    >>> clustering2 = clusim.make_random_clustering(n_elements=9, n_clusters=3,
+    >>> clustering2 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
                                                     random_model='num')
-    >>> print(clusim.pearson_correlation(clustering1, clustering2))
+    >>> print(sim.pearson_correlation(clustering1, clustering2))
     """
     N11, N10, N01, N00 = count_pairwise_cooccurence(clustering1, clustering2)
 
@@ -746,27 +758,28 @@ def corrected_chance(clustering1, clustering2, measure='jaccard_index',
     adjusted_sim : float
         The adjusted Similarity measure
 
-    >>> import clusim
-    >>> clustering1 = clusim.make_random_clustering(n_elements=9, n_clusters=3,
+    >>> import clusim.clugen as clugen
+    >>> import clusim.sim as sim
+    >>> clustering1 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
                                                     random_model='all')
-    >>> clustering2 = clusim.make_random_clustering(n_elements=9, n_clusters=3,
+    >>> clustering2 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
                                                     random_model='all')
-    >>> print(clusim.corrected_chance(clustering1, clustering2,
+    >>> print(sim.corrected_chance(clustering1, clustering2,
                                       measure='jaccard_index',
                                       random_model='all'))
-    >>> print(clusim.corrected_chance(clustering1, clustering2,
+    >>> print(sim.corrected_chance(clustering1, clustering2,
                                       measure='jaccard_index',
                                       random_model='all1'))
-    >>> print(clusim.corrected_chance(clustering1, clustering2,
+    >>> print(sim.corrected_chance(clustering1, clustering2,
                                       measure='jaccard_index',
                                       random_model='num'))
-    >>> print(clusim.corrected_chance(clustering1, clustering2,
+    >>> print(sim.corrected_chance(clustering1, clustering2,
                                       measure='jaccard_index',
                                       random_model='num1'))
-    >>> print(clusim.corrected_chance(clustering1, clustering2,
+    >>> print(sim.corrected_chance(clustering1, clustering2,
                                       measure='jaccard_index',
                                       random_model='perm'))
-    >>> print(clusim.corrected_chance(clustering1, clustering2,
+    >>> print(sim.corrected_chance(clustering1, clustering2,
                                       measure='jaccard_index',
                                       random_model='perm1'))
     """
@@ -854,19 +867,20 @@ def sample_expected_sim(clustering1, clustering2, measure='jaccard_index',
         The expected Similarity measure for all pair-wise comparisons under a
         random model
 
-    >>> import clusim
-    >>> c1 = make_random_clustering(n_elements=9, n_clusters=3, random_model='all')
-    >>> c2 = make_random_clustering(n_elements=9, n_clusters=3, random_model='all')
-    >>> print(corrected_chance(c1, c2, measure='jaccard_index', random_model='all'))
-    >>> print(corrected_chance(c1, c2, measure='jaccard_index', random_model='all1'))
-    >>> print(corrected_chance(c1, c2, measure='jaccard_index', random_model='num'))
-    >>> print(corrected_chance(c1, c2, measure='jaccard_index', random_model='num1'))
-    >>> print(corrected_chance(c1, c2, measure='jaccard_index', random_model='perm'))
-    >>> print(corrected_chance(c1, c2, measure='jaccard_index', random_model='perm1') )
+    >>> import clusim.clugen as clugen
+    >>> import clusim.sim as sim
+    >>> c1 = clugen.make_random_clustering(n_elements=9, n_clusters=3, random_model='all')
+    >>> c2 = clugen.make_random_clustering(n_elements=9, n_clusters=3, random_model='all')
+    >>> print(sim.sample_expected_sim(c1, c2, measure='jaccard_index', random_model='all', nsamples=50))
+    >>> print(sim.sample_expected_sim(c1, c2, measure='jaccard_index', random_model='all1', nsamples=50))
+    >>> print(sim.sample_expected_sim(c1, c2, measure='jaccard_index', random_model='num', nsamples=50))
+    >>> print(sim.sample_expected_sim(c1, c2, measure='jaccard_index', random_model='num1', nsamples=50))
+    >>> print(sim.sample_expected_sim(c1, c2, measure='jaccard_index', random_model='perm', nsamples=50))
+    >>> print(sim.sample_expected_sim(c1, c2, measure='jaccard_index', random_model='perm1', nsamples=50) )
     """
 
     # draw nsamples random samples from the random model
-    random_clustering1_list = [make_random_clustering(  # TODO: func undefined
+    random_clustering1_list = [clugen.make_random_clustering(  # TODO: func undefined
         n_elements=clustering1.n_elements, n_clusters=clustering1.n_clusters,
         clu_size_seq=clustering1.clu_size_seq, random_model=random_model,
         tol=1.0e-15) for isample in range(nsamples)]
@@ -876,7 +890,7 @@ def sample_expected_sim(clustering1, clustering2, measure='jaccard_index',
         random_clustering2_list = [clustering2]
     else:
         # a two-sided model, so draw another nsamples from the random model
-        random_clustering2_list = [make_random_clustering(
+        random_clustering2_list = [clugen.make_random_clustering(
             n_elements=clustering2.n_elements,
             n_clusters=clustering2.n_clusters,
             clu_size_seq=clustering2.clu_size_seq, random_model=random_model,
