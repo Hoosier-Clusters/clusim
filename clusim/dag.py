@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+.. module:: dag
+    :synopsis: Enhanced support for directed acyclic graphs and dendrograms.
+
+.. moduleauthor:: Alex Gates <ajgates42@gmail.com>
+ """
 import collections
 import copy
 import itertools

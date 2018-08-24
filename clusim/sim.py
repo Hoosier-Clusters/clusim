@@ -1,33 +1,12 @@
 # -*- coding: utf-8 -*-
-"""Calculate similarity between clusterings using pair-wise and informaiton
-theoretic measures.
-
-Example
--------
-See the ipython notebook
-
-Notes
------
-    This is just a draft
-
-maybe it works
-
-Attributes
-----------
-module_level_variable1 : int
-    Module level variables may be documented in either the ``Attributes``
-    section of the module docstring, or in an inline docstring immediately
-    following the variable.
-
-    Either form is acceptable, but the two should not be mixed. Choose
-    one convention to document module level variables and be consistent
-    with it.
-
-
-.. _NumPy Documentation HOWTO:
-   https://github.com/ajgates42/clusim/blob/master/doc/HOWTO_DOCUMENT.rst.txt
-
+# -*- coding: utf-8 -*-
 """
+.. module:: sim
+    :synopsis: Calculate similarity between clusterings using pair-wise and informaiton
+        theoretic measures.
+
+.. moduleauthor:: Alex Gates <ajgates42@gmail.com>
+ """
 
 import itertools
 

@@ -1,4 +1,10 @@
-""" clustering generators """
+# -*- coding: utf-8 -*-
+"""
+.. module:: clugen
+    :synopsis: A set of functions to generate Clusterings and random Clusterings
+
+.. moduleauthor:: Alex Gates <ajgates42@gmail.com>
+ """
 import numpy as np
 import mpmath
 import copy
@@ -9,27 +15,27 @@ from clusim.dag import Dendrogram
 
 def make_equal_clustering(n_elements, n_clusters):
     """
-        This function creates a random clustering with equally sized clusters.
-        If n_elements % n_clusters != 0, cluster sizes will differ by one
-        element.
+    This function creates a random clustering with equally sized clusters.
+    If n_elements % n_clusters != 0, cluster sizes will differ by one
+    element.
 
-        Parameters
-        ----------
-        n_elements : int
-            The number of elements
+    Parameters
+    ----------
+    n_elements : int
+        The number of elements
 
-        n_clusters : int
-            The number of clusters
+    n_clusters : int
+        The number of clusters
 
-        Returns
-        -------
-        new_clsutering : Clustering
-            The new clustering with equally sized clusters.
+    Returns
+    -------
+    new_clsutering : Clustering
+        The new clustering with equally sized clusters.
 
-        >>> import clusim.clugen as clugen
-        >>> from clusim.plotutils import print_clustering
-        >>> clu = clugen.make_equal_clustering(n_elements = 9, n_clusters = 3)
-        >>> print_clustering(clu)
+    >>> import clusim.clugen as clugen
+    >>> from clusim.plotutils import print_clustering
+    >>> clu = clugen.make_equal_clustering(n_elements = 9, n_clusters = 3)
+    >>> print_clustering(clu)
     """
     new_elm2clu_dict = {el: [el % n_clusters] for el in range(n_elements)}
     new_clustering = Clustering(new_elm2clu_dict)

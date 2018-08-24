@@ -1,6 +1,11 @@
+# -*- coding: utf-8 -*-
 """
-Element-centric Clustering Similarity
-"""
+.. module:: clusimelement
+    :synopsis: Element-centric Clustering Similarity
+
+.. moduleauthor:: Alex Gates <ajgates42@gmail.com>
+ """
+
 import numpy as np
 
 try:
@@ -40,30 +45,30 @@ def element_sim_matrix(clustering_list, alpha=0.9, r=1.,
 def element_sim(clustering1, clustering2, alpha=0.9, r=1., r2=None,
                 rescale_path_type='max'):
     """
-        The element-centric clustering similarity.
+    The element-centric clustering similarity.
 
-        Parameters
-        ----------
-        clustering1 : Clustering
-            The first clustering
+    Parameters
+    ----------
+    clustering1 : Clustering
+        The first clustering
 
-        clustering2 : Clustering
-            The second clustering
+    clustering2 : Clustering
+        The second clustering
 
-        alpha : float
-            The personalized page-rank return probability.
+    alpha : float
+        The personalized page-rank return probability.
 
-        Returns
-        -------
-        element_sim : float
-            The element-wise similarity between the two clusterings
+    Returns
+    -------
+    element_sim : float
+        The element-wise similarity between the two clusterings
 
-        >>> import clusim
-        >>> clustering1 = Clustering(elm2clu_dict={0:[0], 1:[0], 2:[0,1],
-                                                   3:[1], 4:[2], 5:[2]})
-        >>> clustering2 = Clustering(elm2clu_dict={0:[0,2], 1:[0], 2:[0,1],
-                                                   3:[1], 4:[2], 5:[1,2]})
-        >>> print(element_sim(clustering1, clustering2, alpha=0.9))
+    >>> import clusim
+    >>> clustering1 = Clustering(elm2clu_dict={0:[0], 1:[0], 2:[0,1],
+                                               3:[1], 4:[2], 5:[2]})
+    >>> clustering2 = Clustering(elm2clu_dict={0:[0,2], 1:[0], 2:[0,1],
+                                               3:[1], 4:[2], 5:[1,2]})
+    >>> print(element_sim(clustering1, clustering2, alpha=0.9))
     """
     result_tuple = element_sim_elscore(clustering1, clustering2, alpha=alpha,
                                        r=r, r2=r2,
@@ -75,39 +80,39 @@ def element_sim(clustering1, clustering2, alpha=0.9, r=1., r2=None,
 def element_sim_elscore(clustering1, clustering2, alpha=0.9, r=1., r2=None,
                         rescale_path_type='max', relabeled_elements=None):
     """
-        The element-centric clustering similarity for each element.
+    The element-centric clustering similarity for each element.
 
-        Parameters
-        ----------
-        clustering1 : Clustering
-            The first clustering
+    Parameters
+    ----------
+    clustering1 : Clustering
+        The first clustering
 
-        clustering2 : Clustering
-            The second clustering
+    clustering2 : Clustering
+        The second clustering
 
-        alpha : float
-            The personalized page-rank return probability.
+    alpha : float
+        The personalized page-rank return probability.
 
-        relabeled_elements : dict, optional
-            The elements maped to indices of the affinity matrix.
+    relabeled_elements : dict, optional
+        The elements maped to indices of the affinity matrix.
 
-        Returns
-        -------
-        elementScores: numpy array
-            The element-centric similarity between the two clusterings for each element
+    Returns
+    -------
+    elementScores: numpy array
+        The element-centric similarity between the two clusterings for each element
 
-        relabeled_elements : dict
-            The elements maped to indices of the elementScores array.
+    relabeled_elements : dict
+        The elements maped to indices of the elementScores array.
 
-        >>> import clusim
-        >>> clustering1 = Clustering(elm2clu_dict={0:[0], 1:[0], 2:[0,1],
-                                                   3:[1], 4:[2], 5:[2]})
-        >>> clustering2 = Clustering(elm2clu_dict={0:[0,2], 1:[0], 2:[0,1],
-                                                   3:[1], 4:[2], 5:[1,2]})
-        >>> elementScores, relabeled_elements = element_sim_elseq(clustering1,
-                                                                  clustering2,
-                                                                  alpha = 0.9)
-        >>> print(elementScores)
+    >>> import clusim
+    >>> clustering1 = Clustering(elm2clu_dict={0:[0], 1:[0], 2:[0,1],
+                                               3:[1], 4:[2], 5:[2]})
+    >>> clustering2 = Clustering(elm2clu_dict={0:[0,2], 1:[0], 2:[0,1],
+                                               3:[1], 4:[2], 5:[1,2]})
+    >>> elementScores, relabeled_elements = element_sim_elseq(clustering1,
+                                                              clustering2,
+                                                              alpha = 0.9)
+    >>> print(elementScores)
     """
 
     # the rows and columns of the affinity matrix correspond to relabeled
@@ -139,33 +144,34 @@ def relabel_objects(object_list):
 
 def cL1(x, y, alpha):
     """
-        The normalized similarity value based on the L1 probabilty metric
-        corrected for the guaranteed overlap in probability between the two
-        vectors, alpha.
+    The normalized similarity value based on the L1 probabilty metric
+    corrected for the guaranteed overlap in probability between the two
+    vectors, alpha.
 
-        Parameters
-        ----------
-        x : 2d numpy array
-            The first list of probability vectors
+    Parameters
+    ----------
+    x : 2d numpy array
+        The first list of probability vectors
 
-        y : 2d numpy array
-            The second list of probability vectors
+    y : 2d numpy array
+        The second list of probability vectors
 
-        alpha : float
-            The guaranteed overlap in probability between the two vectors.
+    alpha : float
+        The guaranteed overlap in probability between the two vectors.
 
-        Returns
-        -------
-        cL1 : numpy array
-            The list of L1 similarities between each pair of probability
-            vectors
+    Returns
+    -------
+    cL1 : numpy array
+        The list of L1 similarities between each pair of probability
+        vectors
     """
     return 1.0 - 1.0/(2.0 * alpha) * np.sum(np.abs(x - y), axis=1)
 
 
 def make_affinity_matrix(clustering, alpha=0.9, r=1., rescale_path_type='max',
                          relabeled_elements=None):
-    """The element-centric clustering similarity affinity matrix for a
+    """
+    The element-centric clustering similarity affinity matrix for a
     clustering.
 
     Parameters

@@ -1,4 +1,10 @@
-""" mainly clustering class """
+# -*- coding: utf-8 -*-
+"""
+.. module:: clustering
+    :synopsis: The main Clustering class
+
+.. moduleauthor:: Alex Gates <ajgates42@gmail.com>
+ """
 import copy
 from collections import defaultdict
 
@@ -22,7 +28,9 @@ class ClusterError(ValueError):
 
 
 class Clustering(object):
-    """Base class for clusterings.
+    """
+    .. class:: Clustering
+    Base class for clusterings.
 
     Parameters
     ----------

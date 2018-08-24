@@ -1,4 +1,10 @@
-""" useful functions for plotting """
+# -*- coding: utf-8 -*-
+"""
+.. module:: plotutils
+    :synopsis: useful functions for printing and drawing clusterings.
+
+.. moduleauthor:: Alex Gates <ajgates42@gmail.com>
+ """
 
 
 def cm2inch(*tupl):
@@ -38,17 +44,17 @@ def blank_axis(axs):
 
 def print_clustering(clustering):
     """
-        A function to print a clustering where clusters are seperated by '|'.
+    A function to print a clustering where clusters are seperated by '|'.
 
-        Parameters
-        ----------
-        clustering : Clustering
-            The clustering to print
+    Parameters
+    ----------
+    clustering : Clustering
+        The clustering to print
 
-        >>> import clusim.clugen as clugen
-        >>> from clusim.plotutils import print_clustering
-        >>> clu = clugen.make_equal_clustering(n_elements = 9, n_clusters = 3)
-        >>> print_clustering(clu)
+    >>> import clusim.clugen as clugen
+    >>> from clusim.plotutils import print_clustering
+    >>> clu = clugen.make_equal_clustering(n_elements = 9, n_clusters = 3)
+    >>> print_clustering(clu)
     """
     print('|'.join("".join(map(str, loe)) for loe
                    in clustering.clu2elm_dict.values()))
