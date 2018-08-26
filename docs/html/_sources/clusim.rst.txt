@@ -42,7 +42,6 @@ DAG and Dendrograms
 .. automodule:: clusim.dag
    :members:
 
-Printing and Plotting
-----------------------
-.. automodule:: clusim.plotutils
-   :members:
+References
+----------
+.. bibliography:: clusimref.bib

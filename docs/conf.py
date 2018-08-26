@@ -42,7 +42,8 @@ extensions = [
     'sphinx.ext.doctest',
     'sphinx.ext.coverage',
     'sphinx.ext.githubpages',
-    'sphinx.ext.autodoc'
+    'sphinx.ext.autodoc',
+    'sphinxcontrib.bibtex'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -174,5 +175,5 @@ texinfo_documents = [
      'Miscellaneous'),
 ]
 
-
 # -- Extension configuration -------------------------------------------------
+autodoc_member_order = 'bysource'

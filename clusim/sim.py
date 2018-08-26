@@ -43,28 +43,28 @@ available_random_models = ['perm', 'perm1', 'num', 'num1', 'all', 'all1']
 
 def contingency_table(clustering1, clustering2):
     """
-        This function creates the contigency table between two clusterings.
+    This function creates the contigency table between two clusterings.
 
-        Parameters
-        ----------
-        clustering1 : Clustering
-            The first clustering
+    Parameters
+    ----------
+    clustering1 : Clustering
+        The first clustering
 
-        clustering2 : Clustering
-            The second clustering
+    clustering2 : Clustering
+        The second clustering
 
-        Returns
-        -------
-        contigency_table : list of lists
-            The clustering1.n_clusters by clustering2.n_clusters contigency table
+    Returns
+    -------
+    contigency_table : list of lists
+        The clustering1.n_clusters by clustering2.n_clusters contigency table
 
-        >>> import clusim.clugen as clugen
-        >>> clustering1 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
-                                                 random_model = 'num')
-        >>> clustering2 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
-                                                 random_model = 'num')
-        >>> cont_table = contingency_table(clustering1, clustering2)
-        >>> print(cont_table)
+    >>> import clusim.clugen as clugen
+    >>> clustering1 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
+                                             random_model = 'num')
+    >>> clustering2 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
+                                             random_model = 'num')
+    >>> cont_table = contingency_table(clustering1, clustering2)
+    >>> print(cont_table)
     """
     assert clustering1.n_elements == clustering2.n_elements
 
@@ -889,6 +889,49 @@ These are the Information Theoretic Measures
 
 def nmi(clustering1, clustering2, norm_type='sum'):
 
+    """
+    This function calculates the Normalized Mutual Information (NMI)
+    between two clusterings.
+
+    NMI = (S(c1) + S(c2) - S(c1, c2)) / norm(c1, c2)
+
+    where S(c1) is the Shannon Entropy of the clustering size distrubtion,
+    S(c1, c2) is the Shannon Entropy of the join clustering size distrubtion,
+    and norm(c1,c2) is a normalizetion term.
+
+    Parameters
+    ----------
+    clustering1 : Clustering
+        The first clustering
+
+    clustering2 : Clustering
+        The second clustering
+
+    norm_type : 'sum' (default), 'max', 'min', 'sqrt', 'none'
+        The normalization type:
+        'sum' uses the average of the two clustering entropies,
+        'max' uses the maximum of the two clustering entropies,
+        'min' uses the minimum of the two clustering entropies,
+        'sqrt' uses the geometric mean of the two clustering entropies,
+        'none' returns the Mutual Information without a normalization
+
+    Returns
+    -------
+    NMI : float
+        The Normalized Mutual Information index (between 0.0 and inf)
+
+    >>> import clusim.clugen as clugen
+    >>> import clusim.sim as sim
+    >>> clustering1 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
+                                                    random_model='num')
+    >>> clustering2 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
+                                                    random_model='num')
+    >>> print(sim.nmi(clustering1, clustering2, norm_type='sum'))
+    >>> print(sim.nmi(clustering1, clustering2, norm_type='max'))
+    >>> print(sim.nmi(clustering1, clustering2, norm_type='min'))
+    >>> print(sim.nmi(clustering1, clustering2, norm_type='sqrt'))
+    """
+
     cont_tbl = contingency_table(clustering1, clustering2)
 
     e1 = entropy(np.array(clustering1.clu_size_seq, dtype=float) /
@@ -913,6 +956,48 @@ def nmi(clustering1, clustering2, norm_type='sum'):
 
 
 def vi(clustering1, clustering2, norm_type='none'):
+    """
+    This function calculates the Variation of Information (VI)
+    between two clusterings.
+
+    VI is technically a distance measure and can assume values in the range
+    [0, inf), where 0 denotes identical clusterings.
+
+    VI = 2*S(c1, c2) - S(c1) - S(c2)
+
+    where S(c1) is the Shannon Entropy of the clustering size distrubtion, and
+    S(c1, c2) is the Shannon Entropy of the join clustering size distrubtion.
+
+    In [cite], a normalization was proposed which transforms the VI into
+    a clustering similarity measure.
+
+    VI_{sim} = 1 - 0.5*((S(c1,c2) - S(c1))/S(c2) + (S(c1,c2) - S(c2))/S(c1))
+
+    Parameters
+    ----------
+    clustering1 : Clustering
+        The first clustering
+
+    clustering2 : Clustering
+        The second clustering
+
+    norm_type : 'none' (default) or 'entropy'
+        The normalization type.  'none' returns the stanard VI as a distance metric,
+        'entropy' retuns the normalized VI as a similarity measure
+
+    Returns
+    -------
+    VI : float
+        The Variation of Information index (between 0.0 and inf)
+
+    >>> import clusim.clugen as clugen
+    >>> import clusim.sim as sim
+    >>> clustering1 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
+                                                    random_model='num')
+    >>> clustering2 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
+                                                    random_model='num')
+    >>> print(sim.vi(clustering1, clustering2))
+    """
     cont_tbl = contingency_table(clustering1, clustering2)
 
     e1 = entropy(np.array(clustering1.clu_size_seq, dtype=float) /
@@ -930,6 +1015,74 @@ def vi(clustering1, clustering2, norm_type='none'):
 
 def expected_mi(n_elements, n_clusters1=2, n_clusters2=2, clu_size_seq1=None,
                 clu_size_seq2=None, logbase=2, random_model='num'):
+
+    """
+    This function calculates the expectation of the Mutual Informaiton between all
+    pairs of clusterings drawn from one of six random models.
+
+    See :cite:`Gates2017impact` for a detailed derivation and explaination of the different
+    random models.
+
+    .. note:: Clustering 2 is considered the gold-standard clustering for one-sided expectations
+
+    Parameters
+    ----------
+    n_elements : int
+        The number of elements
+
+    n_clusters1 : int, optional
+        The number of clusters in the first clustering
+
+    n_clusters2 : int, optional
+        The number of clusters in the second clustering, considered the
+        gold-standard clustering for the one-sided expecations
+
+    clu_size_seq1 : int, optional
+        The cluster size seqence of the first clustering
+
+    clu_size_seq2 : int, optional
+        The cluster size seqence of the second clustering
+
+    random_model : string
+        The random model to use:
+
+        'all' : uniform distrubtion over the set of all clusterings of
+                n_elements
+
+        'all1' : one-sided selction from the uniform distrubtion over the set
+                 of all clusterings of n_elements
+
+        'num' : uniform distrubtion over the set of all clusterings of
+                n_elements in n_clusters
+
+        'num1' : one-sided selction from the uniform distrubtion over the set
+                 of all clusterings of n_elements in n_clusters
+
+        'perm' : the permutation model for a fixed cluster size sequence
+
+        'perm1' : one-sided selction from the permutation model for a fixed
+                  cluster size sequence, same as 'perm'
+
+    Returns
+    -------
+    expected : float
+        The expected MI (between 0.0 and inf)
+
+    >>> import clusim.sim as sim
+    >>> print(sim.expected_mi(n_elements=5, random_model='all'))
+    >>> print(sim.expected_mi(n_elements=5, random_model='all1',
+                                         clu_size_seq2=[1,1,3]))
+    >>> print(sim.expected_mi(n_elements=5, , random_model='num',
+                                         n_clusters1=2, n_clusters2=3))
+    >>> print(sim.expected_mi(n_elements=5, random_model='num1',
+                                         n_clusters1=2, clu_size_seq2=[1,1,3]))
+    >>> print(sim.expected_mi(n_elements=5, random_model='perm',
+                                         clu_size_seq1=[2,3],
+                                         clu_size_seq2=[1,1,3]))
+    >>> print(sim.expected_mi(n_elements=5, random_model='perm1',
+                                         clu_size_seq1=[2,3],
+                                         clu_size_seq2=[1,1,3]))
+    """
 
     nf = float(n_elements)
 
@@ -1028,16 +1181,81 @@ def expected_mi(n_elements, n_clusters1=2, n_clusters2=2, clu_size_seq1=None,
     return expected_H1_sum + expected_H2_sum - expected_H12_sum
 
 
-def adj_mi(clustering1, clustering2, random_model='perm', norm_type='none',
-           logbase=2):
-    """ calculate the adjusted Mutual Information for all random models
+def adj_mi(clustering1, clustering2, random_model='perm', norm_type = 'sum', logbase=2):
+    """
+    This function calculates the adjusted Mutual Information for one of six random
+    models.
 
-    (cite)
+    .. note:: Clustering 2 is considered the gold-standard clustering for one-sided expectations
 
+    Parameters
+    ----------
+    clustering1 : Clustering
+        The first clustering.
+
+    clustering2 : Clustering
+        The second clustering.
+
+    random_model : string
+        The random model to use:
+
+        'all' : uniform distrubtion over the set of all clusterings of
+                n_elements
+
+        'all1' : one-sided selction from the uniform distrubtion over the set
+                 of all clusterings of n_elements
+
+        'num' : uniform distrubtion over the set of all clusterings of
+                n_elements in n_clusters
+
+        'num1' : one-sided selction from the uniform distrubtion over the set
+                 of all clusterings of n_elements in n_clusters
+
+        'perm' : the permutation model for a fixed cluster size sequence
+
+        'perm1' : one-sided selction from the permutation model for a fixed
+                  cluster size sequence, same as 'perm'
+
+    norm_type : 'sum' (default), 'max', 'min', 'sqrt', 'none'
+        The normalization type:
+        'sum' uses the average of the two clustering entropies,
+        'max' uses the maximum of the two clustering entropies,
+        'min' uses the minimum of the two clustering entropies,
+        'sqrt' uses the geometric mean of the two clustering entropies,
+        'none' returns the Mutual Information without a normalization
+
+    logbase : float, (default) 2
+        The base of all logarithms (recommended to use 2 for bits).
+
+    Returns
+    -------
+    adjusted_mi : float
+        The adjusted Mutual Information
+
+    >>> import clusim.clugen as clugen
+    >>> import clusim.sim as sim
+    >>> clustering1 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
+                                                    random_model='all')
+    >>> clustering2 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
+                                                    random_model='all')
+    >>> print(sim.adj_mi(clustering1, clustering2,
+                                   random_model='all'))
+    >>> print(sim.adj_mi(clustering1, clustering2,
+                                   random_model='all1'))
+    >>> print(sim.adj_mi(clustering1, clustering2,
+                                   random_model='num'))
+    >>> print(sim.adj_mi(clustering1, clustering2,
+                                   random_model='num1'))
+    >>> print(sim.adj_mi(clustering1, clustering2,
+                                   random_model='perm'))
+    >>> print(sim.adj_mi(clustering1, clustering2,
+                                   random_model='perm1'))
     """
 
     if random_model == 'none':
         exp_mi = 0.0
+        norm_type = 0.0
+
     else:
         exp_mi = expected_mi(n_elements=clustering1.n_elements,
                              n_clusters1=clustering1.n_clusters,
@@ -1047,17 +1265,17 @@ def adj_mi(clustering1, clustering2, random_model='perm', norm_type='none',
                              random_model=random_model,
                              logbase=logbase)
 
-    if random_model == 'perm':
+    if random_model == 'perm' or random_model == 'perm1':
         e1 = entropy(np.array(clustering1.clu_size_seq, dtype=float) /
                      clustering1.n_elements, logbase=logbase)
         e2 = entropy(np.array(clustering2.clu_size_seq, dtype=float) /
                      clustering2.n_elements, logbase=logbase)
 
-    elif random_model == 'num':
+    elif random_model == 'num' or random_model == 'num1':
         e1 = np.log(clustering1.n_clusters) / np.log(logbase)
         e2 = np.log(clustering2.n_clusters) / np.log(logbase)
 
-    elif random_model == 'all':
+    elif random_model == 'all' or random_model == 'all1':
         e1 = np.log(clustering1.n_elements) / np.log(logbase)
         e2 = np.log(clustering2.n_elements) / np.log(logbase)
 

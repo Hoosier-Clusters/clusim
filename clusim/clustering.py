@@ -15,16 +15,36 @@ from clusim.dag import Dendrogram
 
 
 class ClusterError(ValueError):
-    """Exception raised for errors in the clustering.
+    """
+    Exception raised for errors in the clustering.
 
     Attributes:
-        expression -- input expression in which the error occurred
-        message -- explanation of the error
+        expression : input expression in which the error occurred
+        message : explanation of the error
     """
 
     def __init__(self, expression, message):
         self.expression = expression
         self.message = message
+
+
+def print_clustering(clustering):
+    """
+    A function to print a clustering. Clusters are seperated by '|'. The fuction
+    will only print the leaf layer of a Hierarchical Clustering.
+
+    Parameters
+    ----------
+    clustering : Clustering
+        The clustering to print
+
+    >>> import clusim.clugen as clugen
+    >>> from clusim.clustering import print_clustering
+    >>> clu = clugen.make_equal_clustering(n_elements = 9, n_clusters = 3)
+    >>> print_clustering(clu)
+    """
+    print('|'.join("".join(map(str, loe)) for loe
+                   in clustering.clu2elm_dict.values()))
 
 
 class Clustering(object):
@@ -95,8 +115,7 @@ class Clustering(object):
         """
         Return a copy of the clustering.
 
-        >>> import from clusim.clustering import Clustering
-        >>> from clusim.plotutils import print_clustering
+        >>> from clusim.clustering import Clustering, print_clustering
         >>> clu = clusim.Clustering()
         >>> clu2 = clu.copy()
         >>> print_clustering(clu)
@@ -116,8 +135,7 @@ class Clustering(object):
         elm2clu_dict : dict
             { elementid: [clu1, clu2, ... ] }
 
-        >>> from clusim.clustering import Clustering
-        >>> from clusim.plotutils import print_clustering
+        >>> from clusim.clustering import Clustering, print_clustering
         >>> elm2clu_dict = {0:[0], 1:[0], 2:[0,1], 3:[1], 4:[2], 5:[2]}
         >>> clu = Clustering()
         >>> clu.from_elm2clu_dict(elm2clu_dict)
@@ -149,8 +167,7 @@ class Clustering(object):
             { clusid: [el1, el2, ... ] }
 
 
-        >>> import from clusim.clustering import Clustering
-        >>> from clusim.plotutils import print_clustering
+        >>> from clusim.clustering import Clustering, print_clustering
         >>> clu2elm_dict = {0:[0,1,2], 1:[2,3], 2:[4,5]}
         >>> clu = Clustering()
         >>> clu.from_clu2elm_dict(clu2elm_dict)
@@ -181,8 +198,7 @@ class Clustering(object):
         cluster_list : list of lists
             [ [el1, el2, ...], [el5, ...], ... ]
 
-        >>> import from clusim.clustering import Clustering
-        >>> from clusim.plotutils import print_clustering
+        >>> from clusim.clustering import Clustering, print_clustering
         >>> cluster_list = [ [0,1,2], [2,3], [4,5]]
         >>> clu = Clustering()
         >>> clu.from_cluster_list(cluster_list)
@@ -220,8 +236,7 @@ class Clustering(object):
         cluster_list : list of integers
              clu_for_el1, clu_for_el2, ... ]
 
-        >>> import from clusim.clustering import Clustering
-        >>> from clusim.plotutils import print_clustering
+        >>> from clusim.clustering import Clustering, print_clustering
         >>> membership_list = [0,0,0,1,2,2]
         >>> clu = Clustering()
         >>> clu.from_membership_list(membership_list)
@@ -300,7 +315,7 @@ class Clustering(object):
             A list where the ith entry corresponds to the size of the ith
             cluster.
 
-        >>> import from clusim.clustering import Clustering
+        >>> from clusim.clustering import Clustering, print_clustering
         >>> elm2clu_dict = {0:[0], 1:[0], 2:[0,1], 3:[1], 4:[2], 5:[2]}
         >>> clu = Clustering(elm2clu_dict = elm2clu_dict)
         >>> print("Cluster Size Sequence:", clu.find_clu_size_seq())
@@ -318,7 +333,7 @@ class Clustering(object):
         clu_size_seq : integer
             The number of elements in at least two clusters.
 
-        >>> import from clusim.clustering import Clustering
+        >>> from clusim.clustering import Clustering, print_clustering
         >>> elm2clu_dict = {0:[0], 1:[0], 2:[0,1], 3:[1], 4:[2], 5:[2]}
         >>> clu = Clustering(elm2clu_dict = elm2clu_dict)
         >>> print("Overlap size:", clu.find_num_overlap())
@@ -336,8 +351,7 @@ class Clustering(object):
         -------
         self : Clustering
 
-        >>> import from clusim.clustering import Clustering
-        >>> from clusim.plotutils import print_clustering
+        >>> from clusim.clustering import Clustering, print_clustering
         >>> elm2clu_dict = {0:[0], 1:[0], 2:[0], 3:[1], 4:[2], 5:[2]}
         >>> clu = Clustering(elm2clu_dict = elm2clu_dict)
         >>> print_clustering(clu)
@@ -403,7 +417,7 @@ class Clustering(object):
             in-between 0 and 1
 
 
-        >>> import from clusim.clustering import Clustering
+        >>> from clusim.clustering import Clustering, print_clustering
         >>> from scipy.cluster.hierarchy import dendrogram, linkage
         >>> import numpy as np
         >>> np.random.seed(42)
