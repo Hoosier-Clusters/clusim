@@ -19,57 +19,42 @@ import collections
 import itertools
 
 
-def element_sim_matrix(clustering_list, alpha=0.9, r=1.,
-                       rescale_path_type='max'):
-
-    relabeled_elements = relabel_objects(clustering_list[0].elements)
-
-    affinity_matrix_list = [make_affinity_matrix(clustering, alpha=alpha, r=r,
-                            rescale_path_type=rescale_path_type,
-                            relabeled_elements=relabeled_elements)
-                            for clustering in clustering_list]
-
-    Nclusterings = len(clustering_list)
-    sim_matrix = np.zeros(int(Nclusterings * (Nclusterings - 1) / 2))
-    icompare = 0
-    for iclustering, jclustering in itertools.combinations(range(Nclusterings),
-                                                           2):
-        sim_matrix[icompare] = np.mean(cL1(affinity_matrix_list[iclustering],
-                                       affinity_matrix_list[jclustering],
-                                       alpha))
-        icompare += 1
-
-    return sim_matrix
-
-
-def element_sim(clustering1, clustering2, alpha=0.9, r=1., r2=None,
-                rescale_path_type='max'):
+def element_sim(clustering1, clustering2, alpha=0.9, r=1., r2=None, rescale_path_type='max'):
     """
     The element-centric clustering similarity.
 
-    Parameters
-    ----------
-    clustering1 : Clustering
-        The first clustering
+    See :cite:`Gates2018element` for a detailed explaination of the measure.
 
-    clustering2 : Clustering
-        The second clustering
+    :param Clustering clustering1: The first Clustering
 
-    alpha : float
-        The personalized page-rank return probability.
+    :param Clustering clustering2: The second Clustering
 
-    Returns
-    -------
-    element_sim : float
-        The element-wise similarity between the two clusterings
+    :param float alpha: The personalized page-rank return probability as a float in [0,1].
 
-    >>> import clusim
+    :param float r1: The hierarchical scaling parameter for clustering1.
+
+    :param float r2: The hierarchical scaling parameter for clustering2. This defaults to None
+        forcing r2 = r1
+
+    :param str rescale_path_type: rescale the hierarchical height by
+        'max' : the maximum path from the root
+        'min' : the minimum path form the root
+        'linkage' : use the linkage distances in the clustering
+
+    :param dict relabeled_elements: (optional)
+        The elements maped to indices of the affinity matrix.
+
+    :returns: The element-wise similarity between the two clusterings
+
+    >>> import clusim.sim as sim
+    >>> from clusim.clustering import Clustering
     >>> clustering1 = Clustering(elm2clu_dict={0:[0], 1:[0], 2:[0,1],
                                                3:[1], 4:[2], 5:[2]})
     >>> clustering2 = Clustering(elm2clu_dict={0:[0,2], 1:[0], 2:[0,1],
                                                3:[1], 4:[2], 5:[1,2]})
-    >>> print(element_sim(clustering1, clustering2, alpha=0.9))
+    >>> print(sim.element_sim(clustering1, clustering2, alpha=0.9))
     """
+
     result_tuple = element_sim_elscore(clustering1, clustering2, alpha=alpha,
                                        r=r, r2=r2,
                                        rescale_path_type=rescale_path_type)
@@ -82,34 +67,38 @@ def element_sim_elscore(clustering1, clustering2, alpha=0.9, r=1., r2=None,
     """
     The element-centric clustering similarity for each element.
 
-    Parameters
-    ----------
-    clustering1 : Clustering
-        The first clustering
+    See :cite:`Gates2018element` for a detailed explaination of the measure.
 
-    clustering2 : Clustering
-        The second clustering
+    :param Clustering clustering1: The first Clustering
 
-    alpha : float
-        The personalized page-rank return probability.
+    :param Clustering clustering2: The second Clustering
 
-    relabeled_elements : dict, optional
+    :param float alpha: The personalized page-rank return probability as a float in [0,1].
+
+    :param float r1: The hierarchical scaling parameter for clustering1.
+
+    :param float r2: The hierarchical scaling parameter for clustering2.  This defaults to None
+        forcing r2 = r1
+
+    :param str rescale_path_type: rescale the hierarchical height by:
+        'max' : the maximum path from the root
+        'min' : the minimum path form the root
+        'linkage' : use the linkage distances in the clustering
+
+    :param dict relabeled_elements: (optional)
         The elements maped to indices of the affinity matrix.
 
-    Returns
-    -------
-    elementScores: numpy array
-        The element-centric similarity between the two clusterings for each element
+    :returns: The element-centric similarity between the two clusterings for each element as a 1d numpy array
 
-    relabeled_elements : dict
-        The elements maped to indices of the elementScores array.
+    :returns: a dict mapping each element to its index of the elementScores array.
 
-    >>> import clusim
+    >>> import clusim.sim as sim
+    >>> from clusim.clustering import Clustering
     >>> clustering1 = Clustering(elm2clu_dict={0:[0], 1:[0], 2:[0,1],
                                                3:[1], 4:[2], 5:[2]})
     >>> clustering2 = Clustering(elm2clu_dict={0:[0,2], 1:[0], 2:[0,1],
                                                3:[1], 4:[2], 5:[1,2]})
-    >>> elementScores, relabeled_elements = element_sim_elseq(clustering1,
+    >>> elementScores, relabeled_elements = sim.element_sim_elseq(clustering1,
                                                               clustering2,
                                                               alpha = 0.9)
     >>> print(elementScores)
@@ -148,22 +137,20 @@ def cL1(x, y, alpha):
     corrected for the guaranteed overlap in probability between the two
     vectors, alpha.
 
-    Parameters
-    ----------
-    x : 2d numpy array
+    See :cite:`Gates2018element` for a detailed explaination of the need to correct
+    the L1 metric.
+
+    :param 2d-numpy-array x:
         The first list of probability vectors
 
-    y : 2d numpy array
+    :param 2d-numpy-array y:
         The second list of probability vectors
 
-    alpha : float
-        The guaranteed overlap in probability between the two vectors.
+    :param float alpha:
+        The guaranteed overlap in probability between the two vectors in [0,1].
 
-    Returns
-    -------
-    cL1 : numpy array
-        The list of L1 similarities between each pair of probability
-        vectors
+    :returns:
+        The 1d numpy array of L1 similarities between the affinity matrices x and y
     """
     return 1.0 - 1.0/(2.0 * alpha) * np.sum(np.abs(x - y), axis=1)
 
@@ -172,32 +159,32 @@ def make_affinity_matrix(clustering, alpha=0.9, r=1., rescale_path_type='max',
                          relabeled_elements=None):
     """
     The element-centric clustering similarity affinity matrix for a
-    clustering.
+    clustering.  This function automatically determines the most efficient method
+    to calculate the affinity matrix.
 
-    Parameters
-    ----------
-    clustering : Clustering
-        The clustering
+    See :cite:`Gates2018element` for a detailed explaination of the affinity matrix.
 
-    alpha : float
-        The personalized page-rank return probability.
 
-    relabeled_elements : dict, optional
+    :param Clustering clustering: The clustering
+
+    :param float alpha: The personalized page-rank return probability.
+
+    :param dict relabeled_elements: (optional)
         The elements maped to indices of the affinity matrix.
 
-    Returns
-    -------
-    ppr: 2d numpy array
-        The element-centric affinity representation of the clustering
 
-    >>> import clusim
+    :returns:
+        The element-centric affinity representation of the clustering as a 2d numpy array
+
+    >>> import clusim.sim as sim
+    >>> from clusim.clustering import Clustering
     >>> clustering1 = Clustering(elm2clu_dict={0:[0], 1:[0], 2:[1], 3:[1],
                                                4:[2], 5:[2]})
-    >>> pprmatrix = make_affinity_matrix(clustering1, alpha=0.9)
+    >>> pprmatrix = sim.make_affinity_matrix(clustering1, alpha=0.9)
     >>> print(pprmatrix)
     >>> clustering2 = Clustering(elm2clu_dict={0:[0], 1:[0], 2:[0,1], 3:[1],
                                                4:[2], 5:[2]})
-    >>> pprmatrix2 = make_affinity_matrix(clustering2, alpha=0.9)
+    >>> pprmatrix2 = sim.make_affinity_matrix(clustering2, alpha=0.9)
     >>> print(pprmatrix2)
     """
 
@@ -224,28 +211,24 @@ def make_affinity_matrix(clustering, alpha=0.9, r=1., rescale_path_type='max',
 
 def ppr_partition(clustering, alpha=0.9, relabeled_elements=None):
     """
-    The element-centric clustering similarity affinity matrix for a partition.
+    The element-centric clustering similarity affinity matrix for a partition found analytically.
 
-    Parameters
-    ----------
-    clustering : Clustering
-        The clustering
+    :param Clustering clustering: The Clustering
 
-    alpha : float
-        The personalized page-rank return probability.
+    :param float alpha: The personalized page-rank return probability as a float in [0,1].
 
-    relabeled_elements : dict, optional
+    :param dict relabeled_elements: (optional)
         The elements maped to indices of the affinity matrix.
 
-    Returns
-    -------
-    ppr: 2d numpy array
+
+    :returns: 2d numpy array
         The element-centric affinity representation of the clustering
 
-    >>> import clusim
+    >>> import clusim.sim as sim
+    >>> from clusim.clustering import Clustering
     >>> elm2clu_dict = {0:[0], 1:[0], 2:[1], 3:[1], 4:[2], 5:[2]}
     >>> clustering1 = Clustering(elm2clu_dict=elm2clu_dict)
-    >>> pprmatrix = ppr_partition(clustering1, alpha=0.9)
+    >>> pprmatrix = sim.ppr_partition(clustering1, alpha=0.9)
     >>> print(pprmatrix)
     """
 
@@ -265,31 +248,31 @@ def ppr_partition(clustering, alpha=0.9, relabeled_elements=None):
     return ppr
 
 
-def make_phctag(clustering, r=1.0, rescale_path_type='max',
+def make_cielg(clustering, r=1.0, rescale_path_type='max',
                 relabeled_elements=None):
     """
-    The element-centric clustering similarity affinity matrix for a partition.
+    Create the cluster-induced element graph for a Clustering.
 
-    Parameters
-    ----------
-    clustering : Clustering
-        The clustering
+    :param Clustering clustering: The clustering
 
-    r : float
-        The scaling parameter.
+    :param float r: The hierarchical scaling parameter.
 
-    relabeled_elements : dict, optional
+    :param str rescale_path_type: rescale the hierarchical height by:
+        'max' : the maximum path from the root
+        'min' : the minimum path form the root
+        'linkage' : use the linkage distances in the clustering
+
+    :param dict relabeled_elements: (optional)
         The elements maped to indices of the affinity matrix.
 
-    Returns
-    -------
-    ppr: 2d numpy array
-        The element-centric affinity representation of the clustering
+    :returns:
+        The cluster-induced element graph for a Clustering as an igraph.WeightedGraph
 
-    >>> import clusim
+    >>> import clusim.sim as sim
+    >>> from clusim.clustering import Clustering
     >>> elm2clu_dict = {0:[0], 1:[0], 2:[1], 3:[1], 4:[2], 5:[2]}
     >>> clustering1 = Clustering(elm2clu_dict=elm2clu_dict)
-    >>> pprmatrix = ppr_partition(clustering1, alpha = 0.9)
+    >>> pprmatrix = sim.make_cielg(clustering1, r = 1.0)
     >>> print(pprmatrix)
     """
 
@@ -328,57 +311,45 @@ def make_phctag(clustering, r=1.0, rescale_path_type='max',
     proj1 = bipartite_adj / bipartite_adj.sum(axis=1)
     proj2 = bipartite_adj / bipartite_adj.sum(axis=0)
     projected_adj = proj1.dot(proj2.T)
-    phctag = igraph.Graph.Weighted_Adjacency(projected_adj.tolist(),
+    cielg = igraph.Graph.Weighted_Adjacency(projected_adj.tolist(),
                                              mode=igraph.ADJ_DIRECTED,
                                              attr="weight", loops=True)
-    return phctag
+    return cielg
 
 
 def find_groups_in_cluster(clustervs, elementgroupList):
     """
-    A utility function to find vertices with all of the same cluster
+    A utility function to find vertices with the same cluster
     memberships.
 
-    Parameters
-    ----------
-    clustervs : igraph vertex
-        an igraph vertex instance
+    :param igraph.vertex clustervs: an igraph vertex instance
 
-    elementgroupList : list of vertices
-        a list containing the vertices to group
+    :param list elementgroupList: a list containing the vertices to group
 
 
-    Returns
-    -------
-    groupings: list of lists
-        a list containing the groupings of the vertices
+    :returns:
+        a list-of-lists containing the groupings of the vertices
     """
     clustervertex = set([v for v in clustervs])
     return [vg for vg in elementgroupList if len(set(vg) & clustervertex) > 0]
 
 
-def numerical_ppr_scores(phctag, clustering, alpha=0.9,
+def numerical_ppr_scores(cielg, clustering, alpha=0.9,
                          relabeled_elements=None):
     """
     The element-centric clustering similarity affinity matrix for a partition.
 
-    Parameters
-    ----------
-    phctag : igraph Weighted Graph
-        The projected HCTAG
+    :param igraph.WeightedGraph cielg: cielg : An igraph Weighted Graph representation of the cluster-induced element graph
 
-    clustering : Clustering
-        The clustering
+    :param Clustering clustering: The Clustering
 
-    alpha : float
-        The personalized page-rank return probability.
+    :param float alpha: The personalized page-rank return probability as a float in [0,1].
 
-    relabeled_elements : dict, optional
+    :param dict relabeled_elements: (optional) dict
         The elements maped to indices of the affinity matrix.
 
-    Returns
-    -------
-    ppr: 2d numpy array
+
+    :returns: 2d numpy array
         The element-centric affinity representation of the clustering
     """
 
@@ -412,3 +383,26 @@ def numerical_ppr_scores(phctag, clustering, alpha=0.9,
         ppr_scores[[[v] for v in cluster], cluster] = cc_ppr_scores
 
     return ppr_scores
+
+
+def element_sim_matrix(clustering_list, alpha=0.9, r=1.,
+                       rescale_path_type='max'):
+
+    relabeled_elements = relabel_objects(clustering_list[0].elements)
+
+    affinity_matrix_list = [make_affinity_matrix(clustering, alpha=alpha, r=r,
+                            rescale_path_type=rescale_path_type,
+                            relabeled_elements=relabeled_elements)
+                            for clustering in clustering_list]
+
+    Nclusterings = len(clustering_list)
+    sim_matrix = np.zeros(int(Nclusterings * (Nclusterings - 1) / 2))
+    icompare = 0
+    for iclustering, jclustering in itertools.combinations(range(Nclusterings),
+                                                           2):
+        sim_matrix[icompare] = np.mean(cL1(affinity_matrix_list[iclustering],
+                                       affinity_matrix_list[jclustering],
+                                       alpha))
+        icompare += 1
+
+    return sim_matrix

@@ -19,21 +19,17 @@ def make_equal_clustering(n_elements, n_clusters):
     If n_elements % n_clusters != 0, cluster sizes will differ by one
     element.
 
-    Parameters
-    ----------
-    n_elements : int
+    :param int n_elements:
         The number of elements
 
-    n_clusters : int
+    :param int n_clusters:
         The number of clusters
 
-    Returns
-    -------
-    new_clsutering : Clustering
+    :returns:
         The new clustering with equally sized clusters.
 
     >>> import clusim.clugen as clugen
-    >>> from clusim.plotutils import print_clustering
+    >>> from clusim.clustering import print_clustering
     >>> clu = clugen.make_equal_clustering(n_elements = 9, n_clusters = 3)
     >>> print_clustering(clu)
     """
@@ -45,41 +41,37 @@ def make_equal_clustering(n_elements, n_clusters):
 def make_random_clustering(n_elements=1, n_clusters=1, clu_size_seq=[1, 2],
                            random_model='all', tol=1.0e-15):
     """
-        This function creates a random clustering according to one of three
-        random models.
+    This function creates a random clustering according to one of three
+    random models. It is a wrapper around the specific functions for each random model.
 
-        Parameters
-        ----------
-        n_elements : int
-            The number of elements
+    :param int n_elements:
+        The number of elements
 
-        n_clusters : int
-            The number of clusters
+    :param int n_clusters:
+        The number of clusters
 
-        random_model : string
-            The random model to use:
+    :param str random_mode:
+        The random model to use:
 
-            'all' : uniform distrubtion over the set of all clusterings of
-                    n_elements
+        'all' : uniform distrubtion over the set of all clusterings of
+                n_elements
 
-            'num' : uniform distrubtion over the set of all clusterings of
-                    n_elements in n_clusters
+        'num' : uniform distrubtion over the set of all clusterings of
+                n_elements in n_clusters
 
-            'perm' :
+        'perm' : the Permutaiton Model
 
-        tol : float, optional
-            The tolerance used by the algorithm for 'all' clusterings
+    :param float tol: optional
+        The tolerance used by the algorithm for 'all' clusterings
 
-        Returns
-        -------
-        new_clsutering : Clustering
-            The new clustering.
+    :returns:
+        The new clustering.
 
-        >>> import clusim.clugen as clugen
-        >>> from clusim.plotutils import print_clustering
-        >>> clu = clugen.make_random_clustering(n_elements = 9, n_clusters = 3,
-                                         random_model = 'num')
-        >>> print_clustering(clu)
+    >>> import clusim.clugen as clugen
+    >>> from clusim.clustering import print_clustering
+    >>> clu = clugen.make_random_clustering(n_elements = 9, n_clusters = 3,
+                                     random_model = 'num')
+    >>> print_clustering(clu)
     """
     if random_model in ['all', 'all1']:
         new_clustering = generate_random_partition_all(n_elements=n_elements,
@@ -96,23 +88,19 @@ def make_random_clustering(n_elements=1, n_clusters=1, clu_size_seq=[1, 2],
 
 def make_singleton_clustering(n_elements):
     """
-        This function creates a clustering with each element in its own
-        cluster.
+    This function creates a clustering with each element in its own
+    cluster.
 
-        Parameters
-        ----------
-        n_elements : int
-            The number of elements
+    :param int n_elements:
+        The number of elements
 
-        Returns
-        -------
-        new_clsutering : Clustering
-            The new clustering.
+    :returns:
+        The new clustering.
 
-        >>> import import clusim.clugen as clugen
-        >>> from clusim.plotutils import print_clustering
-        >>> clu = clugen.make_singleton_clustering(n_elements = 9)
-        >>> print_clustering(clu)
+    >>> import import clusim.clugen as clugen
+    >>> from clusim.clustering import print_clustering
+    >>> clu = clugen.make_singleton_clustering(n_elements = 9)
+    >>> print_clustering(clu)
     """
     new_clsutering = make_regular_clustering(n_elements=n_elements,
                                              n_clusters=n_elements)
@@ -121,23 +109,13 @@ def make_singleton_clustering(n_elements):
 
 def make_random_dendrogram(n_elements):
     """
-        This function creates a clustering with each element in its own
-        cluster.
+    This function creates a random Hierarchical Clustering.
 
-        Parameters
-        ----------
-        n_elements : int
-            The number of elements
+    :param int n_elements The number of elements
 
-        Returns
-        -------
-        new_clsutering : Clustering
-            The new clustering.
+    :returns:
+        The new clustering.
 
-        >>> import import clusim.clugen as clugen
-        >>> from clusim.plotutils import print_clustering
-        >>> clu = clugen.make_singleton_clustering(n_elements = 9)
-        >>> print_clustering(clu)
     """
     dendro_graph = Dendrogram()
     dendro_graph.make_random_dendrogram_aglomerative(N=n_elements)
@@ -148,30 +126,24 @@ def make_random_dendrogram(n_elements):
 
 def shuffle_memberships(clustering, percent=1.0):
     """
-        This function creates a new clustering by shuffling the element
-        memberships from the original clustering.
+    This function creates a new clustering by shuffling the element
+    memberships from the original clustering.
 
-        Parameters
-        ----------
-        clustering : Clustering
-            The original clustering.
+    :param Clustering clustering: The original clustering.
 
-        percent : float, optional (default 1.0)
-            The fractional percentage (between 0.0 and 1.0) of the elements to
-            shuffle.
+    :param float percent: optional (default 1.0)
+        The fractional percentage (between 0.0 and 1.0) of the elements to
+        shuffle.
 
-        Returns
-        -------
-        new_clsutering : Clustering
-            The new clustering.
+    :returns: The new clustering.
 
-        >>> import clusim.clugen as clugen
-        >>> from clusim.plotutils import print_clustering
-        >>> orig_clu = clugen.make_random_clustering(n_elements = 9, n_clusters = 3,
-                                              random_model = 'num')
-        >>> print_clustering(orig_clu)
-        >>> shuffle_clu = clugen.shuffle_memberships(orig_clu, percent = 0.5)
-        >>> print_clustering(shuffle_clu)
+    >>> import clusim.clugen as clugen
+    >>> from clusim.clustering import print_clustering
+    >>> orig_clu = clugen.make_random_clustering(n_elements = 9, n_clusters = 3,
+                                          random_model = 'num')
+    >>> print_clustering(orig_clu)
+    >>> shuffle_clu = clugen.shuffle_memberships(orig_clu, percent = 0.5)
+    >>> print_clustering(shuffle_clu)
     """
     el_to_shuffle = np.random.choice(clustering.elements,
                                      int(percent * clustering.n_elements),
@@ -191,35 +163,33 @@ def shuffle_memberships(clustering, percent=1.0):
     return new_clustering
 
 
-def shuffle_memberships_pa(clustering, Nsteps=1, constant_num_clusters=True):
+def shuffle_memberships_pa(clustering, n_steps=1, constant_num_clusters=True):
     """
         This function creates a new clustering by shuffling the element
         memberships from the original clustering according to the preferential
         attachment model.
 
-        Parameters
-        ----------
-        clustering : Clustering
-            The original clustering.
+        See :cite:`Gates2017impact` for a detailed explaination of the preferential
+        attachment model.
 
-        Nsteps : int, optional (default 1)
+        :param Clustering clustering: The original clustering.
+
+        :param int n_steps: optional (default 1)
             The number of times to run the preferential attachment algorithm.
 
-        constant_num_clusters : boolean, optional (default True)
+        :param Boolean constant_num_clusters: optional (default True)
             Reject a shuffling move if it leaves a cluster with no elements.
-            This will keep the number of clusters constant.
+            Set to True to keep the number of clusters constant.
 
-        Returns
-        -------
-        new_clsutering : Clustering
-            The new clustering.
+        :returns:
+            The new clustering with shuffled memberships.
 
         >>> import clusim.clugen as clugen
-        >>> from clusim.plotutils import print_clustering
+        >>> from clusim.clustering import print_clustering
         >>> orig_clu = clugen.make_random_clustering(n_elements=9, n_clusters=3,
                                               random_model='num')
         >>> print_clustering(orig_clu)
-        >>> shuffle_clu = clugen.shuffle_memberships_pa(orig_clu, Nsteps=10,
+        >>> shuffle_clu = clugen.shuffle_memberships_pa(orig_clu, n_steps=10,
                                                  constant_num_clusters=True)
         >>> print_clustering(shuffle_clu)
     """
@@ -231,7 +201,7 @@ def shuffle_memberships_pa(clustering, Nsteps=1, constant_num_clusters=True):
     cluster_size_prob = np.array(list(map(len, cluster_list))) * n_elements_norm
     clusternames = range(Nclusters)
 
-    for istep in range(Nsteps):
+    for istep in range(n_steps):
         from_cluster = np.random.choice(clusternames, p=cluster_size_prob)
         if cluster_size_prob[from_cluster] > 1.5*n_elements_norm or not constant_num_clusters:
 
@@ -301,24 +271,19 @@ all_partition_weight_dict = {}
 def generate_random_partition_all(n_elements, tol=1.0e-15):
     """
         This function creates a random clustering according to the 'All'
-        random model by uniformly selecting a clustering from the set of all
+        random model by uniformly selecting a clustering from the ensemble of all
         clusterings with n_elements.
 
-        Parameters
-        ----------
-        n_elements : int
+        :param int n_elements:
             The number of elements
 
-        tol : float, optional
-            The tolerance used by the algorithm for 'all' clusterings
+        :param float tol: (optional)
+            The tolerance used by the algorithm to approximate the probability distrubtion
 
-        Returns
-        -------
-        new_clsutering : Clustering
-            The new clustering.
+        :returns: The randomly genderated clustering.
 
-        >>> import import clusim.clugen as clugen
-        >>> from clusim.plotutils import print_clustering
+        >>> import clusim.clugen as clugen
+        >>> from clusim.clustering import print_clustering
         >>> clu = clugen.generate_random_partition_all(n_elements = 9)
         >>> print_clustering(clu)
     """
@@ -344,8 +309,8 @@ def generate_random_partition_all(n_elements, tol=1.0e-15):
 
 def enumerate_random_partition_num(n_elements, n_clusters):
     """
-        A generator for every partition in 'Num', the set of all clusterings
-        with n_elements in n_clusters.
+        A generator for every partition in 'Num', the ensemble of all clusterings
+        with n_elements grouped into n_clusters, non-empty clusters.
 
         Based on the solution provided by Adeel Zafar Soomro: `a link`_.
 
@@ -355,21 +320,17 @@ def enumerate_random_partition_num(n_elements, n_clusters):
         (Algorithm U) is described by Knuth in the Art of Computer Programming,
         Volume 4, Fascicle 3B
 
-        Parameters
-        ----------
-        n_elements : int
+        :param int n_elements:
             The number of elements
 
-        n_clusters : int
+        :param int n_clusters:
             The number of clusters
 
-        Returns
-        -------
-        f : cluster list
+        :returns:
             The new clustering as a cluster list.
 
-        >>> import import clusim.clugen as clugen
-        >>> from clusim.plotutils import print_clustering
+        >>> import clusim.clugen as clugen
+        >>> from clusim.clustering import print_clustering
         >>> for clu in clugen.clustering_ensemble_generator_num(n_elements=5, n_clusters=3):
         >>>     print_clustering(clu)
     """

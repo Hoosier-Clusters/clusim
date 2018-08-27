@@ -14,39 +14,6 @@ import networkx as nx
 from clusim.dag import Dendrogram
 
 
-class ClusterError(ValueError):
-    """
-    Exception raised for errors in the clustering.
-
-    Attributes:
-        expression : input expression in which the error occurred
-        message : explanation of the error
-    """
-
-    def __init__(self, expression, message):
-        self.expression = expression
-        self.message = message
-
-
-def print_clustering(clustering):
-    """
-    A function to print a clustering. Clusters are seperated by '|'. The fuction
-    will only print the leaf layer of a Hierarchical Clustering.
-
-    Parameters
-    ----------
-    clustering : Clustering
-        The clustering to print
-
-    >>> import clusim.clugen as clugen
-    >>> from clusim.clustering import print_clustering
-    >>> clu = clugen.make_equal_clustering(n_elements = 9, n_clusters = 3)
-    >>> print_clustering(clu)
-    """
-    print('|'.join("".join(map(str, loe)) for loe
-                   in clustering.clu2elm_dict.values()))
-
-
 class Clustering(object):
     """
     .. class:: Clustering
@@ -130,9 +97,7 @@ class Clustering(object):
         value a list of clusters to which it belongs.  Clustering features
         are then calculated.
 
-        Parameters
-        ----------
-        elm2clu_dict : dict
+        :param dict elm2clu_dict:
             { elementid: [clu1, clu2, ... ] }
 
         >>> from clusim.clustering import Clustering, print_clustering
@@ -486,3 +451,27 @@ class Clustering(object):
             self.clusters = list(self.hierclusdict.keys())
             self.n_clusters = len(self.clusters)
         return self.hierclusdict
+
+
+class ClusterError(ValueError):
+
+    def __init__(self, expression, message):
+        self.expression = expression
+        self.message = message
+
+
+def print_clustering(clustering):
+    """
+    A function to print a clustering. Clusters are seperated by '|'. The fuction
+    will only print the leaf layer of a Hierarchical Clustering.
+
+    :param Clsutering clustering:
+        The clustering to print
+
+    >>> import clusim.clugen as clugen
+    >>> from clusim.clustering import print_clustering
+    >>> clu = clugen.make_equal_clustering(n_elements = 9, n_clusters = 3)
+    >>> print_clustering(clu)
+    """
+    print('|'.join("".join(map(str, loe)) for loe
+                   in clustering.clu2elm_dict.values()))
