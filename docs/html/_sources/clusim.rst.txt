@@ -8,6 +8,12 @@ Welcome to CluSim's documentation!
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
+   :glob:
+   clusim.sim
+   CluSimExamples1.ipynb
+
+Examples and Usage
+===================
 
 
 The “Clustering”
@@ -27,9 +33,6 @@ Clustering Generation
    :members:
 
 
-
-
-
 Clustering Similarity
 ======================
 The different clustering similarity measures available.
@@ -43,20 +46,19 @@ Pairwise Counting Measures
 
 Information Theoretic Measures
 ------------------------------
-.. automodule:: clusim.sim
+..autofunction:: nmi, vi
    :members: nmi, vi
 
 
 Correction for Chance
 ------------------------------
-.. automodule:: clusim.sim
+..automodule:: clusim.sim
    :members: corrected_chance, sample_expected_sim, expected_rand_index, adjrand_index, adj_mi, expected_mi
 
 
 Overlapping Clustering Similarity
 ---------------------------------
-.. automodule:: clusim.sim
-   :members: geometric_accuracy, overlap_quality, onmi, omega_index
+clussim.sim :members: geometric_accuracy, overlap_quality, onmi, omega_index
 
 
 

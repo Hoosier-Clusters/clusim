@@ -19,23 +19,21 @@ class Clustering(object):
     .. class:: Clustering
     Base class for clusterings.
 
-    Parameters
-    ----------
-    elm2clu_dict : dict, optional
+    :param dict elm2clu_dict: optional
         Initialize based on an elm2clu_dict: { elementid: [clu1, clu2, ... ] }.
         The value is a list of clusters to which the element belongs.
 
-    clu2elm_dict : dict, optional
+    :param dict clu2elm_dict: optional
         Initialize based on an clu2elm_dict: { clusid: [el1, el2, ... ]}.
         Each cluster is a key with value a list of elements which belong to it.
 
-    hier_graph : networkx graph, optional
+    :param networkx.Graph() hier_graph: optional
         Initialize based on a hierarchical acyclic graph capturing the cluster
         membership at each scale.
+
     """
 
     def __init__(self, elm2clu_dict=None, clu2elm_dict=None, hier_graph=None):
-
         self.empty_start()
 
         if elm2clu_dict is not None:
@@ -78,10 +76,12 @@ class Clustering(object):
         # representation as an hiercluster dict
         self.hierclusdict = None
 
+
     def copy(self):
         """
-        Return a copy of the clustering.
+        Return a deep copy of the clustering.
 
+        :returns: deep copy of the clustering
         >>> from clusim.clustering import Clustering, print_clustering
         >>> clu = clusim.Clustering()
         >>> clu2 = clu.copy()
@@ -126,9 +126,7 @@ class Clustering(object):
         value a list of elements which belong to it.  Clustering features
         are then calculated.
 
-        Parameters
-        ----------
-        clu2elm_dict : dict
+        :param dict clu2elm_dict:
             { clusid: [el1, el2, ... ] }
 
 
@@ -158,9 +156,7 @@ class Clustering(object):
         where each inner list corresponds to the elements in
         a cluster.  Clustering features are then calculated.
 
-        Parameters
-        ----------
-        cluster_list : list of lists
+        :param list cluster_list: list of lists
             [ [el1, el2, ...], [el5, ...], ... ]
 
         >>> from clusim.clustering import Clustering, print_clustering
@@ -179,10 +175,8 @@ class Clustering(object):
         where each inner list corresponds to the elements in
         a cluster.
 
-        Returns
-        ----------
-        cluster_list : list of lists
-            [ [el1, el2, ...], [el5, ...], ... ]
+        :returns:
+            cluster_list : list of lists, [ [el1, el2, ...], [el5, ...], ... ]
 
         """
         return list(map(list, self.clu2elm_dict.values()))
@@ -190,15 +184,13 @@ class Clustering(object):
     def from_membership_list(self, membership_list):
         """
         This method creates a clustering from a membership list:
-        [ clu_for_el1, clu_for_el2, ... ],  a list of integers
+        [ clu_for_el1, clu_for_el2, ... ],  a list of cluster names where
         the ith entry corresponds to the cluster membership of the ith element.
         Clustering features are then calculated.
 
         .. note:: Membership Lists can only represent partitions (no overlaps)
 
-        Parameters
-        ----------
-        cluster_list : list of integers
+        :param list membership_list: list of cluster names
              clu_for_el1, clu_for_el2, ... ]
 
         >>> from clusim.clustering import Clustering, print_clustering
@@ -213,10 +205,14 @@ class Clustering(object):
     def to_membership_list(self):
         """
         This method returns the clustering as a membership list:
-        [ clu_for_el1, clu_for_el2, ... ],  a list of integers
+        [ clu_for_el1, clu_for_el2, ... ],  a list of cluster names
         the ith entry corresponds to the cluster membership of the ith element.
 
         .. note:: Membership Lists can only represent partitions (no overlaps)
+
+        :returns:
+            list of element memberships, [ clu_for_el1, clu_for_el2, ... ]
+
         """
 
         if not self.is_disjoint:
@@ -239,6 +235,9 @@ class Clustering(object):
         See the :class:`igraph.Cover.VertexCover` class.
         Clustering features are then calculated.
 
+        :param igraph.Cover.VertexCover igraphcover:
+            the igraph VertexCover
+
         """
         igc = igraphcover.as_cover().membership
         self.from_elm2clu_dict({elm: set(clu) for elm, clu in enumerate(igc)})
@@ -248,6 +247,8 @@ class Clustering(object):
         """
         Create a clu2elm_dict: {clusterid: [el1, el2, ... ]} from the
         stored elm2clu_dict.
+
+        :returns: dict
         """
 
         clu2elm_dict = defaultdict(set)
@@ -261,6 +262,8 @@ class Clustering(object):
         """
         Create a elm2clu_dict: {elementid: [clu1, clu2, ... ]} from the
         stored clu2elm_dict.
+
+        :returns: dict
         """
 
         elm2clu_dict = defaultdict(set)
@@ -274,9 +277,7 @@ class Clustering(object):
         """
         This method finds the cluster size sequence for the clustering.
 
-        Returns
-        -------
-        clu_size_seq : list of integers
+        :returns: list of integers
             A list where the ith entry corresponds to the size of the ith
             cluster.
 
@@ -293,9 +294,7 @@ class Clustering(object):
         This method finds the number of elements which are in more than one
         cluster in the clustering.
 
-        Returns
-        -------
-        clu_size_seq : integer
+        :returns:
             The number of elements in at least two clusters.
 
         >>> from clusim.clustering import Clustering, print_clustering
@@ -312,9 +311,7 @@ class Clustering(object):
         The merged clustering will be named new_name if provided, otherwise
         it will assume the name of cluster c1.
 
-        Returns
-        -------
-        self : Clustering
+        :returns: self
 
         >>> from clusim.clustering import Clustering, print_clustering
         >>> elm2clu_dict = {0:[0], 1:[0], 2:[0], 3:[1], 4:[2], 5:[2]}
@@ -344,13 +341,9 @@ class Clustering(object):
         hierarchical clustering by visiting all downstream clusters
         and adding their elements.
 
-        Parameters
-        ----------
-        cluster : the name of the parent cluster
+        :param cluster: the name of the parent cluster
 
-        Returns
-        -------
-        el : element list
+        :returns: element list
 
 
         """
@@ -372,12 +365,10 @@ class Clustering(object):
         from the agglomerative hierarchical clustering.
         Clustering features are then calculated.
 
-        Parameters
-        ----------
-        linkage_matrix : numpy matrix
+        :param numpy.matrix linkage_matrix:
             the linkage matrix from scipy
 
-        dist_rescaled : Boolean
+        :param Boolean dist_rescaled: (default False)
             if True, the linkage distances are linearlly rescaled to be
             in-between 0 and 1
 

@@ -15,7 +15,7 @@
   <link rel="stylesheet" type="text/css" href="_static/css/bootstrap-theme.min.css" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-    <title>The “Clustering” &#8212; CluSim  documentation</title>
+    <title>Examples and Usage &#8212; CluSim  documentation</title>
     <link rel="stylesheet" href="_static/guzzle.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -52,13 +52,14 @@
     <h2>Contents</h2>
     <div class="sidebar-localtoc">
       <ul>
-<li><a class="reference internal" href="#">The “Clustering”</a></li>
+<li><a class="reference internal" href="#">Examples and Usage</a></li>
+<li><a class="reference internal" href="#the-clustering">The “Clustering”</a></li>
 <li><a class="reference internal" href="#module-clusim.clugen">Clustering Generation</a></li>
 <li><a class="reference internal" href="#clustering-similarity">Clustering Similarity</a><ul>
 <li><a class="reference internal" href="#module-clusim.sim">Pairwise Counting Measures</a></li>
-<li><a class="reference internal" href="#module-clusim.sim">Information Theoretic Measures</a></li>
-<li><a class="reference internal" href="#module-clusim.sim">Correction for Chance</a></li>
-<li><a class="reference internal" href="#module-clusim.sim">Overlapping Clustering Similarity</a></li>
+<li><a class="reference internal" href="#information-theoretic-measures">Information Theoretic Measures</a></li>
+<li><a class="reference internal" href="#correction-for-chance">Correction for Chance</a></li>
+<li><a class="reference internal" href="#overlapping-clustering-similarity">Overlapping Clustering Similarity</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#module-clusim.clusimelement">Element-centric Clustering Similarity</a></li>
@@ -98,14 +99,15 @@
             <ol class="breadcrumb">
               <li><a href="#">Docs</a></li>
               
-              <li>The “Clustering”</li>
+              <li>Examples and Usage</li>
             </ol>
           </div>
           
           <div class="document clearer body">
             
   <p>Welcome to CluSim’s documentation!</p>
-<div class="toctree-wrapper compound">
+<div class="section" id="examples-and-usage">
+<h1>Examples and Usage<a class="headerlink" href="#examples-and-usage" title="Permalink to this headline">¶</a></h1>
 </div>
 <div class="section" id="the-clustering">
 <h1>The “Clustering”<a class="headerlink" href="#the-clustering" title="Permalink to this headline">¶</a></h1>
@@ -118,21 +120,37 @@
 <dd></dd></dl>
 
 <p>Base class for clusterings.</p>
-<dl class="docutils">
-<dt>elm2clu_dict <span class="classifier-delimiter">:</span> <span class="classifier">dict, optional</span></dt>
-<dd>Initialize based on an elm2clu_dict: { elementid: [clu1, clu2, … ] }.
-The value is a list of clusters to which the element belongs.</dd>
-<dt>clu2elm_dict <span class="classifier-delimiter">:</span> <span class="classifier">dict, optional</span></dt>
-<dd>Initialize based on an clu2elm_dict: { clusid: [el1, el2, … ]}.
-Each cluster is a key with value a list of elements which belong to it.</dd>
-<dt>hier_graph <span class="classifier-delimiter">:</span> <span class="classifier">networkx graph, optional</span></dt>
-<dd>Initialize based on a hierarchical acyclic graph capturing the cluster
-membership at each scale.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>elm2clu_dict</strong> (<em>dict</em>) – optional
+Initialize based on an elm2clu_dict: { elementid: [clu1, clu2, … ] }.
+The value is a list of clusters to which the element belongs.</li>
+<li><strong>clu2elm_dict</strong> (<em>dict</em>) – optional
+Initialize based on an clu2elm_dict: { clusid: [el1, el2, … ]}.
+Each cluster is a key with value a list of elements which belong to it.</li>
+<li><strong>hier_graph</strong> (<em>networkx.Graph</em><em>(</em><em>)</em>) – optional
+Initialize based on a hierarchical acyclic graph capturing the cluster
+membership at each scale.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 <dl class="method">
 <dt id="clusim.clustering.Clustering.copy">
 <code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#clusim.clustering.Clustering.copy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a copy of the clustering.</p>
+<dd><p>Return a deep copy of the clustering.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">deep copy of the clustering</td>
+</tr>
+</tbody>
+</table>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">clusim.clustering</span> <span class="k">import</span> <span class="n">Clustering</span><span class="p">,</span> <span class="n">print_clustering</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">clu</span> <span class="o">=</span> <span class="n">clusim</span><span class="o">.</span><span class="n">Clustering</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">clu2</span> <span class="o">=</span> <span class="n">clu</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
@@ -173,10 +191,14 @@ are then calculated.</p>
 { clusid: [el1, el22, … ] } where each cluster is a key with
 value a list of elements which belong to it.  Clustering features
 are then calculated.</p>
-<dl class="docutils">
-<dt>clu2elm_dict <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>{ clusid: [el1, el2, … ] }</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>clu2elm_dict</strong> (<em>dict</em>) – { clusid: [el1, el2, … ] }</td>
+</tr>
+</tbody>
+</table>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">clusim.clustering</span> <span class="k">import</span> <span class="n">Clustering</span><span class="p">,</span> <span class="n">print_clustering</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">clu2elm_dict</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="mi">1</span><span class="p">:[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="mi">2</span><span class="p">:[</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">]}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">clu</span> <span class="o">=</span> <span class="n">Clustering</span><span class="p">()</span>
@@ -193,10 +215,15 @@ are then calculated.</p>
 [ [el1, el2, …], [el5, …], … ],  a list of lists,
 where each inner list corresponds to the elements in
 a cluster.  Clustering features are then calculated.</p>
-<dl class="docutils">
-<dt>cluster_list <span class="classifier-delimiter">:</span> <span class="classifier">list of lists</span></dt>
-<dd>[ [el1, el2, …], [el5, …], … ]</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cluster_list</strong> (<em>list</em>) – list of lists
+[ [el1, el2, …], [el5, …], … ]</td>
+</tr>
+</tbody>
+</table>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">clusim.clustering</span> <span class="k">import</span> <span class="n">Clustering</span><span class="p">,</span> <span class="n">print_clustering</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cluster_list</span> <span class="o">=</span> <span class="p">[</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">]]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">clu</span> <span class="o">=</span> <span class="n">Clustering</span><span class="p">()</span>
@@ -213,27 +240,36 @@ a cluster.  Clustering features are then calculated.</p>
 [ [el1, el2, …], [el5, …], … ],  a list of lists,
 where each inner list corresponds to the elements in
 a cluster.</p>
-<dl class="docutils">
-<dt>cluster_list <span class="classifier-delimiter">:</span> <span class="classifier">list of lists</span></dt>
-<dd>[ [el1, el2, …], [el5, …], … ]</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">cluster_list : list of lists, [ [el1, el2, …], [el5, …], … ]</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="clusim.clustering.Clustering.from_membership_list">
 <code class="descname">from_membership_list</code><span class="sig-paren">(</span><em>membership_list</em><span class="sig-paren">)</span><a class="headerlink" href="#clusim.clustering.Clustering.from_membership_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method creates a clustering from a membership list:
-[ clu_for_el1, clu_for_el2, … ],  a list of integers
+[ clu_for_el1, clu_for_el2, … ],  a list of cluster names where
 the ith entry corresponds to the cluster membership of the ith element.
 Clustering features are then calculated.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Membership Lists can only represent partitions (no overlaps)</p>
 </div>
-<dl class="docutils">
-<dt>cluster_list <span class="classifier-delimiter">:</span> <span class="classifier">list of integers</span></dt>
-<dd>clu_for_el1, clu_for_el2, … ]</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>membership_list</strong> (<em>list</em>) – list of cluster names
+clu_for_el1, clu_for_el2, … ]</td>
+</tr>
+</tbody>
+</table>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">clusim.clustering</span> <span class="k">import</span> <span class="n">Clustering</span><span class="p">,</span> <span class="n">print_clustering</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">membership_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">clu</span> <span class="o">=</span> <span class="n">Clustering</span><span class="p">()</span>
@@ -247,12 +283,20 @@ Clustering features are then calculated.</p>
 <dt id="clusim.clustering.Clustering.to_membership_list">
 <code class="descname">to_membership_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#clusim.clustering.Clustering.to_membership_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method returns the clustering as a membership list:
-[ clu_for_el1, clu_for_el2, … ],  a list of integers
+[ clu_for_el1, clu_for_el2, … ],  a list of cluster names
 the ith entry corresponds to the cluster membership of the ith element.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Membership Lists can only represent partitions (no overlaps)</p>
 </div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of element memberships, [ clu_for_el1, clu_for_el2, … ]</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -261,6 +305,14 @@ the ith entry corresponds to the cluster membership of the ith element.</p>
 <dd><p>This method creates a clustering from an igraph VertexCover object.
 See the <code class="xref py py-class docutils literal notranslate"><span class="pre">igraph.Cover.VertexCover</span></code> class.
 Clustering features are then calculated.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>igraphcover</strong> (<em>igraph.Cover.VertexCover</em>) – the igraph VertexCover</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -268,6 +320,14 @@ Clustering features are then calculated.</p>
 <code class="descname">to_clu2elm_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#clusim.clustering.Clustering.to_clu2elm_dict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a clu2elm_dict: {clusterid: [el1, el2, … ]} from the
 stored elm2clu_dict.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -275,17 +335,30 @@ stored elm2clu_dict.</p>
 <code class="descname">to_elm2clu_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#clusim.clustering.Clustering.to_elm2clu_dict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a elm2clu_dict: {elementid: [clu1, clu2, … ]} from the
 stored clu2elm_dict.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="clusim.clustering.Clustering.find_clu_size_seq">
 <code class="descname">find_clu_size_seq</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#clusim.clustering.Clustering.find_clu_size_seq" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method finds the cluster size sequence for the clustering.</p>
-<dl class="docutils">
-<dt>clu_size_seq <span class="classifier-delimiter">:</span> <span class="classifier">list of integers</span></dt>
-<dd>A list where the ith entry corresponds to the size of the ith
-cluster.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of integers
+A list where the ith entry corresponds to the size of the ith
+cluster.</td>
+</tr>
+</tbody>
+</table>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">clusim.clustering</span> <span class="k">import</span> <span class="n">Clustering</span><span class="p">,</span> <span class="n">print_clustering</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">elm2clu_dict</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">:[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">:[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="mi">3</span><span class="p">:[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">4</span><span class="p">:[</span><span class="mi">2</span><span class="p">],</span> <span class="mi">5</span><span class="p">:[</span><span class="mi">2</span><span class="p">]}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">clu</span> <span class="o">=</span> <span class="n">Clustering</span><span class="p">(</span><span class="n">elm2clu_dict</span> <span class="o">=</span> <span class="n">elm2clu_dict</span><span class="p">)</span>
@@ -300,10 +373,14 @@ cluster.</dd>
 <code class="descname">find_num_overlap</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#clusim.clustering.Clustering.find_num_overlap" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method finds the number of elements which are in more than one
 cluster in the clustering.</p>
-<dl class="docutils">
-<dt>clu_size_seq <span class="classifier-delimiter">:</span> <span class="classifier">integer</span></dt>
-<dd>The number of elements in at least two clusters.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The number of elements in at least two clusters.</td>
+</tr>
+</tbody>
+</table>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">clusim.clustering</span> <span class="k">import</span> <span class="n">Clustering</span><span class="p">,</span> <span class="n">print_clustering</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">elm2clu_dict</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">:[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">:[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="mi">3</span><span class="p">:[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">4</span><span class="p">:[</span><span class="mi">2</span><span class="p">],</span> <span class="mi">5</span><span class="p">:[</span><span class="mi">2</span><span class="p">]}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">clu</span> <span class="o">=</span> <span class="n">Clustering</span><span class="p">(</span><span class="n">elm2clu_dict</span> <span class="o">=</span> <span class="n">elm2clu_dict</span><span class="p">)</span>
@@ -319,7 +396,14 @@ cluster in the clustering.</p>
 <dd><p>This method merges the elements in two clusters from the clustering.
 The merged clustering will be named new_name if provided, otherwise
 it will assume the name of cluster c1.</p>
-<p>self : Clustering</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">self</td>
+</tr>
+</tbody>
+</table>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">clusim.clustering</span> <span class="k">import</span> <span class="n">Clustering</span><span class="p">,</span> <span class="n">print_clustering</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">elm2clu_dict</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">:[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">:[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">3</span><span class="p">:[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">4</span><span class="p">:[</span><span class="mi">2</span><span class="p">],</span> <span class="mi">5</span><span class="p">:[</span><span class="mi">2</span><span class="p">]}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">clu</span> <span class="o">=</span> <span class="n">Clustering</span><span class="p">(</span><span class="n">elm2clu_dict</span> <span class="o">=</span> <span class="n">elm2clu_dict</span><span class="p">)</span>
@@ -336,8 +420,16 @@ it will assume the name of cluster c1.</p>
 <dd><p>This method finds all elements contained in a cluster from a
 hierarchical clustering by visiting all downstream clusters
 and adding their elements.</p>
-<p>cluster : the name of the parent cluster</p>
-<p>el : element list</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cluster</strong> – the name of the parent cluster</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">element list</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -346,13 +438,20 @@ and adding their elements.</p>
 <dd><p>This method creates a clustering from a scipy linkage object resulting
 from the agglomerative hierarchical clustering.
 Clustering features are then calculated.</p>
-<dl class="docutils">
-<dt>linkage_matrix <span class="classifier-delimiter">:</span> <span class="classifier">numpy matrix</span></dt>
-<dd>the linkage matrix from scipy</dd>
-<dt>dist_rescaled <span class="classifier-delimiter">:</span> <span class="classifier">Boolean</span></dt>
-<dd>if True, the linkage distances are linearlly rescaled to be
-in-between 0 and 1</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>linkage_matrix</strong> (<em>numpy.matrix</em>) – the linkage matrix from scipy</li>
+<li><strong>dist_rescaled</strong> (<em>Boolean</em>) – (default False)
+if True, the linkage distances are linearlly rescaled to be
+in-between 0 and 1</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">clusim.clustering</span> <span class="k">import</span> <span class="n">Clustering</span><span class="p">,</span> <span class="n">print_clustering</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">scipy.cluster.hierarchy</span> <span class="k">import</span> <span class="n">dendrogram</span><span class="p">,</span> <span class="n">linkage</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -385,21 +484,37 @@ in-between 0 and 1</dd>
 <dd></dd></dl>
 
 <p>Base class for clusterings.</p>
-<dl class="docutils">
-<dt>elm2clu_dict <span class="classifier-delimiter">:</span> <span class="classifier">dict, optional</span></dt>
-<dd>Initialize based on an elm2clu_dict: { elementid: [clu1, clu2, … ] }.
-The value is a list of clusters to which the element belongs.</dd>
-<dt>clu2elm_dict <span class="classifier-delimiter">:</span> <span class="classifier">dict, optional</span></dt>
-<dd>Initialize based on an clu2elm_dict: { clusid: [el1, el2, … ]}.
-Each cluster is a key with value a list of elements which belong to it.</dd>
-<dt>hier_graph <span class="classifier-delimiter">:</span> <span class="classifier">networkx graph, optional</span></dt>
-<dd>Initialize based on a hierarchical acyclic graph capturing the cluster
-membership at each scale.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>elm2clu_dict</strong> (<em>dict</em>) – optional
+Initialize based on an elm2clu_dict: { elementid: [clu1, clu2, … ] }.
+The value is a list of clusters to which the element belongs.</li>
+<li><strong>clu2elm_dict</strong> (<em>dict</em>) – optional
+Initialize based on an clu2elm_dict: { clusid: [el1, el2, … ]}.
+Each cluster is a key with value a list of elements which belong to it.</li>
+<li><strong>hier_graph</strong> (<em>networkx.Graph</em><em>(</em><em>)</em>) – optional
+Initialize based on a hierarchical acyclic graph capturing the cluster
+membership at each scale.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 <dl class="method">
 <dt>
 <code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
-<dd><p>Return a copy of the clustering.</p>
+<dd><p>Return a deep copy of the clustering.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">deep copy of the clustering</td>
+</tr>
+</tbody>
+</table>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">clusim.clustering</span> <span class="k">import</span> <span class="n">Clustering</span><span class="p">,</span> <span class="n">print_clustering</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">clu</span> <span class="o">=</span> <span class="n">clusim</span><span class="o">.</span><span class="n">Clustering</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">clu2</span> <span class="o">=</span> <span class="n">clu</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
@@ -440,10 +555,14 @@ are then calculated.</p>
 { clusid: [el1, el22, … ] } where each cluster is a key with
 value a list of elements which belong to it.  Clustering features
 are then calculated.</p>
-<dl class="docutils">
-<dt>clu2elm_dict <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>{ clusid: [el1, el2, … ] }</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>clu2elm_dict</strong> (<em>dict</em>) – { clusid: [el1, el2, … ] }</td>
+</tr>
+</tbody>
+</table>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">clusim.clustering</span> <span class="k">import</span> <span class="n">Clustering</span><span class="p">,</span> <span class="n">print_clustering</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">clu2elm_dict</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="mi">1</span><span class="p">:[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="mi">2</span><span class="p">:[</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">]}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">clu</span> <span class="o">=</span> <span class="n">Clustering</span><span class="p">()</span>
@@ -460,10 +579,15 @@ are then calculated.</p>
 [ [el1, el2, …], [el5, …], … ],  a list of lists,
 where each inner list corresponds to the elements in
 a cluster.  Clustering features are then calculated.</p>
-<dl class="docutils">
-<dt>cluster_list <span class="classifier-delimiter">:</span> <span class="classifier">list of lists</span></dt>
-<dd>[ [el1, el2, …], [el5, …], … ]</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cluster_list</strong> (<em>list</em>) – list of lists
+[ [el1, el2, …], [el5, …], … ]</td>
+</tr>
+</tbody>
+</table>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">clusim.clustering</span> <span class="k">import</span> <span class="n">Clustering</span><span class="p">,</span> <span class="n">print_clustering</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cluster_list</span> <span class="o">=</span> <span class="p">[</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">]]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">clu</span> <span class="o">=</span> <span class="n">Clustering</span><span class="p">()</span>
@@ -480,27 +604,36 @@ a cluster.  Clustering features are then calculated.</p>
 [ [el1, el2, …], [el5, …], … ],  a list of lists,
 where each inner list corresponds to the elements in
 a cluster.</p>
-<dl class="docutils">
-<dt>cluster_list <span class="classifier-delimiter">:</span> <span class="classifier">list of lists</span></dt>
-<dd>[ [el1, el2, …], [el5, …], … ]</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">cluster_list : list of lists, [ [el1, el2, …], [el5, …], … ]</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt>
 <code class="descname">from_membership_list</code><span class="sig-paren">(</span><em>membership_list</em><span class="sig-paren">)</span></dt>
 <dd><p>This method creates a clustering from a membership list:
-[ clu_for_el1, clu_for_el2, … ],  a list of integers
+[ clu_for_el1, clu_for_el2, … ],  a list of cluster names where
 the ith entry corresponds to the cluster membership of the ith element.
 Clustering features are then calculated.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Membership Lists can only represent partitions (no overlaps)</p>
 </div>
-<dl class="docutils">
-<dt>cluster_list <span class="classifier-delimiter">:</span> <span class="classifier">list of integers</span></dt>
-<dd>clu_for_el1, clu_for_el2, … ]</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>membership_list</strong> (<em>list</em>) – list of cluster names
+clu_for_el1, clu_for_el2, … ]</td>
+</tr>
+</tbody>
+</table>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">clusim.clustering</span> <span class="k">import</span> <span class="n">Clustering</span><span class="p">,</span> <span class="n">print_clustering</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">membership_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">clu</span> <span class="o">=</span> <span class="n">Clustering</span><span class="p">()</span>
@@ -514,12 +647,20 @@ Clustering features are then calculated.</p>
 <dt>
 <code class="descname">to_membership_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
 <dd><p>This method returns the clustering as a membership list:
-[ clu_for_el1, clu_for_el2, … ],  a list of integers
+[ clu_for_el1, clu_for_el2, … ],  a list of cluster names
 the ith entry corresponds to the cluster membership of the ith element.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Membership Lists can only represent partitions (no overlaps)</p>
 </div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of element memberships, [ clu_for_el1, clu_for_el2, … ]</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -528,6 +669,14 @@ the ith entry corresponds to the cluster membership of the ith element.</p>
 <dd><p>This method creates a clustering from an igraph VertexCover object.
 See the <code class="xref py py-class docutils literal notranslate"><span class="pre">igraph.Cover.VertexCover</span></code> class.
 Clustering features are then calculated.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>igraphcover</strong> (<em>igraph.Cover.VertexCover</em>) – the igraph VertexCover</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -535,6 +684,14 @@ Clustering features are then calculated.</p>
 <code class="descname">to_clu2elm_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
 <dd><p>Create a clu2elm_dict: {clusterid: [el1, el2, … ]} from the
 stored elm2clu_dict.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -542,17 +699,30 @@ stored elm2clu_dict.</p>
 <code class="descname">to_elm2clu_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
 <dd><p>Create a elm2clu_dict: {elementid: [clu1, clu2, … ]} from the
 stored clu2elm_dict.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt>
 <code class="descname">find_clu_size_seq</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
 <dd><p>This method finds the cluster size sequence for the clustering.</p>
-<dl class="docutils">
-<dt>clu_size_seq <span class="classifier-delimiter">:</span> <span class="classifier">list of integers</span></dt>
-<dd>A list where the ith entry corresponds to the size of the ith
-cluster.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of integers
+A list where the ith entry corresponds to the size of the ith
+cluster.</td>
+</tr>
+</tbody>
+</table>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">clusim.clustering</span> <span class="k">import</span> <span class="n">Clustering</span><span class="p">,</span> <span class="n">print_clustering</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">elm2clu_dict</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">:[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">:[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="mi">3</span><span class="p">:[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">4</span><span class="p">:[</span><span class="mi">2</span><span class="p">],</span> <span class="mi">5</span><span class="p">:[</span><span class="mi">2</span><span class="p">]}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">clu</span> <span class="o">=</span> <span class="n">Clustering</span><span class="p">(</span><span class="n">elm2clu_dict</span> <span class="o">=</span> <span class="n">elm2clu_dict</span><span class="p">)</span>
@@ -567,10 +737,14 @@ cluster.</dd>
 <code class="descname">find_num_overlap</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
 <dd><p>This method finds the number of elements which are in more than one
 cluster in the clustering.</p>
-<dl class="docutils">
-<dt>clu_size_seq <span class="classifier-delimiter">:</span> <span class="classifier">integer</span></dt>
-<dd>The number of elements in at least two clusters.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The number of elements in at least two clusters.</td>
+</tr>
+</tbody>
+</table>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">clusim.clustering</span> <span class="k">import</span> <span class="n">Clustering</span><span class="p">,</span> <span class="n">print_clustering</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">elm2clu_dict</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">:[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">:[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="mi">3</span><span class="p">:[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">4</span><span class="p">:[</span><span class="mi">2</span><span class="p">],</span> <span class="mi">5</span><span class="p">:[</span><span class="mi">2</span><span class="p">]}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">clu</span> <span class="o">=</span> <span class="n">Clustering</span><span class="p">(</span><span class="n">elm2clu_dict</span> <span class="o">=</span> <span class="n">elm2clu_dict</span><span class="p">)</span>
@@ -586,7 +760,14 @@ cluster in the clustering.</p>
 <dd><p>This method merges the elements in two clusters from the clustering.
 The merged clustering will be named new_name if provided, otherwise
 it will assume the name of cluster c1.</p>
-<p>self : Clustering</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">self</td>
+</tr>
+</tbody>
+</table>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">clusim.clustering</span> <span class="k">import</span> <span class="n">Clustering</span><span class="p">,</span> <span class="n">print_clustering</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">elm2clu_dict</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">:[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">:[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">3</span><span class="p">:[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">4</span><span class="p">:[</span><span class="mi">2</span><span class="p">],</span> <span class="mi">5</span><span class="p">:[</span><span class="mi">2</span><span class="p">]}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">clu</span> <span class="o">=</span> <span class="n">Clustering</span><span class="p">(</span><span class="n">elm2clu_dict</span> <span class="o">=</span> <span class="n">elm2clu_dict</span><span class="p">)</span>
@@ -603,8 +784,16 @@ it will assume the name of cluster c1.</p>
 <dd><p>This method finds all elements contained in a cluster from a
 hierarchical clustering by visiting all downstream clusters
 and adding their elements.</p>
-<p>cluster : the name of the parent cluster</p>
-<p>el : element list</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cluster</strong> – the name of the parent cluster</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">element list</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -613,13 +802,20 @@ and adding their elements.</p>
 <dd><p>This method creates a clustering from a scipy linkage object resulting
 from the agglomerative hierarchical clustering.
 Clustering features are then calculated.</p>
-<dl class="docutils">
-<dt>linkage_matrix <span class="classifier-delimiter">:</span> <span class="classifier">numpy matrix</span></dt>
-<dd>the linkage matrix from scipy</dd>
-<dt>dist_rescaled <span class="classifier-delimiter">:</span> <span class="classifier">Boolean</span></dt>
-<dd>if True, the linkage distances are linearlly rescaled to be
-in-between 0 and 1</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>linkage_matrix</strong> (<em>numpy.matrix</em>) – the linkage matrix from scipy</li>
+<li><strong>dist_rescaled</strong> (<em>Boolean</em>) – (default False)
+if True, the linkage distances are linearlly rescaled to be
+in-between 0 and 1</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">clusim.clustering</span> <span class="k">import</span> <span class="n">Clustering</span><span class="p">,</span> <span class="n">print_clustering</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">scipy.cluster.hierarchy</span> <span class="k">import</span> <span class="n">dendrogram</span><span class="p">,</span> <span class="n">linkage</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -1318,608 +1514,39 @@ clusterings.</p>
 </dd></dl>
 
 </div>
-<div class="section" id="module-clusim.sim">
-<span id="information-theoretic-measures"></span><h2>Information Theoretic Measures<a class="headerlink" href="#module-clusim.sim" title="Permalink to this headline">¶</a></h2>
-<span class="target" id="module-sim"></span><dl class="function">
-<dt id="clusim.sim.nmi">
-<code class="descclassname">clusim.sim.</code><code class="descname">nmi</code><span class="sig-paren">(</span><em>clustering1</em>, <em>clustering2</em>, <em>norm_type='sum'</em><span class="sig-paren">)</span><a class="headerlink" href="#clusim.sim.nmi" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function calculates the Normalized Mutual Information (NMI)
-between two clusterings <a class="reference internal" href="#danon2005comparingcomm" id="id5">[DDiazGDA05]</a>.</p>
-<p>NMI = (S(c1) + S(c2) - S(c1, c2)) / norm(c1, c2)</p>
-<p>where S(c1) is the Shannon Entropy of the clustering size distrubtion,
-S(c1, c2) is the Shannon Entropy of the join clustering size distrubtion,
-and norm(c1,c2) is a normalizetion term.</p>
-<table class="docutils field-list" frame="void" rules="none">
+<div class="section" id="information-theoretic-measures">
+<h2>Information Theoretic Measures<a class="headerlink" href="#information-theoretic-measures" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>..autofunction:: nmi, vi</dt>
+<dd><table class="first last docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>clustering1</strong> (<a class="reference internal" href="#clusim.clustering.Clustering" title="clusim.clustering.Clustering"><em>Clustering</em></a>) – The first clustering.</li>
-<li><strong>clustering2</strong> (<a class="reference internal" href="#clusim.clustering.Clustering" title="clusim.clustering.Clustering"><em>Clustering</em></a>) – The second clustering.</li>
-<li><strong>norm_type</strong> (<em>str</em>) – ‘sum’ (default), ‘max’, ‘min’, ‘sqrt’, ‘none’
-The normalization type:
-‘sum’ uses the average of the two clustering entropies,
-‘max’ uses the maximum of the two clustering entropies,
-‘min’ uses the minimum of the two clustering entropies,
-‘sqrt’ uses the geometric mean of the two clustering entropies,
-‘none’ returns the Mutual Information without a normalization</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The Normalized Mutual Information index (between 0.0 and inf)</p>
-</td>
+<tr class="field-odd field"><th class="field-name">members:</th><td class="field-body">nmi, vi</td>
 </tr>
 </tbody>
 </table>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">clusim.clugen</span> <span class="k">as</span> <span class="nn">clugen</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">clusim.sim</span> <span class="k">as</span> <span class="nn">sim</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">clustering1</span> <span class="o">=</span> <span class="n">clugen</span><span class="o">.</span><span class="n">make_random_clustering</span><span class="p">(</span><span class="n">n_elements</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">n_clusters</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-<span class="go">                                                random_model=&#39;num&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">clustering2</span> <span class="o">=</span> <span class="n">clugen</span><span class="o">.</span><span class="n">make_random_clustering</span><span class="p">(</span><span class="n">n_elements</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">n_clusters</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-<span class="go">                                                random_model=&#39;num&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">nmi</span><span class="p">(</span><span class="n">clustering1</span><span class="p">,</span> <span class="n">clustering2</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="s1">&#39;sum&#39;</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">nmi</span><span class="p">(</span><span class="n">clustering1</span><span class="p">,</span> <span class="n">clustering2</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="s1">&#39;max&#39;</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">nmi</span><span class="p">(</span><span class="n">clustering1</span><span class="p">,</span> <span class="n">clustering2</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="s1">&#39;min&#39;</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">nmi</span><span class="p">(</span><span class="n">clustering1</span><span class="p">,</span> <span class="n">clustering2</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="s1">&#39;sqrt&#39;</span><span class="p">))</span>
-</pre></div>
+</dd>
+</dl>
 </div>
-</dd></dl>
-
-<dl class="function">
-<dt id="clusim.sim.vi">
-<code class="descclassname">clusim.sim.</code><code class="descname">vi</code><span class="sig-paren">(</span><em>clustering1</em>, <em>clustering2</em>, <em>norm_type='none'</em><span class="sig-paren">)</span><a class="headerlink" href="#clusim.sim.vi" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function calculates the Variation of Information (VI)
-between two clusterings <a class="reference internal" href="#meila2003comparingvi" id="id6">[Mei03]</a>.</p>
-<p>VI is technically a distance measure and can assume values in the range
-[0, inf), where 0 denotes identical clusterings.</p>
-<p>VI = 2*S(c1, c2) - S(c1) - S(c2)</p>
-<p>where S(c1) is the Shannon Entropy of the clustering size distrubtion, and
-S(c1, c2) is the Shannon Entropy of the join clustering size distrubtion.</p>
-<p>The VI can be transformed into a clustering similarity measure via the appropraite normalization.</p>
-<p>VI_{sim} = 1 - 0.5*((S(c1,c2) - S(c1))/S(c2) + (S(c1,c2) - S(c2))/S(c1))</p>
-<table class="docutils field-list" frame="void" rules="none">
+<div class="section" id="correction-for-chance">
+<h2>Correction for Chance<a class="headerlink" href="#correction-for-chance" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>..automodule:: clusim.sim</dt>
+<dd><table class="first last docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>clustering1</strong> (<a class="reference internal" href="#clusim.clustering.Clustering" title="clusim.clustering.Clustering"><em>Clustering</em></a>) – The first clustering.</li>
-<li><strong>clustering2</strong> (<a class="reference internal" href="#clusim.clustering.Clustering" title="clusim.clustering.Clustering"><em>Clustering</em></a>) – The second clustering.</li>
-</ul>
-</td>
+<tr class="field-odd field"><th class="field-name">members:</th><td class="field-body">corrected_chance, sample_expected_sim, expected_rand_index, adjrand_index, adj_mi, expected_mi</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>norm_type <span class="classifier-delimiter">:</span> <span class="classifier">‘none’ (default) or ‘entropy’</span></dt>
-<dd>The normalization type.  ‘none’ returns the stanard VI as a distance metric,
-‘entropy’ retuns the normalized VI as a similarity measure</dd>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The Variation of Information index (between 0.0 and inf)</td>
-</tr>
-</tbody>
-</table>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">clusim.clugen</span> <span class="k">as</span> <span class="nn">clugen</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">clusim.sim</span> <span class="k">as</span> <span class="nn">sim</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">clustering1</span> <span class="o">=</span> <span class="n">clugen</span><span class="o">.</span><span class="n">make_random_clustering</span><span class="p">(</span><span class="n">n_elements</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">n_clusters</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-<span class="go">                                                random_model=&#39;num&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">clustering2</span> <span class="o">=</span> <span class="n">clugen</span><span class="o">.</span><span class="n">make_random_clustering</span><span class="p">(</span><span class="n">n_elements</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">n_clusters</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-<span class="go">                                                random_model=&#39;num&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">vi</span><span class="p">(</span><span class="n">clustering1</span><span class="p">,</span> <span class="n">clustering2</span><span class="p">))</span>
-</pre></div>
 </div>
-</dd></dl>
-
-</div>
-<div class="section" id="module-clusim.sim">
-<span id="correction-for-chance"></span><h2>Correction for Chance<a class="headerlink" href="#module-clusim.sim" title="Permalink to this headline">¶</a></h2>
-<span class="target" id="module-sim"></span><dl class="function">
-<dt id="clusim.sim.expected_rand_index">
-<code class="descclassname">clusim.sim.</code><code class="descname">expected_rand_index</code><span class="sig-paren">(</span><em>n_elements</em>, <em>random_model='num'</em>, <em>n_clusters1=2</em>, <em>n_clusters2=2</em>, <em>clu_size_seq1=None</em>, <em>clu_size_seq2=None</em><span class="sig-paren">)</span><a class="headerlink" href="#clusim.sim.expected_rand_index" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function calculates the expectation of the Rand index between all
-pairs of clusterings drawn from one of six random models.</p>
-<p>See <a class="reference internal" href="#hubert1985adjrand" id="id7">[HA85]</a> and <a class="reference internal" href="#gates2017impact" id="id8">[GA17]</a> for a detailed derivation and explaination of the different
-random models.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Clustering 2 is considered the gold-standard clustering for one-sided expectations</p>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>n_elements</strong> (<em>int</em>) – The number of elements</li>
-<li><strong>n_clusters1</strong> (<em>int</em>) – optional
-The number of clusters in the first clustering</li>
-<li><strong>n_clusters2</strong> (<em>int</em>) – optional
-The number of clusters in the second clustering, considered the
-gold-standard clustering for the one-sided expecations</li>
-<li><strong>clu_size_seq1</strong> (<em>list</em>) – optional
-The cluster size seqence of the first clustering as a list of ints</li>
-<li><strong>clu_size_seq2</strong> (<em>list</em>) – optional
-The cluster size seqence of the second clustering as a list of ints</li>
-<li><strong>random_model</strong> (<em>str</em>) – <p>The random model to use:</p>
-<dl class="docutils">
-<dt>’all’ <span class="classifier-delimiter">:</span> <span class="classifier">uniform distrubtion over the set of all clusterings of</span></dt>
-<dd>n_elements</dd>
-<dt>’all1’ <span class="classifier-delimiter">:</span> <span class="classifier">one-sided selction from the uniform distrubtion over the set</span></dt>
-<dd>of all clusterings of n_elements</dd>
-<dt>’num’ <span class="classifier-delimiter">:</span> <span class="classifier">uniform distrubtion over the set of all clusterings of</span></dt>
-<dd>n_elements in n_clusters</dd>
-<dt>’num1’ <span class="classifier-delimiter">:</span> <span class="classifier">one-sided selction from the uniform distrubtion over the set</span></dt>
-<dd>of all clusterings of n_elements in n_clusters</dd>
-</dl>
-<p>’perm’ : the permutation model for a fixed cluster size sequence</p>
-<dl class="docutils">
-<dt>’perm1’ <span class="classifier-delimiter">:</span> <span class="classifier">one-sided selction from the permutation model for a fixed</span></dt>
-<dd>cluster size sequence, same as ‘perm’</dd>
-</dl>
-</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The expected Rand index (between 0.0 and 1.0)</p>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">clusim.sim</span> <span class="k">as</span> <span class="nn">sim</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">expected_rand_index</span><span class="p">(</span><span class="n">n_elements</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">random_model</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">expected_rand_index</span><span class="p">(</span><span class="n">n_elements</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">random_model</span><span class="o">=</span><span class="s1">&#39;all1&#39;</span><span class="p">,</span>
-<span class="go">                                     clu_size_seq2=[1,1,3]))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">expected_rand_index</span><span class="p">(</span><span class="n">n_elements</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="p">,</span> <span class="n">random_model</span><span class="o">=</span><span class="s1">&#39;num&#39;</span><span class="p">,</span>
-<span class="go">                                     n_clusters1=2, n_clusters2=3))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">expected_rand_index</span><span class="p">(</span><span class="n">n_elements</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">random_model</span><span class="o">=</span><span class="s1">&#39;num1&#39;</span><span class="p">,</span>
-<span class="go">                                     n_clusters1=2, clu_size_seq2=[1,1,3]))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">expected_rand_index</span><span class="p">(</span><span class="n">n_elements</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">random_model</span><span class="o">=</span><span class="s1">&#39;perm&#39;</span><span class="p">,</span>
-<span class="go">                                     clu_size_seq1=[2,3],</span>
-<span class="go">                                     clu_size_seq2=[1,1,3]))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">expected_rand_index</span><span class="p">(</span><span class="n">n_elements</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">random_model</span><span class="o">=</span><span class="s1">&#39;perm1&#39;</span><span class="p">,</span>
-<span class="go">                                     clu_size_seq1=[2,3],</span>
-<span class="go">                                     clu_size_seq2=[1,1,3]))</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="clusim.sim.adjrand_index">
-<code class="descclassname">clusim.sim.</code><code class="descname">adjrand_index</code><span class="sig-paren">(</span><em>clustering1</em>, <em>clustering2</em>, <em>random_model='perm'</em><span class="sig-paren">)</span><a class="headerlink" href="#clusim.sim.adjrand_index" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function calculates the adjusted Rand index for one of six random
-models.</p>
-<p>See <a class="reference internal" href="#hubert1985adjrand" id="id9">[HA85]</a> and <a class="reference internal" href="#gates2017impact" id="id10">[GA17]</a> for a detailed derivation and explaination of the different
-random models.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Clustering 2 is considered the gold-standard clustering for one-sided expectations</p>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>clustering1</strong> (<a class="reference internal" href="#clusim.clustering.Clustering" title="clusim.clustering.Clustering"><em>Clustering</em></a>) – The first clustering.</li>
-<li><strong>clustering2</strong> (<a class="reference internal" href="#clusim.clustering.Clustering" title="clusim.clustering.Clustering"><em>Clustering</em></a>) – The second clustering.</li>
-<li><strong>random_model</strong> (<em>str</em>) – <p>The random model to use:</p>
-<dl class="docutils">
-<dt>’all’ <span class="classifier-delimiter">:</span> <span class="classifier">uniform distrubtion over the set of all clusterings of</span></dt>
-<dd>n_elements</dd>
-<dt>’all1’ <span class="classifier-delimiter">:</span> <span class="classifier">one-sided selction from the uniform distrubtion over the set</span></dt>
-<dd>of all clusterings of n_elements</dd>
-<dt>’num’ <span class="classifier-delimiter">:</span> <span class="classifier">uniform distrubtion over the set of all clusterings of</span></dt>
-<dd>n_elements in n_clusters</dd>
-<dt>’num1’ <span class="classifier-delimiter">:</span> <span class="classifier">one-sided selction from the uniform distrubtion over the set</span></dt>
-<dd>of all clusterings of n_elements in n_clusters</dd>
-</dl>
-<p>’perm’ : the permutation model for a fixed cluster size sequence</p>
-<dl class="docutils">
-<dt>’perm1’ <span class="classifier-delimiter">:</span> <span class="classifier">one-sided selction from the permutation model for a fixed</span></dt>
-<dd>cluster size sequence, same as ‘perm’</dd>
-</dl>
-</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The adjusted_rand Rand index</p>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">clusim.clugen</span> <span class="k">as</span> <span class="nn">clugen</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">clusim.sim</span> <span class="k">as</span> <span class="nn">sim</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">clustering1</span> <span class="o">=</span> <span class="n">clugen</span><span class="o">.</span><span class="n">make_random_clustering</span><span class="p">(</span><span class="n">n_elements</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">n_clusters</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-<span class="go">                                                random_model=&#39;all&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">clustering2</span> <span class="o">=</span> <span class="n">clugen</span><span class="o">.</span><span class="n">make_random_clustering</span><span class="p">(</span><span class="n">n_elements</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">n_clusters</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-<span class="go">                                                random_model=&#39;all&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">adjrand_index</span><span class="p">(</span><span class="n">clustering1</span><span class="p">,</span> <span class="n">clustering2</span><span class="p">,</span>
-<span class="go">                               random_model=&#39;all&#39;))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">adjrand_index</span><span class="p">(</span><span class="n">clustering1</span><span class="p">,</span> <span class="n">clustering2</span><span class="p">,</span>
-<span class="go">                               random_model=&#39;all1&#39;))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">adjrand_index</span><span class="p">(</span><span class="n">clustering1</span><span class="p">,</span> <span class="n">clustering2</span><span class="p">,</span>
-<span class="go">                               random_model=&#39;num&#39;))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">adjrand_index</span><span class="p">(</span><span class="n">clustering1</span><span class="p">,</span> <span class="n">clustering2</span><span class="p">,</span>
-<span class="go">                               random_model=&#39;num1&#39;))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">adjrand_index</span><span class="p">(</span><span class="n">clustering1</span><span class="p">,</span> <span class="n">clustering2</span><span class="p">,</span>
-<span class="go">                               random_model=&#39;perm&#39;))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">adjrand_index</span><span class="p">(</span><span class="n">clustering1</span><span class="p">,</span> <span class="n">clustering2</span><span class="p">,</span>
-<span class="go">                               random_model=&#39;perm1&#39;))</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="clusim.sim.corrected_chance">
-<code class="descclassname">clusim.sim.</code><code class="descname">corrected_chance</code><span class="sig-paren">(</span><em>clustering1</em>, <em>clustering2</em>, <em>measure='jaccard_index'</em>, <em>random_model='perm'</em>, <em>norm_type='sum'</em>, <em>n_samples=100</em><span class="sig-paren">)</span><a class="headerlink" href="#clusim.sim.corrected_chance" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function calculates the adjusted Similarity for one of six random
-models.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Clustering 2 is considered the gold-standard clustering for one-sided expectations</p>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>clustering1</strong> (<a class="reference internal" href="#clusim.clustering.Clustering" title="clusim.clustering.Clustering"><em>Clustering</em></a>) – The first clustering.</li>
-<li><strong>clustering2</strong> (<a class="reference internal" href="#clusim.clustering.Clustering" title="clusim.clustering.Clustering"><em>Clustering</em></a>) – The second clustering.</li>
-<li><strong>measure</strong> (<em>str</em>) – The similarity measure to evalute. Must be one of the
-available_similarity_measures.</li>
-<li><strong>random_model</strong> (<em>str</em>) – <p>The random model to use:</p>
-<dl class="docutils">
-<dt>’all’ <span class="classifier-delimiter">:</span> <span class="classifier">uniform distrubtion over the set of all clusterings of</span></dt>
-<dd>n_elements</dd>
-<dt>’all1’ <span class="classifier-delimiter">:</span> <span class="classifier">one-sided selction from the uniform distrubtion over the set</span></dt>
-<dd>of all clusterings of n_elements</dd>
-<dt>’num’ <span class="classifier-delimiter">:</span> <span class="classifier">uniform distrubtion over the set of all clusterings of</span></dt>
-<dd>n_elements in n_clusters</dd>
-<dt>’num1’ <span class="classifier-delimiter">:</span> <span class="classifier">one-sided selction from the uniform distrubtion over the set</span></dt>
-<dd>of all clusterings of n_elements in n_clusters</dd>
-</dl>
-<p>’perm’ : the permutation model for a fixed cluster size sequence</p>
-<dl class="docutils">
-<dt>’perm1’ <span class="classifier-delimiter">:</span> <span class="classifier">one-sided selction from the permutation model for a fixed</span></dt>
-<dd>cluster size sequence, same as ‘perm’</dd>
-</dl>
-</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
-<dt>n_samples <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>The number of random Clusterings sampled to determine the expected
-similarity.</dd>
-</dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The adjusted Similarity measure</td>
-</tr>
-</tbody>
-</table>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">clusim.clugen</span> <span class="k">as</span> <span class="nn">clugen</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">clusim.sim</span> <span class="k">as</span> <span class="nn">sim</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">clustering1</span> <span class="o">=</span> <span class="n">clugen</span><span class="o">.</span><span class="n">make_random_clustering</span><span class="p">(</span><span class="n">n_elements</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">n_clusters</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-<span class="go">                                                random_model=&#39;all&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">clustering2</span> <span class="o">=</span> <span class="n">clugen</span><span class="o">.</span><span class="n">make_random_clustering</span><span class="p">(</span><span class="n">n_elements</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">n_clusters</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-<span class="go">                                                random_model=&#39;all&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">corrected_chance</span><span class="p">(</span><span class="n">clustering1</span><span class="p">,</span> <span class="n">clustering2</span><span class="p">,</span> <span class="n">measure</span><span class="o">=</span><span class="s1">&#39;jaccard_index&#39;</span><span class="p">,</span>
-<span class="go">                                  random_model=&#39;all&#39;))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">corrected_chance</span><span class="p">(</span><span class="n">clustering1</span><span class="p">,</span> <span class="n">clustering2</span><span class="p">,</span> <span class="n">measure</span><span class="o">=</span><span class="s1">&#39;jaccard_index&#39;</span><span class="p">,</span>
-<span class="go">                                  random_model=&#39;all1&#39;))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">corrected_chance</span><span class="p">(</span><span class="n">clustering1</span><span class="p">,</span> <span class="n">clustering2</span><span class="p">,</span> <span class="n">measure</span><span class="o">=</span><span class="s1">&#39;jaccard_index&#39;</span><span class="p">,</span>
-<span class="go">                                  random_model=&#39;num&#39;))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">corrected_chance</span><span class="p">(</span><span class="n">clustering1</span><span class="p">,</span> <span class="n">clustering2</span><span class="p">,</span> <span class="n">measure</span><span class="o">=</span><span class="s1">&#39;jaccard_index&#39;</span><span class="p">,</span>
-<span class="go">                                  random_model=&#39;num1&#39;))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">corrected_chance</span><span class="p">(</span><span class="n">clustering1</span><span class="p">,</span> <span class="n">clustering2</span><span class="p">,</span> <span class="n">measure</span><span class="o">=</span><span class="s1">&#39;jaccard_index&#39;</span><span class="p">,</span>
-<span class="go">                                  random_model=&#39;perm&#39;))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">corrected_chance</span><span class="p">(</span><span class="n">clustering1</span><span class="p">,</span> <span class="n">clustering2</span><span class="p">,</span> <span class="n">measure</span><span class="o">=</span><span class="s1">&#39;jaccard_index&#39;</span><span class="p">,</span>
-<span class="go">                                  random_model=&#39;perm1&#39;))</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="clusim.sim.sample_expected_sim">
-<code class="descclassname">clusim.sim.</code><code class="descname">sample_expected_sim</code><span class="sig-paren">(</span><em>clustering1</em>, <em>clustering2</em>, <em>measure='jaccard_index'</em>, <em>random_model='perm'</em>, <em>n_samples=1</em>, <em>keep_samples=False</em><span class="sig-paren">)</span><a class="headerlink" href="#clusim.sim.sample_expected_sim" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function calculates the expected Similarity for all pair-wise
-comparisons between Clusterings drawn from one of six random models.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Clustering 2 is considered the gold-standard clustering for one-sided expectations</p>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>clustering1</strong> (<a class="reference internal" href="#clusim.clustering.Clustering" title="clusim.clustering.Clustering"><em>Clustering</em></a>) – The first clustering.</li>
-<li><strong>clustering2</strong> (<a class="reference internal" href="#clusim.clustering.Clustering" title="clusim.clustering.Clustering"><em>Clustering</em></a>) – The second clustering.</li>
-<li><strong>measure</strong> (<em>str</em>) – The similarity measure to evalute. Must be one of the measures listed in
-sim.available_similarity_measures.</li>
-<li><strong>random_model</strong> (<em>string</em>) – <p>The random model to use:</p>
-<dl class="docutils">
-<dt>’all’ <span class="classifier-delimiter">:</span> <span class="classifier">uniform distrubtion over the set of all clusterings of</span></dt>
-<dd>n_elements</dd>
-<dt>’all1’ <span class="classifier-delimiter">:</span> <span class="classifier">one-sided selction from the uniform distrubtion over the set</span></dt>
-<dd>of all clusterings of n_elements</dd>
-<dt>’num’ <span class="classifier-delimiter">:</span> <span class="classifier">uniform distrubtion over the set of all clusterings of</span></dt>
-<dd>n_elements in n_clusters</dd>
-<dt>’num1’ <span class="classifier-delimiter">:</span> <span class="classifier">one-sided selction from the uniform distrubtion over the set</span></dt>
-<dd>of all clusterings of n_elements in n_clusters</dd>
-</dl>
-<p>’perm’ : the permutation model for a fixed cluster size sequence</p>
-<dl class="docutils">
-<dt>’perm1’ <span class="classifier-delimiter">:</span> <span class="classifier">one-sided selction from the permutation model for a fixed</span></dt>
-<dd>cluster size sequence, same as ‘perm’</dd>
-</dl>
-</li>
-<li><strong>n_samples</strong> (<em>int</em>) – The number of random Clusterings sampled to determine the expected
-similarity.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The expected Similarity measure for all pair-wise comparisons under a
-random model</p>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">clusim.clugen</span> <span class="k">as</span> <span class="nn">clugen</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">clusim.sim</span> <span class="k">as</span> <span class="nn">sim</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">c1</span> <span class="o">=</span> <span class="n">clugen</span><span class="o">.</span><span class="n">make_random_clustering</span><span class="p">(</span><span class="n">n_elements</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">n_clusters</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">random_model</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">c2</span> <span class="o">=</span> <span class="n">clugen</span><span class="o">.</span><span class="n">make_random_clustering</span><span class="p">(</span><span class="n">n_elements</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">n_clusters</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">random_model</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">sample_expected_sim</span><span class="p">(</span><span class="n">c1</span><span class="p">,</span> <span class="n">c2</span><span class="p">,</span> <span class="n">measure</span><span class="o">=</span><span class="s1">&#39;jaccard_index&#39;</span><span class="p">,</span> <span class="n">random_model</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">n_samples</span><span class="o">=</span><span class="mi">50</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">sample_expected_sim</span><span class="p">(</span><span class="n">c1</span><span class="p">,</span> <span class="n">c2</span><span class="p">,</span> <span class="n">measure</span><span class="o">=</span><span class="s1">&#39;jaccard_index&#39;</span><span class="p">,</span> <span class="n">random_model</span><span class="o">=</span><span class="s1">&#39;all1&#39;</span><span class="p">,</span> <span class="n">n_samples</span><span class="o">=</span><span class="mi">50</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">sample_expected_sim</span><span class="p">(</span><span class="n">c1</span><span class="p">,</span> <span class="n">c2</span><span class="p">,</span> <span class="n">measure</span><span class="o">=</span><span class="s1">&#39;jaccard_index&#39;</span><span class="p">,</span> <span class="n">random_model</span><span class="o">=</span><span class="s1">&#39;num&#39;</span><span class="p">,</span> <span class="n">n_samples</span><span class="o">=</span><span class="mi">50</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">sample_expected_sim</span><span class="p">(</span><span class="n">c1</span><span class="p">,</span> <span class="n">c2</span><span class="p">,</span> <span class="n">measure</span><span class="o">=</span><span class="s1">&#39;jaccard_index&#39;</span><span class="p">,</span> <span class="n">random_model</span><span class="o">=</span><span class="s1">&#39;num1&#39;</span><span class="p">,</span> <span class="n">n_samples</span><span class="o">=</span><span class="mi">50</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">sample_expected_sim</span><span class="p">(</span><span class="n">c1</span><span class="p">,</span> <span class="n">c2</span><span class="p">,</span> <span class="n">measure</span><span class="o">=</span><span class="s1">&#39;jaccard_index&#39;</span><span class="p">,</span> <span class="n">random_model</span><span class="o">=</span><span class="s1">&#39;perm&#39;</span><span class="p">,</span> <span class="n">n_samples</span><span class="o">=</span><span class="mi">50</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">sample_expected_sim</span><span class="p">(</span><span class="n">c1</span><span class="p">,</span> <span class="n">c2</span><span class="p">,</span> <span class="n">measure</span><span class="o">=</span><span class="s1">&#39;jaccard_index&#39;</span><span class="p">,</span> <span class="n">random_model</span><span class="o">=</span><span class="s1">&#39;perm1&#39;</span><span class="p">,</span> <span class="n">n_samples</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span> <span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="clusim.sim.expected_mi">
-<code class="descclassname">clusim.sim.</code><code class="descname">expected_mi</code><span class="sig-paren">(</span><em>n_elements</em>, <em>n_clusters1=2</em>, <em>n_clusters2=2</em>, <em>clu_size_seq1=None</em>, <em>clu_size_seq2=None</em>, <em>logbase=2</em>, <em>random_model='num'</em><span class="sig-paren">)</span><a class="headerlink" href="#clusim.sim.expected_mi" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function calculates the expectation of the Mutual Informaiton between all
-pairs of clusterings drawn from one of six random models.</p>
-<p>See <a class="reference internal" href="#gates2017impact" id="id11">[GA17]</a> for a detailed derivation and explaination of the different
-random models.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Clustering 2 is considered the gold-standard clustering for one-sided expectations</p>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>n_elements</strong> (<em>int</em>) – The number of elements</li>
-<li><strong>n_clusters1</strong> (<em>int</em>) – optional
-The number of clusters in the first clustering</li>
-<li><strong>n_clusters2</strong> (<em>int</em>) – optional
-The number of clusters in the second clustering, considered the
-gold-standard clustering for the one-sided expecations</li>
-<li><strong>clu_size_seq1</strong> (<em>list</em>) – optional
-The cluster size seqence of the first clustering as a list of ints.</li>
-<li><strong>clu_size_seq2</strong> (<em>list</em>) – optional
-The cluster size seqence of the second clustering as a list of ints.</li>
-<li><strong>random_model</strong> (<em>str</em>) – <p>The random model to use:</p>
-<dl class="docutils">
-<dt>’all’ <span class="classifier-delimiter">:</span> <span class="classifier">uniform distrubtion over the set of all clusterings of</span></dt>
-<dd>n_elements</dd>
-<dt>’all1’ <span class="classifier-delimiter">:</span> <span class="classifier">one-sided selction from the uniform distrubtion over the set</span></dt>
-<dd>of all clusterings of n_elements</dd>
-<dt>’num’ <span class="classifier-delimiter">:</span> <span class="classifier">uniform distrubtion over the set of all clusterings of</span></dt>
-<dd>n_elements in n_clusters</dd>
-<dt>’num1’ <span class="classifier-delimiter">:</span> <span class="classifier">one-sided selction from the uniform distrubtion over the set</span></dt>
-<dd>of all clusterings of n_elements in n_clusters</dd>
-</dl>
-<p>’perm’ : the permutation model for a fixed cluster size sequence</p>
-<dl class="docutils">
-<dt>’perm1’ <span class="classifier-delimiter">:</span> <span class="classifier">one-sided selction from the permutation model for a fixed</span></dt>
-<dd>cluster size sequence, same as ‘perm’</dd>
-</dl>
-</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The expected MI (between 0.0 and inf)</p>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">clusim.sim</span> <span class="k">as</span> <span class="nn">sim</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">expected_mi</span><span class="p">(</span><span class="n">n_elements</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">random_model</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">expected_mi</span><span class="p">(</span><span class="n">n_elements</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">random_model</span><span class="o">=</span><span class="s1">&#39;all1&#39;</span><span class="p">,</span>
-<span class="go">                                     clu_size_seq2=[1,1,3]))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">expected_mi</span><span class="p">(</span><span class="n">n_elements</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="p">,</span> <span class="n">random_model</span><span class="o">=</span><span class="s1">&#39;num&#39;</span><span class="p">,</span>
-<span class="go">                                     n_clusters1=2, n_clusters2=3))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">expected_mi</span><span class="p">(</span><span class="n">n_elements</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">random_model</span><span class="o">=</span><span class="s1">&#39;num1&#39;</span><span class="p">,</span>
-<span class="go">                                     n_clusters1=2, clu_size_seq2=[1,1,3]))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">expected_mi</span><span class="p">(</span><span class="n">n_elements</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">random_model</span><span class="o">=</span><span class="s1">&#39;perm&#39;</span><span class="p">,</span>
-<span class="go">                                     clu_size_seq1=[2,3],</span>
-<span class="go">                                     clu_size_seq2=[1,1,3]))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">expected_mi</span><span class="p">(</span><span class="n">n_elements</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">random_model</span><span class="o">=</span><span class="s1">&#39;perm1&#39;</span><span class="p">,</span>
-<span class="go">                                     clu_size_seq1=[2,3],</span>
-<span class="go">                                     clu_size_seq2=[1,1,3]))</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="clusim.sim.adj_mi">
-<code class="descclassname">clusim.sim.</code><code class="descname">adj_mi</code><span class="sig-paren">(</span><em>clustering1</em>, <em>clustering2</em>, <em>random_model='perm'</em>, <em>norm_type='sum'</em>, <em>logbase=2</em><span class="sig-paren">)</span><a class="headerlink" href="#clusim.sim.adj_mi" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function calculates the adjusted Mutual Information for one of six random
-models.</p>
-<p>See <a class="reference internal" href="#gates2017impact" id="id12">[GA17]</a> for a detailed derivation and explaination of the different
-random models.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Clustering 2 is considered the gold-standard clustering for one-sided expectations</p>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>clustering1</strong> (<a class="reference internal" href="#clusim.clustering.Clustering" title="clusim.clustering.Clustering"><em>Clustering</em></a>) – The first clustering.</li>
-<li><strong>clustering2</strong> (<a class="reference internal" href="#clusim.clustering.Clustering" title="clusim.clustering.Clustering"><em>Clustering</em></a>) – The second clustering.</li>
-<li><strong>random_model</strong> (<em>string</em>) – <p>The random model to use:</p>
-<p>’all’ : uniform distrubtion over the set of all clusterings of n_elements</p>
-<dl class="docutils">
-<dt>’all1’ <span class="classifier-delimiter">:</span> <span class="classifier">one-sided selction from the uniform distrubtion over the set</span></dt>
-<dd>of all clusterings of n_elements</dd>
-<dt>’num’ <span class="classifier-delimiter">:</span> <span class="classifier">uniform distrubtion over the set of all clusterings of</span></dt>
-<dd>n_elements in n_clusters</dd>
-<dt>’num1’ <span class="classifier-delimiter">:</span> <span class="classifier">one-sided selction from the uniform distrubtion over the set</span></dt>
-<dd>of all clusterings of n_elements in n_clusters</dd>
-</dl>
-<p>’perm’ : the permutation model for a fixed cluster size sequence</p>
-<dl class="docutils">
-<dt>’perm1’ <span class="classifier-delimiter">:</span> <span class="classifier">one-sided selction from the permutation model for a fixed</span></dt>
-<dd>cluster size sequence, same as ‘perm’</dd>
-</dl>
-</li>
-<li><strong>norm_type</strong> (<em>str</em>) – <p>‘sum’ (default), ‘max’, ‘min’, ‘sqrt’, ‘none’
-The normalization type:</p>
-<blockquote>
-<div>’sum’ uses the average of the two clustering entropies,
-‘max’ uses the maximum of the two clustering entropies,
-‘min’ uses the minimum of the two clustering entropies,
-‘sqrt’ uses the geometric mean of the two clustering entropies,
-‘none’ returns the Mutual Information without a normalization</div></blockquote>
-</li>
-<li><strong>logbase</strong> (<em>float</em>) – (default) 2
-The base of all logarithms (recommended to use 2 for bits).</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The adjusted Mutual Information</p>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">clusim.clugen</span> <span class="k">as</span> <span class="nn">clugen</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">clusim.sim</span> <span class="k">as</span> <span class="nn">sim</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">clustering1</span> <span class="o">=</span> <span class="n">clugen</span><span class="o">.</span><span class="n">make_random_clustering</span><span class="p">(</span><span class="n">n_elements</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">n_clusters</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-<span class="go">                                                random_model=&#39;all&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">clustering2</span> <span class="o">=</span> <span class="n">clugen</span><span class="o">.</span><span class="n">make_random_clustering</span><span class="p">(</span><span class="n">n_elements</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">n_clusters</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-<span class="go">                                                random_model=&#39;all&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">adj_mi</span><span class="p">(</span><span class="n">clustering1</span><span class="p">,</span> <span class="n">clustering2</span><span class="p">,</span>
-<span class="go">                               random_model=&#39;all&#39;))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">adj_mi</span><span class="p">(</span><span class="n">clustering1</span><span class="p">,</span> <span class="n">clustering2</span><span class="p">,</span>
-<span class="go">                               random_model=&#39;all1&#39;))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">adj_mi</span><span class="p">(</span><span class="n">clustering1</span><span class="p">,</span> <span class="n">clustering2</span><span class="p">,</span>
-<span class="go">                               random_model=&#39;num&#39;))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">adj_mi</span><span class="p">(</span><span class="n">clustering1</span><span class="p">,</span> <span class="n">clustering2</span><span class="p">,</span>
-<span class="go">                               random_model=&#39;num1&#39;))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">adj_mi</span><span class="p">(</span><span class="n">clustering1</span><span class="p">,</span> <span class="n">clustering2</span><span class="p">,</span>
-<span class="go">                               random_model=&#39;perm&#39;))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">adj_mi</span><span class="p">(</span><span class="n">clustering1</span><span class="p">,</span> <span class="n">clustering2</span><span class="p">,</span>
-<span class="go">                               random_model=&#39;perm1&#39;))</span>
-</pre></div>
-</div>
-</dd></dl>
-
-</div>
-<div class="section" id="module-clusim.sim">
-<span id="overlapping-clustering-similarity"></span><h2>Overlapping Clustering Similarity<a class="headerlink" href="#module-clusim.sim" title="Permalink to this headline">¶</a></h2>
-<span class="target" id="module-sim"></span><dl class="function">
-<dt id="clusim.sim.geometric_accuracy">
-<code class="descclassname">clusim.sim.</code><code class="descname">geometric_accuracy</code><span class="sig-paren">(</span><em>clustering1</em>, <em>clustering2</em><span class="sig-paren">)</span><a class="headerlink" href="#clusim.sim.geometric_accuracy" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function calculates the geometric accuracy between two (overlapping) clusterings.</p>
-<p>See <a class="reference internal" href="#nepusz2012overlapprotein" id="id13">[NYP12]</a> for a detailed derivation and explaination of the measure.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>clustering1</strong> (<a class="reference internal" href="#clusim.clustering.Clustering" title="clusim.clustering.Clustering"><em>Clustering</em></a>) – The first clustering.</li>
-<li><strong>clustering2</strong> (<a class="reference internal" href="#clusim.clustering.Clustering" title="clusim.clustering.Clustering"><em>Clustering</em></a>) – The second clustering.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the geometric accuracy</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="clusim.sim.overlap_quality">
-<code class="descclassname">clusim.sim.</code><code class="descname">overlap_quality</code><span class="sig-paren">(</span><em>clustering1</em>, <em>clustering2</em><span class="sig-paren">)</span><a class="headerlink" href="#clusim.sim.overlap_quality" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function calculates the overlap quality between two (overlapping) clusterings.</p>
-<p>See <a class="reference internal" href="#ahn2010link" id="id14">[ABL10]</a> for a detailed derivation and explaination of the measure.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>clustering1</strong> (<a class="reference internal" href="#clusim.clustering.Clustering" title="clusim.clustering.Clustering"><em>Clustering</em></a>) – The first clustering.</li>
-<li><strong>clustering2</strong> (<a class="reference internal" href="#clusim.clustering.Clustering" title="clusim.clustering.Clustering"><em>Clustering</em></a>) – The second clustering.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the overlap quality</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="clusim.sim.onmi">
-<code class="descclassname">clusim.sim.</code><code class="descname">onmi</code><span class="sig-paren">(</span><em>clustering1</em>, <em>clustering2</em><span class="sig-paren">)</span><a class="headerlink" href="#clusim.sim.onmi" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function calculates the overlaping normalized mututal information.</p>
-<p>See <a class="reference internal" href="#lancichinetti2009onmi" id="id15">[LFK09]</a> for a detailed derivation and explaination of the measure.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>clustering1</strong> (<a class="reference internal" href="#clusim.clustering.Clustering" title="clusim.clustering.Clustering"><em>Clustering</em></a>) – The first clustering.</li>
-<li><strong>clustering2</strong> (<a class="reference internal" href="#clusim.clustering.Clustering" title="clusim.clustering.Clustering"><em>Clustering</em></a>) – The second clustering.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the overlaping normalized mutual information</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="clusim.sim.omega_index">
-<code class="descclassname">clusim.sim.</code><code class="descname">omega_index</code><span class="sig-paren">(</span><em>clustering1</em>, <em>clustering2</em><span class="sig-paren">)</span><a class="headerlink" href="#clusim.sim.omega_index" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function calculates the omega index between two clusterings.</p>
-<p>See <a class="reference internal" href="#collins1988omega" id="id16">[CD88]</a> for a detailed derivation and explaination of the measure.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>clustering1</strong> (<a class="reference internal" href="#clusim.clustering.Clustering" title="clusim.clustering.Clustering"><em>Clustering</em></a>) – The first clustering.</li>
-<li><strong>clustering2</strong> (<a class="reference internal" href="#clusim.clustering.Clustering" title="clusim.clustering.Clustering"><em>Clustering</em></a>) – The second clustering.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the omega index</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
+<div class="section" id="overlapping-clustering-similarity">
+<h2>Overlapping Clustering Similarity<a class="headerlink" href="#overlapping-clustering-similarity" title="Permalink to this headline">¶</a></h2>
+<p>clussim.sim :members: geometric_accuracy, overlap_quality, onmi, omega_index</p>
 </div>
 </div>
 <div class="section" id="module-clusim.clusimelement">
@@ -1928,7 +1555,7 @@ The base of all logarithms (recommended to use 2 for bits).</li>
 <dt id="clusim.clusimelement.element_sim">
 <code class="descclassname">clusim.clusimelement.</code><code class="descname">element_sim</code><span class="sig-paren">(</span><em>clustering1</em>, <em>clustering2</em>, <em>alpha=0.9</em>, <em>r=1.0</em>, <em>r2=None</em>, <em>rescale_path_type='max'</em><span class="sig-paren">)</span><a class="headerlink" href="#clusim.clusimelement.element_sim" title="Permalink to this definition">¶</a></dt>
 <dd><p>The element-centric clustering similarity.</p>
-<p>See <a class="reference internal" href="#gates2018element" id="id17">[GWHA18]</a> for a detailed explaination of the measure.</p>
+<p>See <a class="reference internal" href="#gates2018element" id="id5">[GWHA18]</a> for a detailed explaination of the measure.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1969,7 +1596,7 @@ The elements maped to indices of the affinity matrix.</li>
 <dt id="clusim.clusimelement.element_sim_elscore">
 <code class="descclassname">clusim.clusimelement.</code><code class="descname">element_sim_elscore</code><span class="sig-paren">(</span><em>clustering1</em>, <em>clustering2</em>, <em>alpha=0.9</em>, <em>r=1.0</em>, <em>r2=None</em>, <em>rescale_path_type='max'</em>, <em>relabeled_elements=None</em><span class="sig-paren">)</span><a class="headerlink" href="#clusim.clusimelement.element_sim_elscore" title="Permalink to this definition">¶</a></dt>
 <dd><p>The element-centric clustering similarity for each element.</p>
-<p>See <a class="reference internal" href="#gates2018element" id="id18">[GWHA18]</a> for a detailed explaination of the measure.</p>
+<p>See <a class="reference internal" href="#gates2018element" id="id6">[GWHA18]</a> for a detailed explaination of the measure.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -2018,7 +1645,7 @@ The elements maped to indices of the affinity matrix.</li>
 <dd><p>The normalized similarity value based on the L1 probabilty metric
 corrected for the guaranteed overlap in probability between the two
 vectors, alpha.</p>
-<p>See <a class="reference internal" href="#gates2018element" id="id19">[GWHA18]</a> for a detailed explaination of the need to correct
+<p>See <a class="reference internal" href="#gates2018element" id="id7">[GWHA18]</a> for a detailed explaination of the need to correct
 the L1 metric.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2044,7 +1671,7 @@ the L1 metric.</p>
 <dd><p>The element-centric clustering similarity affinity matrix for a
 clustering.  This function automatically determines the most efficient method
 to calculate the affinity matrix.</p>
-<p>See <a class="reference internal" href="#gates2018element" id="id20">[GWHA18]</a> for a detailed explaination of the affinity matrix.</p>
+<p>See <a class="reference internal" href="#gates2018element" id="id8">[GWHA18]</a> for a detailed explaination of the affinity matrix.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -2206,25 +1833,7 @@ The element-centric affinity representation of the clustering</p>
 </div>
 <div class="section" id="references">
 <h1>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h1>
-<p id="bibtex-bibliography-clusim-0"><table class="docutils citation" frame="void" id="ahn2010link" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id14">[ABL10]</a></td><td>Yong-Yeol Ahn, James&nbsp;P Bagrow, and Sune Lehmann. Link communities reveal multiscale complexity in networks. <em>Nature</em>, 466(7307):761–764, June 2010.</td></tr>
-</tbody>
-</table>
-<table class="docutils citation" frame="void" id="collins1988omega" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id16">[CD88]</a></td><td>Linda&nbsp;M. Collins and Clyde&nbsp;W. Dent. Omega: a general formulation of the rand index of cluster recovery suitable for non-disjoint solutions. <em>Multivariate Behavioral Research</em>, 23(2):231–242, 1988.</td></tr>
-</tbody>
-</table>
-<table class="docutils citation" frame="void" id="danon2005comparingcomm" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id5">[DDiazGDA05]</a></td><td>Leon Danon, Albert D&nbsp;ıaz-Guilera, Jordi Duch, and Alex Arenas. Comparing community structure identification. <em>Journal of Statistical Mechanics: Theory and Experiment</em>, 2005(09):P09008–P09008, September 2005.</td></tr>
-</tbody>
-</table>
-<table class="docutils citation" frame="void" id="fowlkes1983hierarchicalcompare" rules="none">
+<p id="bibtex-bibliography-clusim-0"><table class="docutils citation" frame="void" id="fowlkes1983hierarchicalcompare" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id4">[FM83]</a></td><td>Edward&nbsp;B. Fowlkes and Colin&nbsp;L. Mallows. A method for comparing two hierarchical clusterings. <em>Journal of the American Statistical Association</em>, 78(383):553–569, 1983.</td></tr>
@@ -2233,43 +1842,19 @@ The element-centric affinity representation of the clustering</p>
 <table class="docutils citation" frame="void" id="gates2017impact" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label">[GA17]</td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id8">2</a>, <a class="fn-backref" href="#id10">3</a>, <a class="fn-backref" href="#id11">4</a>, <a class="fn-backref" href="#id12">5</a>)</em> Alexander&nbsp;J. Gates and Yong-Yeol Ahn. The impact of random models on clustering similarity. <em>Journal of Machine Learning Research</em>, 18(87):1–28, 2017.</td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id1">[GA17]</a></td><td>Alexander&nbsp;J. Gates and Yong-Yeol Ahn. The impact of random models on clustering similarity. <em>Journal of Machine Learning Research</em>, 18(87):1–28, 2017.</td></tr>
 </tbody>
 </table>
 <table class="docutils citation" frame="void" id="gates2018element" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label">[GWHA18]</td><td><em>(<a class="fn-backref" href="#id17">1</a>, <a class="fn-backref" href="#id18">2</a>, <a class="fn-backref" href="#id19">3</a>, <a class="fn-backref" href="#id20">4</a>)</em> Alexander&nbsp;J. Gates, Ian&nbsp;B. Wood, William&nbsp;P. Hetrick, and Yong-Yeol Ahn. On comparing clusterings: an element-centric framework unifies overlaps and hierarchy. <em>arxiv</em>, pages 1706.06136, 2018.</td></tr>
-</tbody>
-</table>
-<table class="docutils citation" frame="void" id="hubert1985adjrand" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label">[HA85]</td><td><em>(<a class="fn-backref" href="#id7">1</a>, <a class="fn-backref" href="#id9">2</a>)</em> Lawrence Hubert and Phipps Arabie. Comparing partitions. <em>Journal of Classification</em>, 2(1):193–218, December 1985.</td></tr>
+<tr><td class="label">[GWHA18]</td><td><em>(<a class="fn-backref" href="#id5">1</a>, <a class="fn-backref" href="#id6">2</a>, <a class="fn-backref" href="#id7">3</a>, <a class="fn-backref" href="#id8">4</a>)</em> Alexander&nbsp;J. Gates, Ian&nbsp;B. Wood, William&nbsp;P. Hetrick, and Yong-Yeol Ahn. On comparing clusterings: an element-centric framework unifies overlaps and hierarchy. <em>arxiv</em>, pages 1706.06136, 2018.</td></tr>
 </tbody>
 </table>
 <table class="docutils citation" frame="void" id="jaccard1912flora" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id2">[Jac12]</a></td><td>Paul Jaccard. The distribution of the flora in the alpine zone. <em>New Phytologist</em>, 11(2):37–50, 1912.</td></tr>
-</tbody>
-</table>
-<table class="docutils citation" frame="void" id="lancichinetti2009onmi" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id15">[LFK09]</a></td><td>Andrea Lancichinetti, Santo Fortunato, and János Kertész. Detecting the overlapping and hierarchical community structure in complex networks. <em>New Journal of Physics</em>, 11(3):033015, 3 2009.</td></tr>
-</tbody>
-</table>
-<table class="docutils citation" frame="void" id="meila2003comparingvi" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id6">[Mei03]</a></td><td>Marina Meilă. Comparing clusterings by the variation of information. In <em>Learning Theory and Kernel Machines</em>, pages 173–187. Springer, 2003.</td></tr>
-</tbody>
-</table>
-<table class="docutils citation" frame="void" id="nepusz2012overlapprotein" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id13">[NYP12]</a></td><td>Tamás Nepusz, Haiyuan Yu, and Alberto Paccanaro. Detecting overlapping protein complexes in protein-protein interaction networks. <em>Nature Methods</em>, 9(5):471–472, 2012.</td></tr>
 </tbody>
 </table>
 <table class="docutils citation" frame="void" id="rand1971randindex" rules="none">
