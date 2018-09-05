@@ -9,7 +9,8 @@ Welcome to CluSim's documentation!
    :maxdepth: 2
    :caption: Contents:
    :glob:
-
+   clusim.sim
+   CluSimExamples1.ipynb
 
 Examples and Usage
 ===================
