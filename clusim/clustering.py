@@ -16,7 +16,6 @@ from clusim.dag import Dendrogram
 
 class Clustering(object):
     """
-    .. class:: Clustering
     Base class for clusterings.
 
     :param dict elm2clu_dict: optional
@@ -82,6 +81,7 @@ class Clustering(object):
         Return a deep copy of the clustering.
 
         :returns: deep copy of the clustering
+
         >>> from clusim.clustering import Clustering, print_clustering
         >>> clu = clusim.Clustering()
         >>> clu2 = clu.copy()
