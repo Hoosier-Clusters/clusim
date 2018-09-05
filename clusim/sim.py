@@ -1163,11 +1163,11 @@ def adj_mi(clustering1, clustering2, random_model='perm', norm_type = 'sum', log
 
     :param str norm_type: 'sum' (default), 'max', 'min', 'sqrt', 'none'
         The normalization type:
-            'sum' uses the average of the two clustering entropies,
-            'max' uses the maximum of the two clustering entropies,
-            'min' uses the minimum of the two clustering entropies,
-            'sqrt' uses the geometric mean of the two clustering entropies,
-            'none' returns the Mutual Information without a normalization
+        'sum' uses the average of the two clustering entropies,
+        'max' uses the maximum of the two clustering entropies,
+        'min' uses the minimum of the two clustering entropies,
+        'sqrt' uses the geometric mean of the two clustering entropies,
+        'none' returns the Mutual Information without a normalization
 
     :param float logbase: (default) 2
         The base of all logarithms (recommended to use 2 for bits).
@@ -1177,22 +1177,14 @@ def adj_mi(clustering1, clustering2, random_model='perm', norm_type = 'sum', log
 
     >>> import clusim.clugen as clugen
     >>> import clusim.sim as sim
-    >>> clustering1 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
-                                                    random_model='all')
-    >>> clustering2 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
-                                                    random_model='all')
-    >>> print(sim.adj_mi(clustering1, clustering2,
-                                   random_model='all'))
-    >>> print(sim.adj_mi(clustering1, clustering2,
-                                   random_model='all1'))
-    >>> print(sim.adj_mi(clustering1, clustering2,
-                                   random_model='num'))
-    >>> print(sim.adj_mi(clustering1, clustering2,
-                                   random_model='num1'))
-    >>> print(sim.adj_mi(clustering1, clustering2,
-                                   random_model='perm'))
-    >>> print(sim.adj_mi(clustering1, clustering2,
-                                   random_model='perm1'))
+    >>> clustering1 = clugen.make_random_clustering(n_elements=9, n_clusters=3,random_model='all')
+    >>> clustering2 = clugen.make_random_clustering(n_elements=9, n_clusters=3,random_model='all')
+    >>> print(sim.adj_mi(clustering1, clustering2, random_model='all'))
+    >>> print(sim.adj_mi(clustering1, clustering2, random_model='all1'))
+    >>> print(sim.adj_mi(clustering1, clustering2,random_model='num'))
+    >>> print(sim.adj_mi(clustering1, clustering2,random_model='num1'))
+    >>> print(sim.adj_mi(clustering1, clustering2,random_model='perm'))
+    >>> print(sim.adj_mi(clustering1, clustering2,random_model='perm1'))
     """
 
     if random_model == 'none':
