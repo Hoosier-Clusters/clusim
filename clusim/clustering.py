@@ -287,7 +287,11 @@ class Clustering(object):
         >>> print("Cluster Size Sequence:", clu.find_clu_size_seq())
         * Cluster Size Sequence: [3, 2, 2]
         """
-        return [len(self.clu2elm_dict[clu]) for clu in sorted(self.clusters)]
+        if np.all([type(i)==int for i in self.clusters]):
+            sorted_cluster = sorted(self.clusters)
+        else:
+            sorted_cluster = sorted(self.clusters, key=lambda v: str(v))
+        return [len(self.clu2elm_dict[clu]) for clu in sorted_cluster]
 
     def relabel_clusters_by_size(self):
         """

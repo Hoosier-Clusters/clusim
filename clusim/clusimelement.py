@@ -201,13 +201,13 @@ def make_affinity_matrix(clustering, alpha=0.9, r=1., rescale_path_type='max',
         pprscore = ppr_partition(clustering=clustering, alpha=alpha,
                                  relabeled_elements=relabeled_elements)
 
-    # otherwise we have to create the hctag and numberically solve for the
+    # otherwise we have to create the cielg and numberically solve for the
     # personalize page-rank distribution
     else:
-        phctag = make_phctag(clustering=clustering, r=r,
+        cielg = make_cielg(clustering=clustering, r=r,
                              rescale_path_type=rescale_path_type,
                              relabeled_elements=relabeled_elements)
-        pprscore = numerical_ppr_scores(phctag, clustering, alpha=alpha,
+        pprscore = numerical_ppr_scores(cielg, clustering, alpha=alpha,
                                         relabeled_elements=relabeled_elements)
 
     return(pprscore)
@@ -362,11 +362,11 @@ def numerical_ppr_scores(cielg, clustering, alpha=0.9,
         collect_regulargroups[tuple(sorted(cl))].append(relabeled_elements[e])
     elementgroupList = collect_regulargroups.values()
 
-    ppr_scores = np.zeros((phctag.vcount(), phctag.vcount()))
+    ppr_scores = np.zeros((cielg.vcount(), cielg.vcount()))
 
     # we have to calculate the ppr for each connected component
-    for cluster in phctag.components():
-        clustergraph = phctag.subgraph(cluster)
+    for cluster in cielg.components():
+        clustergraph = cielg.subgraph(cluster)
         cc_ppr_scores = np.zeros((clustergraph.vcount(),
                                   clustergraph.vcount()))
 

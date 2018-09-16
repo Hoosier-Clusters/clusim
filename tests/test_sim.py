@@ -4,7 +4,9 @@
 # These tests were hand calculated by Alexander J. Gates: ajgates42@gmail.com
 #
 
-import clusim
+from clusim.clustering import Clustering
+import clusim.sim as sim
+from clusim.dag import DAG
 from numpy.testing import assert_approx_equal
 
 
@@ -12,10 +14,10 @@ def test_comparison_example():
     c1_elm2clu_dict = {0: [0], 1: [1], 2: [1], 3: [0], 4: [2], 5: [1]}
     c2_elm2clu_dict = {0: [0], 1: [1], 2: [1], 3: [0], 4: [2], 5: [2]}
 
-    c1 = clusim.Clustering(elm2clu_dict=c1_elm2clu_dict)
-    c2 = clusim.Clustering(elm2clu_dict=c2_elm2clu_dict)
+    c1 = Clustering(elm2clu_dict=c1_elm2clu_dict)
+    c2 = Clustering(elm2clu_dict=c2_elm2clu_dict)
 
-    N11, N10, N01, N00 = clusim.count_pairwise_cooccurence(c1, c2)
+    N11, N10, N01, N00 = sim.count_pairwise_cooccurence(c1, c2)
 
     assert N11 == 2
     assert N10 == 2
@@ -42,8 +44,8 @@ def test_comparison_example():
         'onmi': 0.7449589906475155,
         'omega_index': 0.44444444444444453}
 
-    for simfunc in clusim.available_similarity_measures:
-        simvalue = eval('clusim.' + simfunc+'(c1, c2)')
+    for simfunc in sim.available_similarity_measures:
+        simvalue = eval('sim.' + simfunc+'(c1, c2)')
         assert simvalue == known_sim_values[simfunc],\
             "Similarity Measure {} does not match. {} != {}".format(
                 simfunc, simvalue, known_sim_values[simfunc])
@@ -53,8 +55,8 @@ def test_model_example():
     c1_elm2clu_dict = {0: [0], 1: [1], 2: [1], 3: [0]}
     c2_elm2clu_dict = {0: [0], 1: [1], 2: [1], 3: [1]}
 
-    c1 = clusim.Clustering(elm2clu_dict=c1_elm2clu_dict)
-    c2 = clusim.Clustering(elm2clu_dict=c2_elm2clu_dict)
+    c1 = Clustering(elm2clu_dict=c1_elm2clu_dict)
+    c2 = Clustering(elm2clu_dict=c2_elm2clu_dict)
 
     known_rand_values = {'perm': 0.5, 'perm1': 0.5, 'num': 0.510204081632653,
                          'num1': 0.5, 'all': 0.555555555555556, 'all1': 0.5}
@@ -63,8 +65,8 @@ def test_model_example():
                        'num': 0.309927805548467, 'num1': 0.301825892084476,
                        'all': 0.611635721962606, 'all1': 0.419448541053684}
 
-    for rdm in clusim.available_random_models:
-        exp_rand_value = clusim.expected_rand_index(
+    for rdm in sim.available_random_models:
+        exp_rand_value = sim.expected_rand_index(
             n_elements=c1.n_elements,
             n_clusters1=c1.n_clusters,
             n_clusters2=c2.n_clusters,
@@ -76,7 +78,7 @@ def test_model_example():
             "Expected Rand Index with {} Random Model does not match."
             "{} != {}".format(rdm, exp_rand_value, known_rand_values[rdm]))
 
-        exp_mi_value = float(clusim.expected_mi(n_elements=c1.n_elements,
+        exp_mi_value = float(sim.expected_mi(n_elements=c1.n_elements,
                                                 n_clusters1=c1.n_clusters,
                                                 n_clusters2=c2.n_clusters,
                                                 clu_size_seq1=c1.clu_size_seq,
@@ -91,21 +93,21 @@ def test_model_example():
 def test_elementsim_example():
 
     # taken from Fig 3 of Gates et al (2018) Scientific Reports
-    
+
     # overlapping clustering
     c1_elm2clu_dict = {0:[0], 1:[0], 2:[0], 3:[3], 4:['.3'], 5:['.3', '.9'], 6:['.9']}
 
     # hierarchical clustering
     c2_elm2clu_dict = {0:[1], 1:[1], 2:[2], 3:[5], 4:[5], 5:[6, 8], 6:[9]}
-    c2_dag = clusim.DAG()
+    c2_dag = DAG()
     c2_dag.add_edges_from([(0,1), (0,2), (3,4), (4,5), (4,6), (3,7), (7,8), (7,9)])
 
-    c1 = clusim.Clustering(elm2clu_dict = c1_elm2clu_dict)
-    c2 = clusim.Clustering(elm2clu_dict = c2_elm2clu_dict, hier_graph = c2_dag)
+    c1 = Clustering(elm2clu_dict = c1_elm2clu_dict)
+    c2 = Clustering(elm2clu_dict = c2_elm2clu_dict, hier_graph = c2_dag)
 
     known_elsim = [0.92875658, 0.92875658, 0.85751315, 0.25717544, 0.74282456, 0.82083876, 0.80767074]
 
-    elsim, ellabels = clusim.element_sim_elscore(c1, c2, alpha = 0.9, r = 1., r2 = None, rescale_path_type = 'max')
+    elsim, ellabels = sim.element_sim_elscore(c1, c2, alpha = 0.9, r = 1., r2 = None, rescale_path_type = 'max')
 
     for i in range(7):
         assert_approx_equal(elsim[i], known_elsim[i], 10**(-10), "Element-centric similarity for element %s does not match. %s != %s" % (i, elsim[i], known_elsim[i]) )

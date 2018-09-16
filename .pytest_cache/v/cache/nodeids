@@ -1,0 +1,5 @@
+[
+  "tests/test_sim.py::test_comparison_example",
+  "tests/test_sim.py::test_model_example",
+  "tests/test_sim.py::test_elementsim_example"
+]
