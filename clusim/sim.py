@@ -739,7 +739,7 @@ def corrected_chance(clustering1, clustering2, measure='jaccard_index',
             exp_sim = sample_expected_sim(clustering1, clustering2,
                                           measure=measure,
                                           random_model=random_model,
-                                          nsamples=nsamples)
+                                          n_samples=nsamples)
 
         denom = 1. - exp_sim
         if (denom) > 0:
@@ -812,22 +812,22 @@ def sample_expected_sim(clustering1, clustering2, measure='jaccard_index',
     >>> print(sim.sample_expected_sim(c1, c2, measure='jaccard_index', random_model='perm1', n_samples=50) )
     """
 
-    # draw nsamples random samples from the random model
+    # draw n_samples random samples from the random model
     random_clustering1_list = [clugen.make_random_clustering(  # TODO: func undefined
         n_elements=clustering1.n_elements, n_clusters=clustering1.n_clusters,
         clu_size_seq=clustering1.clu_size_seq, random_model=random_model,
-        tol=1.0e-15) for isample in range(nsamples)]
+        tol=1.0e-15) for isample in range(n_samples)]
 
     if '1' in random_model:
         # this is a one-sided model so only compare to the reference clustering
         random_clustering2_list = [clustering2]
     else:
-        # a two-sided model, so draw another nsamples from the random model
+        # a two-sided model, so draw another n_samples from the random model
         random_clustering2_list = [clugen.make_random_clustering(
             n_elements=clustering2.n_elements,
             n_clusters=clustering2.n_clusters,
             clu_size_seq=clustering2.clu_size_seq, random_model=random_model,
-            tol=1.0e-15) for isample in range(nsamples)]
+            tol=1.0e-15) for isample in range(n_samples)]
 
     pairwise_comparisons = [eval(measure + '(c1, c2)')
                             for c1, c2
