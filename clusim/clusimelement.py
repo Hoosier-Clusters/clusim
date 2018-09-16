@@ -127,8 +127,12 @@ def element_sim_elscore(clustering1, clustering2, alpha=0.9, r=1., r2=None,
 
 
 def relabel_objects(object_list):
-    return {obj: iobj for iobj, obj in enumerate(sorted(object_list,
+    if np.all([type(i)==int for i in object_list]):
+        relabeled_elements = {obj: iobj for iobj, obj in enumerate(sorted(object_list))}
+    else:
+        relabeled_elements = {obj: iobj for iobj, obj in enumerate(sorted(object_list,
                                                         key=lambda v: str(v)))}
+    return relabeled_elements
 
 
 def cL1(x, y, alpha):

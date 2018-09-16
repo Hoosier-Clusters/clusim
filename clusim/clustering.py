@@ -287,7 +287,24 @@ class Clustering(object):
         >>> print("Cluster Size Sequence:", clu.find_clu_size_seq())
         * Cluster Size Sequence: [3, 2, 2]
         """
-        return [len(self.clu2elm_dict[clu]) for clu in self.clusters]
+        return [len(self.clu2elm_dict[clu]) for clu in sorted(self.clusters)]
+
+    def relabel_clusters_by_size(self):
+        """
+        This method renames all clusters by their size.
+
+        >>> from clusim.clustering import Clustering, print_clustering
+        >>> elm2clu_dict = {0:[0], 1:[0], 2:[0], 3:[1], 4:[2], 5:[2]}
+        >>> clu = Clustering(elm2clu_dict = elm2clu_dict)
+        >>> print("Cluster Size Sequence:", clu.find_clu_size_seq())
+        >>> clu.relabel_clusters_by_size()
+        * Cluster Size Sequence: [3, 2, 2]
+        """
+        clu_oldorder = {i:c for i,c in enumerate(sorted(self.clusters))}
+        clu_neworder = np.argsort(self.find_clu_size_seq())
+        clu_relabel = {clu_neworder[clu_oldorder[i]]:i for i in range(self.n_clusters)}
+        self.from_clu2elm_dict({clu_relabel[c]:el for c, el in self.clu2elm_dict.items()})
+
 
     def find_num_overlap(self):
         """
