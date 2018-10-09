@@ -739,7 +739,7 @@ def corrected_chance(clustering1, clustering2, measure='jaccard_index',
             exp_sim = sample_expected_sim(clustering1, clustering2,
                                           measure=measure,
                                           random_model=random_model,
-                                          n_samples=nsamples)
+                                          n_samples=n_samples)
 
         denom = 1. - exp_sim
         if (denom) > 0:
