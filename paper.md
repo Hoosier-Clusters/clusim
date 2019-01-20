@@ -42,7 +42,7 @@ Here, we introduce *CluSim*, a python package providing a unified library of 20+
 
 
 
-#Examples
+# Examples
 
 The basic class in the *CluSim* package is a *Clustering*, or an assignment of labeled elements (i.e.\ data points or network vertices) into clusters (the groups). Hierarchical *Clusterings* also contain a dendrogram, or more generally an acyclic graph, capturing the nested structure of the clusters. In *CluSim*, a *Clustering* can be instantiated from 7 different common formats, including full support for *scipy*, *scikit-learn*, and *dendropy* clustering formats [@scipy; @scikitlearn; @Sukumaran2010dendropy].
 
