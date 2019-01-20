@@ -57,7 +57,7 @@ To facilitate comparisons within a set of clusterings, the *CluSim* package prov
 
 
 
-![Evaluating clustering comparisons w.r.t. random models.](paperfigures/CluSimFig1.pdf)
+![Evaluating clustering comparisons w.r.t. random models.](paperfigures/CluSimFig1.png)
 A comparison using the Rand Index between the classification of cancer types and clustering labels derived using Hierarchical Clustering on gene expression data ($0.5$, red). above, Pairwise comparisons between samples from the Permutation model (blue, see [@Hubert1985adjrand]) with mean $0.44$ (black). below, Pairwise comparisons between samples from the one-sided model with a Fixed Number of Clusters (blue, see [@Gates2017impact]) with mean $0.59$ (black). The Permutation model suggests Hierarchical Clustering is more similar to the ground truth than a random clustering, while the one-sized fixed number of clusterings model, the more appropriate model for this scenario, reveals that the result is less similar than random clusterings.
 
 
@@ -65,7 +65,7 @@ A comparison using the Rand Index between the classification of cancer types and
 In the second example, we identify the loci of gene-tree heterogeneity in an analysis of $424$ nuclear genes from $37$ eutherian mammals [@Song2012mammalphylogeny]. Specifically, we perform all pair-wise comparisons between the $424$ phylogenetic trees (dendrograms, exemplified in Fig. 2**a**) derived from individual gene sequence data [@Mirarab2014astral]. The average element-centric similarity between the trees (Fig. 2**b**) reveals their overall similarity, with few conflicts near the roots of the trees (high similarity for the scaling parameter, $r<0$), while decreasing similarity suggest greater conflicts towards the leaves (lower similarity for the scaling parameter,$r>0$). The distribution of element-wise frustration scores over the taxa reveal the loci of greatest gene tree in-congruence (Fig. 2**c**). Specifically, the 8 taxa with lowest frustration correspond to the 5 taxa previously identified with structural discrepancies (bats, shrews, and hedgehog, blue, [@Mirarab2014astral]), and the 3 taxa with the smallest bootstrapping support in the maximum-pseudolikelihood coalescent tree (pig, guinea pig, kangaroo rat, purple, [@Song2012mammalphylogeny]). This comparison provides quantitative insights into the complexities commonly observed in phylogentic data.
 
 
-![Element-centric comparisons of phylogenetic dendrograms.](paperfigures/CluSimFig2.pdf)
+![Element-centric comparisons of phylogenetic dendrograms.](paperfigures/CluSimFig2.png)
 **a**, An example phylogenetic tree for the $37$ mammals from [@Song2012mammalphylogeny]. **b**, The average element-centric similarity between $424$-gene trees for different scaling parameters reveals few conflicts near the roots (left, $r<0$), while decreasing similarity for increasing $r$ suggests greater conflicts towards the leaves (left, $r>0$). **c**, The element-centric frustration highlights the 5 taxa previously identified with structural discrepancies (bats, shrews, and hedgehog, blue, [@Mirarab2014astral]), and the 3 taxa with the smallest bootstrapping support in the maximum-pseudolikelihood coalescent tree (pig, guinea pig, kangaroo rat, purple, [@Song2012mammalphylogeny]).
 
 
