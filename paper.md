@@ -13,11 +13,11 @@ authors:
     orcid: 0000-0002-4352-4301
     affiliation: "2,3"
 affiliations:
- - name: Department of Physics, Northeastern University, Boston, 02115, USA
+  - name: Department of Physics, Northeastern University, Boston, 02115, USA
    index: 1
- - name: Department of Informatics, Indiana University, Bloomington, 47408, USA
+  - name: Department of Informatics, Indiana University, Bloomington, 47408, USA
    index: 2
-- name: Program in Cognitive Science, Indiana University, Bloomington, 47408, USA
+  - name: Program in Cognitive Science, Indiana University, Bloomington, 47408, USA
    index: 3
 date: 20 January 2019
 bibliography: paper.bib
