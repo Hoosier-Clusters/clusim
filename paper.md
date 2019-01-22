@@ -39,9 +39,7 @@ The basic class in the *CluSim* package is a *Clustering*, or an assignment of l
 
 To facilitate comparisons within a set of clusterings, the *CluSim* package provides two implementations of the correction for chance. Analytic solutions are available for the Rand index and Normalized Mutual Information using five random models: the permutation model, both one-sided and two-sided models for clusterings with a fixed number of clusters, and both one-sided and two-sided models for all random clusterings [@Hubert1985adjrand; @Vinh2009nmicorrection; @Gates2017impact]. For all other similarity measures, the correction for chance is estimated by randomly sampling the random ensemble of *Clusterings* using the provided random Clustering generators.
 
-![Evaluating clustering comparisons w.r.t. random models.](paperfigures/CluSimFig1.png)
-
-**Evaluating clustering comparisons w.r.t. random models.** A comparison using the Rand Index between the classification of cancer types and clustering labels derived using Hierarchical Clustering on gene expression data ($0.5$, red). above, Pairwise comparisons between samples from the Permutation model (blue, see [@Hubert1985adjrand]) with mean $0.44$ (black). below, Pairwise comparisons between samples from the one-sided model with a Fixed Number of Clusters (blue, see [@Gates2017impact]) with mean $0.59$ (black). The Permutation model suggests Hierarchical Clustering is more similar to the ground truth than a random clustering, while the one-sized fixed number of clusterings model, the more appropriate model for this scenario, reveals that the result is less similar than random clusterings.
+![**Evaluating clustering comparisons w.r.t. random models.** A comparison using the Rand Index between the classification of cancer types and clustering labels derived using Hierarchical Clustering on gene expression data ($0.5$, red). above, Pairwise comparisons between samples from the Permutation model (blue, see [@Hubert1985adjrand]) with mean $0.44$ (black). below, Pairwise comparisons between samples from the one-sided model with a Fixed Number of Clusters (blue, see [@Gates2017impact]) with mean $0.59$ (black). The Permutation model suggests Hierarchical Clustering is more similar to the ground truth than a random clustering, while the one-sized fixed number of clusterings model, the more appropriate model for this scenario, reveals that the result is less similar than random clusterings.](paperfigures/CluSimFig1.png)
 
 &nbsp;
 
@@ -49,9 +47,7 @@ In the second example, we identify the loci of gene-tree heterogeneity in an ana
 
 &nbsp;
 
-![Element-centric comparisons of phylogenetic dendrograms.](paperfigures/CluSimFig2.png)
-
-**Element-centric comparisons of phylogenetic dendrograms**. **a**, An example phylogenetic tree for the $37$ mammals from [@Song2012mammalphylogeny]. **b**, The average element-centric similarity between $424$-gene trees for different scaling parameters reveals few conflicts near the roots (left, $r<0$), while decreasing similarity for increasing $r$ suggests greater conflicts towards the leaves (left, $r>0$). **c**, The element-centric frustration highlights the 5 taxa previously identified with structural discrepancies (bats, shrews, and hedgehog, blue, [@Mirarab2014astral]), and the 3 taxa with the smallest bootstrapping support in the maximum-pseudolikelihood coalescent tree (pig, guinea pig, kangaroo rat, purple, [@Song2012mammalphylogeny]).
+![**Element-centric comparisons of phylogenetic dendrograms**. **a**, An example phylogenetic tree for the $37$ mammals from [@Song2012mammalphylogeny]. **b**, The average element-centric similarity between $424$-gene trees for different scaling parameters reveals few conflicts near the roots (left, $r< 0$), while decreasing similarity for increasing $r$ suggests greater conflicts towards the leaves (left, $r>0$). **c**, The element-centric frustration highlights the 5 taxa previously identified with structural discrepancies (bats, shrews, and hedgehog, blue, [@Mirarab2014astral]), and the 3 taxa with the smallest bootstrapping support in the maximum-pseudolikelihood coalescent tree (pig, guinea pig, kangaroo rat, purple, [@Song2012mammalphylogeny]).](paperfigures/CluSimFig2.png)
 
 &nbsp;
 
