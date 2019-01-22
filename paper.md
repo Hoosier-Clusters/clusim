@@ -14,47 +14,30 @@ authors:
     affiliation: "2,3"
 affiliations:
   - name: Department of Physics, Northeastern University, Boston, 02115, USA
-   index: 1
+    index: 1
   - name: Department of Informatics, Indiana University, Bloomington, 47408, USA
-   index: 2
+    index: 2
   - name: Program in Cognitive Science, Indiana University, Bloomington, 47408, USA
-   index: 3
+    index: 3
 date: 20 January 2019
 bibliography: paper.bib
 ---
 
 # Summary
 
-
 Clustering is a primary method to reveal the structure of data [@Jain1999clustering]. To understand, evaluate, and leverage data clusterings, we need to quantitatively compare them. Clustering comparison is the basis for method evaluation, consensus clustering, and tracking the temporal evolution of clusters, among many other tasks. For instance, clustering method evaluation is usually achieved by comparing the method's result to a planted reference clustering, assuming that the more similar the method's solution is to the reference clustering, the better the method. Despite the importance of clustering comparison, no consensus has been reached for a standardized assessment; each similarity measure rewards and penalizes different criteria, sometimes producing contradictory conclusions. Each scientific community has adopted their own standard practices, often without considering whether the measures' underlying assumptions are appropriate for the given task.
-
-
-
 
 Clustering similarity measures can be classified based on the cluster types: i) *partitions* that group elements into non-overlapping clusters, ii) *hierarchical clusterings* that group elements into a nested series of partitions (a.k.a. dendrogram), or iii) *overlapping clusterings* with elements belonging to multiple clusters. Furthermore, in order to establish a baseline and interpret the similarity score, it is often argued that clustering similarity should be assessed in the context of a random ensemble of clusterings. Such a correction procedure requires two choices: *a model for random clusterings* and *how clusterings are drawn from the random model*. With few exceptions, similarity measures are only designed to compare clusterings of the same type, and the decisions required for the correction procedure are usually ignored or relegated to the status of technical trivialities [@Gates2017impact].
 
-
-
-
 Here, we introduce *CluSim*, a python package providing a unified library of 20+ clustering similarity measures for partitions, dendrograms, and overlapping clusterings. To our knowledge, this package constitutes the first collection of clustering similarity measures for all three clustering types and extended access to random models of clusterings [@Gates2018element]. We illustrate the use of the package through two examples: comparing clusterings of Gene Expression data in the context of different random models, and element-centric comparisons between a set of phylogentic trees (dendrograms).
-
-
-
-
 
 # Examples
 
 The basic class in the *CluSim* package is a *Clustering*, or an assignment of labeled elements (i.e. data points or network vertices) into clusters (the groups). Hierarchical *Clusterings* also contain a dendrogram, or more generally an acyclic graph, capturing the nested structure of the clusters. In *CluSim*, a *Clustering* can be instantiated from 7 different common formats, including full support for `scipy`, *scikit-learn*, and *dendropy* clustering formats [@scipy; @scikitlearn; @Sukumaran2010dendropy].
 
-
-
 *CluSim* provides more than 20 clustering similarity and distance measures for the comparison between two *Clusterings*. All similarity measures produce a score in the range $[0,1]$, where $1$ indicates identical clusterings and $0$ indicates maximally dissimilar clusterings. See the online documentation for a detailed list and mathematical definitions of these similarity measures.
 
-
-
-
 To facilitate comparisons within a set of clusterings, the *CluSim* package provides two implementations of the correction for chance. Analytic solutions are available for the Rand index and Normalized Mutual Information using five random models: the permutation model, both one-sided and two-sided models for clusterings with a fixed number of clusters, and both one-sided and two-sided models for all random clusterings [@Hubert1985adjrand; @Vinh2009nmicorrection; @Gates2017impact]. For all other similarity measures, the correction for chance is estimated by randomly sampling the random ensemble of *Clusterings* using the provided random Clustering generators.
-
 
 ![Evaluating clustering comparisons w.r.t. random models.](paperfigures/CluSimFig1.png)
 
