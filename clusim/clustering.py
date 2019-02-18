@@ -118,6 +118,7 @@ class Clustering(object):
         self.clu_size_seq = self.find_clu_size_seq()
 
         self.is_disjoint = self.find_num_overlap() == 0
+        return self
 
     def from_clu2elm_dict(self, clu2elm_dict):
         """
@@ -148,6 +149,7 @@ class Clustering(object):
         self.clu_size_seq = self.find_clu_size_seq()
 
         self.is_disjoint = self.find_num_overlap() == 0
+        return self
 
     def from_cluster_list(self, cluster_list):
         """
@@ -167,6 +169,7 @@ class Clustering(object):
         """
         self.from_clu2elm_dict({iclus: set(clist)
                                for iclus, clist in enumerate(cluster_list)})
+        return self
 
     def to_cluster_list(self):
         """
@@ -201,6 +204,7 @@ class Clustering(object):
         """
         self.from_elm2clu_dict({elm: set([clu])
                                 for elm, clu in enumerate(membership_list)})
+        return self
 
     def to_membership_list(self):
         """
@@ -308,6 +312,7 @@ class Clustering(object):
         clu_neworder = np.argsort(self.find_clu_size_seq())
         clu_relabel = {clu_neworder[clu_oldorder[i]]:i for i in range(self.n_clusters)}
         self.from_clu2elm_dict({clu_relabel[c]:el for c, el in self.clu2elm_dict.items()})
+        return self
 
 
     def find_num_overlap(self):
@@ -409,6 +414,7 @@ class Clustering(object):
         """
         self.hier_graph = Dendrogram().from_linkage(linkage_matrix,
                                                     dist_rescaled)
+        return self
 
     def to_dendropy_tree(self, taxon_namespace, weighted=False):
         import dendropy
