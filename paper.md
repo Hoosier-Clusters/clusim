@@ -19,7 +19,7 @@ affiliations:
     index: 2
   - name: Program in Cognitive Science, Indiana University, Bloomington, 47408, USA
     index: 3
-date: 20 January 2019
+date: 13 March 2019
 bibliography: paper.bib
 ---
 
@@ -45,9 +45,7 @@ The clustering similarity measures presented here differ in how each evaluates t
 
 To facilitate comparisons within a set of clusterings, it is often argued to consider clustering similarity in the context of a random baseline [@Hubert1985adjrand; @Vinh2009nmicorrection; @Gates2017impact].  The *CluSim* package provides both analytic and statistical sampling methods for calculating such a correction for chance. Analytic solutions are available for the Rand index and Normalized Mutual Information using five random models: the permutation model, both one-sided and two-sided models for clusterings with a fixed number of clusters, and both one-sided and two-sided models for all random clusterings.  See Gates \& Ahn (2017) [@Gates2017impact] for detailed derivations and explanations of the differences between clustering random models.  For all other similarity measures, the correction for chance is estimated by randomly sampling the random ensemble of *Clusterings* using the provided random Clustering generators.
 
-
 A typical comparison using a correction for chance is illustrated in Fig. 2.  Agglomerative Hierarchical Clustering was applied to gene expression data from [@deSouto2008geneclustering] and compared to the true classification of cancer types using the Rand Index ($0.5$, red). To determine if the Rand Index of $0.5$ is indeed a good score, it is assessed relative to the distribution of pairwise comparisons amongst a sample of 100 random *Clusterings* from the Permutation model (blue, see [Hubert1985adjrand]) with mean Rand index of $0.44$ (black). Thus, the naive assessment would conclude that Agglomerative Hierarchical Clustering has performed better than would be expected by chance. However, the more appropriate random model for this scenario is provided by the one-sided model with a Fixed Number of Clusters (see [Gates2017impact]), since Agglomerative Hierarchical Clustering fixes the number of clusters but not their sizes, and the comparison is made to a ground truth clustering. The distribution of pairwise comparisons amongst a sample of 100 random samples from this random model (blue) with a mean similarity of $0.59$ (black), demonstrates that Agglomerative Hierarchical Clustering actually performed worse than if we had drawn a random clustering!
-
 
 &nbsp;
 
