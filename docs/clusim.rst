@@ -13,7 +13,7 @@ Welcome to CluSim's documentation!
 
 Installation
 ===================
-This package (will be) available in PyPI. Just run the following command on terminal to install.
+This package is available in PyPI. Just run the following command on terminal to install.
 
 >>> pip install clusim
 
@@ -33,15 +33,17 @@ We start by importing the required modules
 The simplest way to make a Clustering is to use an elm2clu_dict which maps each element.
 
 >>> c1 = Clustering(elm2clu_dict = {0:[0], 1:[0], 2:[1], 3:[1], 4:[2], 5:[2]})
->>> c2 = Clustering(elm2clu_dict = {0:[0], 1:[1], 2:[1], 3:[1], 4:[1], 5:[2]})
+>>> c2 = Clustering(elm2clu_dict = {0:[0], 1:[1], 2:[1], 3:[1], 4:[2], 5:[2]})
 
 >>> print_clustering(c1)
+>>> 01|23|45
 >>> print_clustering(c2)
+>>> 0|123|45
 
 Finally, the similarity of the two Clusterings can be found using the Jaccard Index.
 
 >>> sim.jaccard_index(c1, c2)
-
+>>> 0.4
 
 Basics of element-centric similarity
 --------------------------------------
@@ -54,11 +56,28 @@ Basics of element-centric similarity
 The basic element-centric similarity score with a fixed alpha:
 
 >>> sim.element_sim(c1, c2, alpha = 0.9)
+>>> 0.6944444444444443
 
-We can also get the element scores.  Note that since non-numberic elements are allowed, the element scores returns a dict which maps the elements to the index in the elementScore array.
+We can also get the element scores.  Note that since non-numberic elements are allowed, the element scores also returns a dict which maps the elements to the index in the elementScore array.
 
 >>> elementScores, relabeled_elements = sim.element_sim_elscore(c1, c2, alpha = 0.9)
+>>> print(elementScores)
+>>> [0.5        0.33333333 0.66666667 0.66666667 1.         1.        ]
 
+The above element-centric similarity scores can be (roughly) interpreted as follows:
+1. cluster 2 has the same memberships between the clusterings, so elements 4 and 5 have an element-centric similarity of 1.0
+2. cluster 0 has one element difference between the clusterings (element 1 moved from cluster 0 to cluster 1), so element 0 has an element-centric similarity of 1/2
+3. cluster 1 has one element difference between the clusterings (element 1 moved from cluster 0 to cluster 1), so elements 2 and 3 have an element-centric similarity of 2/3
+4. element 1 moved from cluster 0 to cluster 1 so it has an element-centric similarity of 1/3
+
+
+Advanced CluSim examples
+--------------------------------------
+Many more examples can be found in the jupyter notebooks included with the package:
+1. `Using Similarity Measures <https://github.com/Hoosier-Clusters/clusim/blob/master/examples/CluSim%20Examples%20-%20apply%20all%20similarity%20measures.ipynb>`_
+2. `Adjusting The Rand Index for different random models <https://github.com/Hoosier-Clusters/clusim/blob/master/examples/CluSim%20Examples%20-%20expected%20Rand%20Index%20for%20different%20Random%20Models.ipynb>`_
+3. `Adjusting Normalized Mutual Information <https://github.com/Hoosier-Clusters/clusim/blob/master/examples/CluSim%20Examples%20-%20NMI%20adjustment%20and%20normalization.ipynb>`_
+4. `Basics of Elementcentric Similarity <https://github.com/Hoosier-Clusters/clusim/blob/master/examples/CluSim%20Examples%20-%20basic%20element-centric%20similarity.ipynb>`_
 
 The “Clustering”
 =================

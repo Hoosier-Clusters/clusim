@@ -5,7 +5,7 @@ This package implements a series of methods used to compare Clusterings.
 Installation
 ------------
 
-This package (will be) available in PyPI. Just run the following command on terminal to install.
+This package is available in PyPI. Just run the following command on terminal to install.
 
 ```
     $ pip install clusim
