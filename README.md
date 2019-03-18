@@ -28,7 +28,7 @@ Papers
 - A.J. Gates and YY Ahn [2018]. "[CluSim: a python package](https://www.biorxiv.org/content/10.1101/410084v1)". *bioRxiv*: https://doi.org/10.1101/410084.
 
 
-CONTRIBUTING
+Contributing
 ------
 
 When contributing to this repository, please first discuss the change you wish to make via issue,
@@ -43,7 +43,7 @@ We recommend that you create a Git branch for each pull request (PR).
 
 ### Code of Conduct
 
-Please note that the {{{ CluSim }}} project is released with a
+Please note that the *CluSim* project is released with a
 [Contributor Code of Conduct](CODE_OF_CONDUCT.md). By contributing to this
 project you agree to abide by its terms.
 
