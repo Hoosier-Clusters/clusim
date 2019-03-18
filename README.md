@@ -5,7 +5,7 @@ This package implements a series of methods used to compare Clusterings.
 Installation
 ------------
 
-This package (will be) available in PyPI. Just run the following command on terminal to install.
+This package is available in PyPI. Just run the following command on terminal to install.
 
 ```
     $ pip install clusim
@@ -27,4 +27,27 @@ Papers
 
 - A.J. Gates and YY Ahn [2018]. "[CluSim: a python package](https://www.biorxiv.org/content/10.1101/410084v1)". *bioRxiv*: https://doi.org/10.1101/410084.
 
+
+CONTRIBUTING
+------
+
+When contributing to this repository, please first discuss the change you wish to make via issue,
+email, or any other method with the owners of this repository before making a change. 
+
+Please note we have a code of conduct, please follow it in all your interactions with the project.
+
+### Pull request process
+
+We recommend that you create a Git branch for each pull request (PR).  
+
+
+### Code of Conduct
+
+Please note that the {{{ CluSim }}} project is released with a
+[Contributor Code of Conduct](CODE_OF_CONDUCT.md). By contributing to this
+project you agree to abide by its terms.
+
+### Email Questions or Comments? 
+
+If you prefer to email, please contact us at: ajgates42 [at] gmail [dot] com
 
