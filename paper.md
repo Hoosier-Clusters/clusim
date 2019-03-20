@@ -33,7 +33,7 @@ Here, we introduce *CluSim*, a python package providing a unified library of ove
 
 # Examples
 
-The basic class in the *CluSim* package is a *Clustering*, or an assignment of labeled elements (i.e. data points or network vertices) into clusters (the groups). *Hierarchical Clusterings* also contain a dendrogram, or more generally an acyclic graph, capturing the nested structure of the clusters. In *CluSim*, a *Clustering* can be instantiated from 7 different common formats, including full support for *scipy*, *scikit-learn*, and *dendropy* clustering formats [@scipy; @scikitlearn; @Sukumaran2010dendropy].
+The basic class in the *CluSim* package is a *Clustering*, or an assignment of labeled elements (i.e. data points or network vertices) into clusters (the groups). *Hierarchical Clusterings* also contain a dendrogram, or more generally an acyclic graph, capturing the nested structure of the clusters. In *CluSim*, a *Clustering* can be instantiated from 7 different common formats, including full support for *scipy*, *scikit-learn*, and *dendropy* clustering formats [@scikitlearn; @Sukumaran2010dendropy].
 
 *CluSim* provides more than 20 clustering similarity and distance measures for the comparison between two *Clusterings*. All similarity measures produce a score in the range $[0,1]$, where $1$ indicates identical clusterings and $0$ indicates maximally dissimilar clusterings. See the online documentation for a detailed list and mathematical definitions of these similarity measures.
 
