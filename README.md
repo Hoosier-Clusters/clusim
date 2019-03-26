@@ -25,7 +25,7 @@ Papers
 
 - A.J. Gates, I.B. Wood, W.P. Hetrick, and YY Ahn [2018]. "[On comparing clusterings: an element-centric framework unifies overlaps and hierarchy](https://arxiv.org/abs/1706.06136)". *arxiv*: 1706.06136.
 
-- A.J. Gates and YY Ahn [2018]. "[CluSim: a python package](https://www.biorxiv.org/content/10.1101/410084v1)". *bioRxiv*: https://doi.org/10.1101/410084.
+- A.J. Gates and YY Ahn [2019]. "[CluSim: a python package for calculating clustering similarity](http://joss.theoj.org/papers/10.21105/joss.01264)". *Journal of Open Source Software* **4**(35), 1264. [![DOI](http://joss.theoj.org/papers/10.21105/joss.01264/status.svg)](https://doi.org/10.21105/joss.01264)
 
 
 Contributing
