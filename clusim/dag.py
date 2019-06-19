@@ -195,6 +195,8 @@ class Dendrogram(DAG):
 
         self.linkage_dist = linkage_dist
 
+        return self
+
     def to_dendropy_tree(self, taxon_namespace=None, weighted=False):
         tree = dendropy.Tree(taxon_namespace=taxon_namespace)
 

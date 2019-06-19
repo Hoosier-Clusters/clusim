@@ -408,12 +408,14 @@ class Clustering(object):
         >>> data2 = np.random.multivariate_normal([0, 20], [[3, 1], [1, 4]],
                                                   size=[50,])
         >>> Xdata = np.concatenate((data1, data2), )
-        >>> Z = linkage(X, 'ward')
+        >>> Z = linkage(Xdata, 'ward')
         >>> clu = Clustering()
         >>> clu.from_scipy_linkage(Z, dist_rescaled=False)
         """
         self.hier_graph = Dendrogram().from_linkage(linkage_matrix,
                                                     dist_rescaled)
+        elm2clu_dict = {v:[v] for v in range(linkage_matrix.shape[0] + 1)}
+        self.from_elm2clu_dict(elm2clu_dict=elm2clu_dict)
         return self
 
     def to_dendropy_tree(self, taxon_namespace, weighted=False):
