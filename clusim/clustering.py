@@ -445,13 +445,54 @@ class Clustering(object):
 
         return tree
 
-    def from_digraph(self, hier_graph=None):
-        if True:  # nx.is_acyclic(hier_graph):
+    def from_digraph(self, hier_graph, elm2clu_dict=None, clu2elm_dict=None):
+        """
+        This method creates a hierarchical clustering with a cluster structure specified
+        by an acyclic digraph, 'hier_graph'.  The element membership into (at least) the
+        lowest resolution of the clusters must be specified by either a 'elm2clu_dict' or
+        a 'clu2elm_dict'.  The hierarchical clustering memeberships are then propagated
+        through the acyclic digraph.
+        Finally Clustering features are then calculated.
+
+        :param networkx.DiGraph() hier_graph:
+            Initialize based on a hierarchical acyclic graph capturing the cluster
+            membership at each scale.
+
+        :param dict elm2clu_dict: optional
+            Initialize based on an elm2clu_dict: { elementid: [clu1, clu2, ... ] }.
+            The value is a list of clusters to which the element belongs.
+
+        :param dict clu2elm_dict: optional
+            Initialize based on an clu2elm_dict: { clusid: [el1, el2, ... ]}.
+            Each cluster is a key with value a list of elements which belong to it.
+
+
+        >>> from clusim.clustering import Clustering, print_clustering
+        >>> import networkx as nx
+        >>>
+        >>> G = nx.DiGraph()
+        >>> G.add_edges_from([(0,1), (0,2)])
+        >>> clu2elm_dict = {1:[0,1,3,4], 2:[5,6,7,8]}
+        >>> clu = Clustering()
+        >>> clu.from_digraph(hier_graph = G, clu2elm_dict = clu2elm_dict)
+        """
+
+        if elm2clu_dict is not None:
+            # create clustering from elm2clu_dict
+            self.from_elm2clu_dict(elm2clu_dict)
+
+        elif clu2elm_dict is not None:
+            # create clustering from clu2elm_dict
+            self.from_clu2elm_dict(clu2elm_dict)
+
+        if self.n_elements != 0: #
+            self.is_hierarchical = True
             self.hier_graph = hier_graph
-            self.clusters = list(hier_graph.nodes())
-            self.n_clusters = len(self.clusters)
+            self.hier_clusdict()
         else:
-            print("Graph must be acyclic!")
+            print("You must specify the element membership using either a elm2clu_dict or clu2elm_dict.")
+
+        return self
 
     def cut_at_depth(self, depth=0, cuttype='shortestpath',
                      rescale_path_type='max'):
