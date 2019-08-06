@@ -23,8 +23,7 @@ Papers
 
 - A.J. Gates and YY Ahn [2017] "[The Impact of Random Models on Clustering Similarity.](http://jmlr.org/papers/volume18/17-039/17-039.pdf)" *JMLR* **18**, 1-28.
 
-- A.J. Gates, I.B. Wood, W.P. Hetrick, and YY Ahn [2019]. "[Element-centric clustering comparison unifies overlaps and hierarchy](https://www.nature.com/articles/s41598-019-44892-y)". **9**, 8574.
-and [arxiv:1706.06136](https://arxiv.org/abs/1706.06136)
+- A.J. Gates, I.B. Wood, W.P. Hetrick, and YY Ahn [2019]. "[Element-centric clustering comparison unifies overlaps and hierarchy](https://www.nature.com/articles/s41598-019-44892-y)". **9**, 8574.    [arxiv:1706.06136](https://arxiv.org/abs/1706.06136)
 
 - A.J. Gates and YY Ahn [2019]. "[CluSim: a python package for calculating clustering similarity](http://joss.theoj.org/papers/10.21105/joss.01264)". *Journal of Open Source Software* **4**(35), 1264. [![DOI](http://joss.theoj.org/papers/10.21105/joss.01264/status.svg)](https://doi.org/10.21105/joss.01264)
 
