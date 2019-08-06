@@ -15,6 +15,7 @@ from collections import Counter
 import numpy as np
 import scipy.sparse as spsparse
 import mpmath
+import scipy.special as sps
 
 import clusim.clugen as clugen
 from clusim.clusimelement import *
@@ -32,6 +33,7 @@ available_similarity_measures = ['jaccard_index',
                                  'purity_index',
                                  'fmeasure',
                                  'nmi',
+                                 'rmi',
                                  'vi',
                                  'geometric_accuracy',
                                  'overlap_quality',
@@ -907,6 +909,114 @@ def nmi(clustering1, clustering2, norm_type='sum'):
         normterm = 1.0
 
     return (e1 + e2 - e12) / normterm
+
+
+def rmi(clustering1, clustering2, norm_type='none', logbase=2):
+    """
+    This function calculates the Reduced Mutual Information (RMI)
+    between two clusterings :cite:`Newman2019improved`.
+
+    RMI = MI(c1, c2) - log Omega(a, b) / n
+
+    where MI(c1, c2) is mutual information of the clusterings c1 and c2, and
+    where Omega(a, b) is the number of contigency tables with row and column
+    sums equal to a and b.
+
+    :param Clustering clustering1:
+        The first clustering.
+
+    :param Clustering clustering2:
+        The second clustering.
+
+    :param str norm_type: 'none' (default)
+        The normalization types are:
+        'none' returns the RMI without a normalization.
+        'normalized' returns the RMI with upper bound equals to 1.
+
+    :param float logbase: (default) 2
+        The base of all logarithms (recommended to use 2 for bits).
+
+    :returns:
+        The Reduced Mutual Information index (between 0.0 and inf)
+
+    >>> import clusim.clugen as clugen
+    >>> import clusim.sim as sim
+    >>> clustering1 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
+                                                    random_model='num')
+    >>> clustering2 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
+                                                    random_model='num')
+    >>> print(sim.rmi(clustering1, clustering2, norm_type='none'))
+    >>> print(sim.rmi(clustering1, clustering2, norm_type='normalized'))
+    """
+    def get_log_omega(a, b, logbase):
+        """Logarithm of the number of contigency table with fixed margins.
+
+        Implements an approximation by  to Diaconis and Efron :cite:
+        `diaconis1985testing`.
+
+        :param array a:
+            Row margin of the contigency table.
+
+        :param array b:
+            Column margin of the contigency table.
+
+        :param float logbase: (default) 2
+            The base of all logarithms (recommended to use 2 for bits).
+
+        :returns:
+            The logarithm of the number of contigency tables.
+        """
+        R = len(a)
+        S = len(b)
+        n = sum(a)
+        w = n / (n + 0.5 * R * S)
+        x = (1 - w) / R + w * a / n
+        y = (1 - w) / S + w * b / n
+        nu = (S + 1) / (S * sum(x * x)) - 1 / S
+        mu = (R + 1) / (R * sum(y * y)) - 1 / R
+
+        logOmega = (R - 1) * (S - 1) * np.log(n + 0.5 * R * S) \
+            + 0.5 * (R + nu - 2) * sum(np.log(y)) \
+            + 0.5 * (S + mu - 2) * sum(np.log(x)) \
+            + 0.5 * (sps.gammaln(mu * R) + sps.gammaln(nu * S) -
+                     R * (sps.gammaln(S) + sps.gammaln(mu)) -
+                     S * (sps.gammaln(R) + sps.gammaln(nu)))
+        return logOmega / np.log(logbase)
+
+    # Compute contigency table and margins
+    cont_tbl = contingency_table(clustering1, clustering2)
+    logOmega = get_log_omega(np.array(clustering1.clu_size_seq),
+                             np.array(clustering2.clu_size_seq),
+                             logbase)
+    # Compute exact MI:
+    I = sps.gammaln(clustering1.n_elements + 1)
+    for r in range(clustering1.n_clusters):
+        for s in range(clustering2.n_clusters):
+            I += sps.gammaln(cont_tbl[r][s] + 1)
+    for r in range(clustering1.n_clusters):
+        I -= sps.gammaln(clustering1.clu_size_seq[r] + 1)
+    for s in range(clustering2.n_clusters):
+        I -= sps.gammaln(clustering1.clu_size_seq[s] + 1)
+
+    RMI = I / np.log(logbase) - logOmega
+
+    if norm_type == 'none':
+        normterm = float(clustering1.n_elements)
+    elif norm_type == 'normalized':
+        normterm = 2 * sps.gammaln(clustering1.n_elements + 1) / np.log(logbase)
+        for r in range(clustering1.n_clusters):
+            normterm -= sps.gammaln(clustering1.clu_size_seq[r] + 1) / np.log(logbase)
+        for s in range(clustering2.n_clusters):
+            normterm -= sps.gammaln(clustering1.clu_size_seq[s] + 1) / np.log(logbase)
+        log_omega_aa = get_log_omega(np.array(clustering1.clu_size_seq),
+                                     np.array(clustering1.clu_size_seq),
+                                     logbase)
+        log_omega_bb = get_log_omega(np.array(clustering2.clu_size_seq),
+                                     np.array(clustering2.clu_size_seq),
+                                     logbase)
+        normterm -= (log_omega_aa + log_omega_bb)
+        normterm /= 2
+    return RMI / normterm
 
 
 def vi(clustering1, clustering2, norm_type='none'):
