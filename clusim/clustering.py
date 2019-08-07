@@ -107,7 +107,7 @@ class Clustering(object):
         >>> print_clustering(clu)
         """
 
-        self.elm2clu_dict = copy.deepcopy(elm2clu_dict)
+        self.elm2clu_dict = {e:set(cl) for e, cl in elm2clu_dict.items()}
         self.elements = list(self.elm2clu_dict.keys())
         self.n_elements = len(self.elements)
 
@@ -138,7 +138,7 @@ class Clustering(object):
         >>> print_clustering(clu)
         """
 
-        self.clu2elm_dict = copy.deepcopy(clu2elm_dict)
+        self.clu2elm_dict = {c:set(el) for c, el in clu2elm_dict.items()}
         self.clusters = list(self.clu2elm_dict.keys())
         self.n_clusters = len(self.clusters)
 
@@ -154,9 +154,10 @@ class Clustering(object):
     def from_cluster_list(self, cluster_list):
         """
         This method creates a clustering from a cluster list:
-        [ [el1, el2, ...], [el5, ...], ... ],  a list of lists,
-        where each inner list corresponds to the elements in
-        a cluster.  Clustering features are then calculated.
+        [ [el1, el2, ...], [el5, ...], ... ],  a list of lists
+        or a list of sets, where each inner list corresponds to 
+        the elements in a cluster.  Clustering features are then 
+        calculated.
 
         :param list cluster_list: list of lists
             [ [el1, el2, ...], [el5, ...], ... ]
@@ -485,12 +486,17 @@ class Clustering(object):
             # create clustering from clu2elm_dict
             self.from_clu2elm_dict(clu2elm_dict)
 
-        if self.n_elements != 0: #
-            self.is_hierarchical = True
-            self.hier_graph = hier_graph
-            self.hier_clusdict()
         else:
-            print("You must specify the element membership using either a elm2clu_dict or clu2elm_dict.")
+            raise TypeError("You must specify the element membership into at least the leaf layer using either a elm2clu_dict or clu2elm_dict.")
+
+        if not type(hier_graph) is nx.DiGraph: #
+            raise TypeError("The hierarchical graph must be a networkx DiGraph object.")
+        elif not nx.is_directed_acyclic_graph(hier_graph):
+            raise TypeError("The hierarchical graph must be acyclic but your graph contains cycles.")
+
+        self.is_hierarchical = True
+        self.hier_graph = hier_graph
+        self.hier_clusdict()
 
         return self
 

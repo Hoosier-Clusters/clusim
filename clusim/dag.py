@@ -12,16 +12,6 @@ import itertools
 import networkx as nx
 import numpy as np
 
-try:
-    import matplotlib.pylab as plt
-except ImportError:
-    print("For drawing functions to be enabled, please install matplotlib.")
-
-try:
-    import dendropy
-except ImportError:
-    print("DendroPY not supported.")
-
 
 class DAG(nx.DiGraph):
 
@@ -113,6 +103,9 @@ class DAG(nx.DiGraph):
 
     def draw(self, rescaled_level=None, rescale_path_type='max', ax=None,
              **kwargs):
+    
+        import matplotlib.pylab as plt
+    
         if ax is None:
             fig, ax = plt.subplots(1, 1)
         treepos = nx.drawing.nx_agraph.graphviz_layout(self, prog='dot')
@@ -198,6 +191,8 @@ class Dendrogram(DAG):
         return self
 
     def to_dendropy_tree(self, taxon_namespace=None, weighted=False):
+        import dendropy
+
         tree = dendropy.Tree(taxon_namespace=taxon_namespace)
 
         seed_node = self.roots()[0]
@@ -221,6 +216,8 @@ class Dendrogram(DAG):
         return tree
 
     def from_dendropy_tree(self, tree, keep_taxon=True):
+        import dendropy
+
         linkage_dist = {}
         for i, node in enumerate(tree.levelorder_node_iter()):
 
@@ -243,6 +240,7 @@ class Dendrogram(DAG):
         return self
 
     def from_newick(self, s, taxon_namespace=None, keep_taxon=True):
+        import dendropy
         if taxon_namespace is None:
             taxon_namespace = self.infer_namespace(s)
         tree = dendropy.Tree(taxon_namespace=taxon_namespace)
@@ -253,6 +251,7 @@ class Dendrogram(DAG):
         return self.make_biased_dendrogram(N=N, p=0.0)
 
     def infer_namespace(self, s):
+        import dendropy
         edits = s.replace('(', "").replace(')', '').replace(';', '')
         units = [t.split(':') for t in edits.split(',')]
         names = []
