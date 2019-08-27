@@ -996,7 +996,7 @@ def rmi(clustering1, clustering2, norm_type='none', logbase=2):
     for r in range(clustering1.n_clusters):
         I -= sps.gammaln(clustering1.clu_size_seq[r] + 1)
     for s in range(clustering2.n_clusters):
-        I -= sps.gammaln(clustering1.clu_size_seq[s] + 1)
+        I -= sps.gammaln(clustering2.clu_size_seq[s] + 1)
 
     RMI = I / np.log(logbase) - logOmega
 
@@ -1007,7 +1007,7 @@ def rmi(clustering1, clustering2, norm_type='none', logbase=2):
         for r in range(clustering1.n_clusters):
             normterm -= sps.gammaln(clustering1.clu_size_seq[r] + 1) / np.log(logbase)
         for s in range(clustering2.n_clusters):
-            normterm -= sps.gammaln(clustering1.clu_size_seq[s] + 1) / np.log(logbase)
+            normterm -= sps.gammaln(clustering2.clu_size_seq[s] + 1) / np.log(logbase)
         log_omega_aa = get_log_omega(np.array(clustering1.clu_size_seq),
                                      np.array(clustering1.clu_size_seq),
                                      logbase)
