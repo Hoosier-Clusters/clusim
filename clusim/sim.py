@@ -142,6 +142,7 @@ def count_pairwise_cooccurence(clustering1, clustering2):
 
 
 def entropy(prob_vector, logbase=2.):
+    """Entropy of a probability vector that sums too one."""
     prob_vector = np.array(prob_vector)
     pos_prob_vector = prob_vector[prob_vector > 0]
     return - np.sum(pos_prob_vector * np.log(pos_prob_vector)/np.log(logbase))
@@ -151,6 +152,7 @@ binary_entropy = np.vectorize(lambda p1, p2, logbase=2: entropy([p1, p2], logbas
 
 
 def hyper(n, a, b, N):
+    """Probability mass function of the hypergeometric distribution."""
     return mpmath.binomial(b, n) *\
         mpmath.binomial(N-b, a-n) / mpmath.binomial(N, a)
 
@@ -240,19 +242,6 @@ def expected_rand_index(n_elements, random_model='num', n_clusters1=2,
     :param int n_elements:
         The number of elements
 
-    :param int n_clusters1: optional
-        The number of clusters in the first clustering
-
-    :param int n_clusters2: optional
-        The number of clusters in the second clustering, considered the
-        gold-standard clustering for the one-sided expectations
-
-    :param list clu_size_seq1: optional
-        The cluster size sequence of the first clustering as a list of ints
-
-    :param list clu_size_seq2: optional
-        The cluster size sequence of the second clustering as a list of ints
-
     :param str random_model:
         The random model to use:
 
@@ -272,6 +261,19 @@ def expected_rand_index(n_elements, random_model='num', n_clusters1=2,
 
         'perm1' : one-sided selection from the permutation model for a fixed
                   cluster size sequence, same as 'perm'
+
+    :param int n_clusters1: optional
+        The number of clusters in the first clustering
+
+    :param int n_clusters2: optional
+        The number of clusters in the second clustering, considered the
+        gold-standard clustering for the one-sided expectations
+
+    :param list clu_size_seq1: optional
+        The cluster size sequence of the first clustering as a list of ints
+
+    :param list clu_size_seq2: optional
+        The cluster size sequence of the second clustering as a list of ints
 
     :returns:
         The expected Rand index (between 0.0 and 1.0)
@@ -701,6 +703,14 @@ def corrected_chance(clustering1, clustering2, measure='jaccard_index',
         'perm1' : one-sided selection from the permutation model for a fixed
                   cluster size sequence, same as 'perm'
 
+    :param str norm_type: 'sum' (default), 'max', 'min', 'sqrt', 'none'
+        The normalization type used if the measure is 'nmi'
+        'sum' uses the average of the two clustering entropies,
+        'max' uses the maximum of the two clustering entropies,
+        'min' uses the minimum of the two clustering entropies,
+        'sqrt' uses the geometric mean of the two clustering entropies,
+        'none' returns the Mutual Information without a normalization
+
     n_samples : int
         The number of random Clusterings sampled to determine the expected
         similarity.
@@ -801,6 +811,9 @@ def sample_expected_sim(clustering1, clustering2, measure='jaccard_index',
     :param int n_samples:
         The number of random Clusterings sampled to determine the expected
         similarity.
+
+    :param bool keep_samples:
+        If True, returns the Similarity samples themselves, otherwise return their mean.
 
     :returns:
         The expected Similarity measure for all pair-wise comparisons under a
@@ -963,6 +976,9 @@ def expected_mi(n_elements, n_clusters1=2, n_clusters2=2, clu_size_seq1=None,
         'perm1' : one-sided selection from the permutation model for a fixed
                   cluster size sequence, same as 'perm'
 
+    :param float logbase: (default) 2
+        The base of all logarithms (recommended to use 2 for bits).
+
     :returns:
         The expected MI (between 0.0 and inf)
 
@@ -1079,7 +1095,7 @@ def expected_mi(n_elements, n_clusters1=2, n_clusters2=2, clu_size_seq1=None,
     return expected_H1_sum + expected_H2_sum - expected_H12_sum
 
 
-def adj_mi(clustering1, clustering2, random_model='perm', norm_type = 'sum', logbase=2):
+def adj_mi(clustering1, clustering2, random_model='perm', norm_type='sum', logbase=2):
     """
     This function calculates the adjusted Mutual Information for one of six random
     models.
@@ -1468,7 +1484,7 @@ def onmi(clustering1, clustering2):
 
 
 def make_overlapping_membership_matrix(clustering):
-
+    """Construct matrix of mapping nodes to clusterings."""
     A = spsparse.csr_matrix((clustering.n_elements, clustering.n_elements),
                             dtype='int')
     for clu in clustering.clusters:
