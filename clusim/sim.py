@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 .. module:: sim
-    :synopsis: Calculate similarity between clusterings using pair-wise and informaiton
+    :synopsis: Calculate similarity between clusterings using pair-wise and information
         theoretic measures.
 
 .. moduleauthor:: Alex Gates <ajgates42@gmail.com>
@@ -22,17 +22,21 @@ from clusim.clusimelement import *
 
 available_similarity_measures = ['jaccard_index',
                                  'rand_index',
+                                 'adjrand_index'
                                  'fowlkes_mallows_index',
-                                 'rogers_tanimoto_index',
-                                 'southwood_index',
+                                 'fmeasure',
+                                 'purity_index',
+                                 'classification_error',
                                  'czekanowski_index',
                                  'dice_index',
                                  'sorensen_index',
+                                 'rogers_tanimoto_index',
+                                 'southwood_index',
                                  'pearson_correlation',
-                                 'classification_error',
-                                 'purity_index',
-                                 'fmeasure',
+                                 'corrected_chance',
+                                 'sample_expected_sim',
                                  'nmi',
+                                 'adj_mi',
                                  'rmi',
                                  'vi',
                                  'geometric_accuracy',
@@ -45,7 +49,7 @@ available_random_models = ['perm', 'perm1', 'num', 'num1', 'all', 'all1']
 
 def contingency_table(clustering1, clustering2):
     """
-    This function creates the contigency table between two clusterings.
+    This function creates the contingency table between two clusterings.
 
     :param Clustering clustering1:
         The first clustering.
@@ -54,7 +58,7 @@ def contingency_table(clustering1, clustering2):
         The second clustering.
 
     :returns:
-        The clustering1.n_clusters by clustering2.n_clusters contigency table as a list of lists
+        The clustering1.n_clusters by clustering2.n_clusters contingency table as a list of lists
 
     >>> import clusim.clugen as clugen
     >>> clustering1 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
@@ -138,6 +142,7 @@ def count_pairwise_cooccurence(clustering1, clustering2):
 
 
 def entropy(prob_vector, logbase=2.):
+    """Entropy of a probability vector that sums too one."""
     prob_vector = np.array(prob_vector)
     pos_prob_vector = prob_vector[prob_vector > 0]
     return - np.sum(pos_prob_vector * np.log(pos_prob_vector)/np.log(logbase))
@@ -147,6 +152,7 @@ binary_entropy = np.vectorize(lambda p1, p2, logbase=2: entropy([p1, p2], logbas
 
 
 def hyper(n, a, b, N):
+    """Probability mass function of the hypergeometric distribution."""
     return mpmath.binomial(b, n) *\
         mpmath.binomial(N-b, a-n) / mpmath.binomial(N, a)
 
@@ -228,7 +234,7 @@ def expected_rand_index(n_elements, random_model='num', n_clusters1=2,
     This function calculates the expectation of the Rand index between all
     pairs of clusterings drawn from one of six random models.
 
-    See :cite:`Hubert1985adjrand` and :cite:`Gates2017impact` for a detailed derivation and explaination of the different
+    See :cite:`Hubert1985adjrand` and :cite:`Gates2017impact` for a detailed derivation and explanation of the different
     random models.
 
     .. note:: Clustering 2 is considered the gold-standard clustering for one-sided expectations
@@ -236,38 +242,38 @@ def expected_rand_index(n_elements, random_model='num', n_clusters1=2,
     :param int n_elements:
         The number of elements
 
+    :param str random_model:
+        The random model to use:
+
+        'all' : uniform distribution over the set of all clusterings of
+                n_elements
+
+        'all1' : one-sided selection from the uniform distribution over the set
+                 of all clusterings of n_elements
+
+        'num' : uniform distribution over the set of all clusterings of
+                n_elements in n_clusters
+
+        'num1' : one-sided selection from the uniform distribution over the set
+                 of all clusterings of n_elements in n_clusters
+
+        'perm' : the permutation model for a fixed cluster size sequence
+
+        'perm1' : one-sided selection from the permutation model for a fixed
+                  cluster size sequence, same as 'perm'
+
     :param int n_clusters1: optional
         The number of clusters in the first clustering
 
     :param int n_clusters2: optional
         The number of clusters in the second clustering, considered the
-        gold-standard clustering for the one-sided expecations
+        gold-standard clustering for the one-sided expectations
 
     :param list clu_size_seq1: optional
-        The cluster size seqence of the first clustering as a list of ints
+        The cluster size sequence of the first clustering as a list of ints
 
     :param list clu_size_seq2: optional
-        The cluster size seqence of the second clustering as a list of ints
-
-    :param str random_model:
-        The random model to use:
-
-        'all' : uniform distrubtion over the set of all clusterings of
-                n_elements
-
-        'all1' : one-sided selction from the uniform distrubtion over the set
-                 of all clusterings of n_elements
-
-        'num' : uniform distrubtion over the set of all clusterings of
-                n_elements in n_clusters
-
-        'num1' : one-sided selction from the uniform distrubtion over the set
-                 of all clusterings of n_elements in n_clusters
-
-        'perm' : the permutation model for a fixed cluster size sequence
-
-        'perm1' : one-sided selction from the permutation model for a fixed
-                  cluster size sequence, same as 'perm'
+        The cluster size sequence of the second clustering as a list of ints
 
     :returns:
         The expected Rand index (between 0.0 and 1.0)
@@ -330,7 +336,7 @@ def adjrand_index(clustering1, clustering2, random_model='perm'):
     This function calculates the adjusted Rand index for one of six random
     models.
 
-    See :cite:`Hubert1985adjrand` and :cite:`Gates2017impact` for a detailed derivation and explaination of the different
+    See :cite:`Hubert1985adjrand` and :cite:`Gates2017impact` for a detailed derivation and explanation of the different
     random models.
 
     .. note:: Clustering 2 is considered the gold-standard clustering for one-sided expectations
@@ -344,21 +350,21 @@ def adjrand_index(clustering1, clustering2, random_model='perm'):
     :param str random_model:
         The random model to use:
 
-        'all' : uniform distrubtion over the set of all clusterings of
+        'all' : uniform distribution over the set of all clusterings of
                 n_elements
 
-        'all1' : one-sided selction from the uniform distrubtion over the set
+        'all1' : one-sided selection from the uniform distribution over the set
                  of all clusterings of n_elements
 
-        'num' : uniform distrubtion over the set of all clusterings of
+        'num' : uniform distribution over the set of all clusterings of
                 n_elements in n_clusters
 
-        'num1' : one-sided selction from the uniform distrubtion over the set
+        'num1' : one-sided selection from the uniform distribution over the set
                  of all clusterings of n_elements in n_clusters
 
         'perm' : the permutation model for a fixed cluster size sequence
 
-        'perm1' : one-sided selction from the permutation model for a fixed
+        'perm1' : one-sided selection from the permutation model for a fixed
                   cluster size sequence, same as 'perm'
 
     :returns:
@@ -674,28 +680,36 @@ def corrected_chance(clustering1, clustering2, measure='jaccard_index',
         The second clustering.
 
     :param str measure:
-        The similarity measure to evalute. Must be one of the
+        The similarity measure to evaluate. Must be one of the
         available_similarity_measures.
 
     :param str random_model:
         The random model to use:
 
-        'all' : uniform distrubtion over the set of all clusterings of
+        'all' : uniform distribution over the set of all clusterings of
                 n_elements
 
-        'all1' : one-sided selction from the uniform distrubtion over the set
+        'all1' : one-sided selection from the uniform distribution over the set
                  of all clusterings of n_elements
 
-        'num' : uniform distrubtion over the set of all clusterings of
+        'num' : uniform distribution over the set of all clusterings of
                 n_elements in n_clusters
 
-        'num1' : one-sided selction from the uniform distrubtion over the set
+        'num1' : one-sided selection from the uniform distribution over the set
                  of all clusterings of n_elements in n_clusters
 
         'perm' : the permutation model for a fixed cluster size sequence
 
-        'perm1' : one-sided selction from the permutation model for a fixed
+        'perm1' : one-sided selection from the permutation model for a fixed
                   cluster size sequence, same as 'perm'
+
+    :param str norm_type: 'sum' (default), 'max', 'min', 'sqrt', 'none'
+        The normalization type used if the measure is 'nmi'
+        'sum' uses the average of the two clustering entropies,
+        'max' uses the maximum of the two clustering entropies,
+        'min' uses the minimum of the two clustering entropies,
+        'sqrt' uses the geometric mean of the two clustering entropies,
+        'none' returns the Mutual Information without a normalization
 
     n_samples : int
         The number of random Clusterings sampled to determine the expected
@@ -771,32 +785,35 @@ def sample_expected_sim(clustering1, clustering2, measure='jaccard_index',
         The second clustering.
 
     :param str measure:
-        The similarity measure to evalute. Must be one of the measures listed in
+        The similarity measure to evaluate. Must be one of the measures listed in
         sim.available_similarity_measures.
 
     :param string random_model:
         The random model to use:
 
-        'all' : uniform distrubtion over the set of all clusterings of
+        'all' : uniform distribution over the set of all clusterings of
                 n_elements
 
-        'all1' : one-sided selction from the uniform distrubtion over the set
+        'all1' : one-sided selection from the uniform distribution over the set
                  of all clusterings of n_elements
 
-        'num' : uniform distrubtion over the set of all clusterings of
+        'num' : uniform distribution over the set of all clusterings of
                 n_elements in n_clusters
 
-        'num1' : one-sided selction from the uniform distrubtion over the set
+        'num1' : one-sided selection from the uniform distribution over the set
                  of all clusterings of n_elements in n_clusters
 
         'perm' : the permutation model for a fixed cluster size sequence
 
-        'perm1' : one-sided selction from the permutation model for a fixed
+        'perm1' : one-sided selection from the permutation model for a fixed
                   cluster size sequence, same as 'perm'
 
     :param int n_samples:
         The number of random Clusterings sampled to determine the expected
         similarity.
+
+    :param bool keep_samples:
+        If True, returns the Similarity samples themselves, otherwise return their mean.
 
     :returns:
         The expected Similarity measure for all pair-wise comparisons under a
@@ -855,9 +872,9 @@ def nmi(clustering1, clustering2, norm_type='sum'):
 
     NMI = (S(c1) + S(c2) - S(c1, c2)) / norm(c1, c2)
 
-    where S(c1) is the Shannon Entropy of the clustering size distrubtion,
-    S(c1, c2) is the Shannon Entropy of the join clustering size distrubtion,
-    and norm(c1,c2) is a normalizetion term.
+    where S(c1) is the Shannon Entropy of the clustering size distribution,
+    S(c1, c2) is the Shannon Entropy of the join clustering size distribution,
+    and norm(c1,c2) is a normalization term.
 
     :param Clustering clustering1:
         The first clustering.
@@ -911,175 +928,14 @@ def nmi(clustering1, clustering2, norm_type='sum'):
     return (e1 + e2 - e12) / normterm
 
 
-def rmi(clustering1, clustering2, norm_type='none', logbase=2):
-    """
-    This function calculates the Reduced Mutual Information (RMI)
-    between two clusterings :cite:`Newman2019improved`.
-
-    RMI = MI(c1, c2) - log Omega(a, b) / n
-
-    where MI(c1, c2) is mutual information of the clusterings c1 and c2, and
-    where Omega(a, b) is the number of contigency tables with row and column
-    sums equal to a and b.
-
-    :param Clustering clustering1:
-        The first clustering.
-
-    :param Clustering clustering2:
-        The second clustering.
-
-    :param str norm_type: 'none' (default)
-        The normalization types are:
-        'none' returns the RMI without a normalization.
-        'normalized' returns the RMI with upper bound equals to 1.
-
-    :param float logbase: (default) 2
-        The base of all logarithms (recommended to use 2 for bits).
-
-    :returns:
-        The Reduced Mutual Information index (between 0.0 and inf)
-
-    >>> import clusim.clugen as clugen
-    >>> import clusim.sim as sim
-    >>> clustering1 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
-                                                    random_model='num')
-    >>> clustering2 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
-                                                    random_model='num')
-    >>> print(sim.rmi(clustering1, clustering2, norm_type='none'))
-    >>> print(sim.rmi(clustering1, clustering2, norm_type='normalized'))
-    """
-    def get_log_omega(a, b, logbase):
-        """Logarithm of the number of contigency table with fixed margins.
-
-        Implements an approximation by  to Diaconis and Efron :cite:
-        `diaconis1985testing`.
-
-        :param array a:
-            Row margin of the contigency table.
-
-        :param array b:
-            Column margin of the contigency table.
-
-        :param float logbase: (default) 2
-            The base of all logarithms (recommended to use 2 for bits).
-
-        :returns:
-            The logarithm of the number of contigency tables.
-        """
-        R = len(a)
-        S = len(b)
-        n = sum(a)
-        w = n / (n + 0.5 * R * S)
-        x = (1 - w) / R + w * a / n
-        y = (1 - w) / S + w * b / n
-        nu = (S + 1) / (S * sum(x * x)) - 1 / S
-        mu = (R + 1) / (R * sum(y * y)) - 1 / R
-
-        logOmega = (R - 1) * (S - 1) * np.log(n + 0.5 * R * S) \
-            + 0.5 * (R + nu - 2) * sum(np.log(y)) \
-            + 0.5 * (S + mu - 2) * sum(np.log(x)) \
-            + 0.5 * (sps.gammaln(mu * R) + sps.gammaln(nu * S) -
-                     R * (sps.gammaln(S) + sps.gammaln(mu)) -
-                     S * (sps.gammaln(R) + sps.gammaln(nu)))
-        return logOmega / np.log(logbase)
-
-    # Compute contigency table and margins
-    cont_tbl = contingency_table(clustering1, clustering2)
-    logOmega = get_log_omega(np.array(clustering1.clu_size_seq),
-                             np.array(clustering2.clu_size_seq),
-                             logbase)
-    # Compute exact MI:
-    I = sps.gammaln(clustering1.n_elements + 1)
-    for r in range(clustering1.n_clusters):
-        for s in range(clustering2.n_clusters):
-            I += sps.gammaln(cont_tbl[r][s] + 1)
-    for r in range(clustering1.n_clusters):
-        I -= sps.gammaln(clustering1.clu_size_seq[r] + 1)
-    for s in range(clustering2.n_clusters):
-        I -= sps.gammaln(clustering2.clu_size_seq[s] + 1)
-
-    RMI = I / np.log(logbase) - logOmega
-
-    if norm_type == 'none':
-        normterm = float(clustering1.n_elements)
-    elif norm_type == 'normalized':
-        normterm = 2 * sps.gammaln(clustering1.n_elements + 1) / np.log(logbase)
-        for r in range(clustering1.n_clusters):
-            normterm -= sps.gammaln(clustering1.clu_size_seq[r] + 1) / np.log(logbase)
-        for s in range(clustering2.n_clusters):
-            normterm -= sps.gammaln(clustering2.clu_size_seq[s] + 1) / np.log(logbase)
-        log_omega_aa = get_log_omega(np.array(clustering1.clu_size_seq),
-                                     np.array(clustering1.clu_size_seq),
-                                     logbase)
-        log_omega_bb = get_log_omega(np.array(clustering2.clu_size_seq),
-                                     np.array(clustering2.clu_size_seq),
-                                     logbase)
-        normterm -= (log_omega_aa + log_omega_bb)
-        normterm /= 2
-    return RMI / normterm
-
-
-def vi(clustering1, clustering2, norm_type='none'):
-    """
-    This function calculates the Variation of Information (VI)
-    between two clusterings :cite:`Meila2003comparingvi`.
-
-    VI is technically a distance measure and can assume values in the range
-    [0, inf), where 0 denotes identical clusterings.
-
-    VI = 2*S(c1, c2) - S(c1) - S(c2)
-
-    where S(c1) is the Shannon Entropy of the clustering size distrubtion, and
-    S(c1, c2) is the Shannon Entropy of the join clustering size distrubtion.
-
-    The VI can be transformed into a clustering similarity measure via the appropraite normalization.
-
-    VI_{sim} = 1 - 0.5*((S(c1,c2) - S(c1))/S(c2) + (S(c1,c2) - S(c2))/S(c1))
-
-    :param Clustering clustering1:
-        The first clustering.
-
-    :param Clustering clustering2:
-        The second clustering.
-
-    norm_type : 'none' (default) or 'entropy'
-        The normalization type.  'none' returns the stanard VI as a distance metric,
-        'entropy' retuns the normalized VI as a similarity measure
-
-    :returns:
-        The Variation of Information index (between 0.0 and inf)
-
-    >>> import clusim.clugen as clugen
-    >>> import clusim.sim as sim
-    >>> clustering1 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
-                                                    random_model='num')
-    >>> clustering2 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
-                                                    random_model='num')
-    >>> print(sim.vi(clustering1, clustering2))
-    """
-    cont_tbl = contingency_table(clustering1, clustering2)
-
-    e1 = entropy(np.array(clustering1.clu_size_seq, dtype=float) /
-                 clustering1.n_elements)
-    e2 = entropy(np.array(clustering2.clu_size_seq, dtype=float) /
-                 clustering2.n_elements)
-
-    e12 = entropy(np.array(cont_tbl, dtype=float)/clustering1.n_elements)
-
-    if norm_type == 'entropy':
-        return 1.0 - 0.5 * ((e12 - e1)/e2 + (e12 - e2)/e1)
-    else:
-        return 2 * e12 - e1 - e2
-
-
 def expected_mi(n_elements, n_clusters1=2, n_clusters2=2, clu_size_seq1=None,
                 clu_size_seq2=None, logbase=2, random_model='num'):
 
     """
-    This function calculates the expectation of the Mutual Informaiton between all
+    This function calculates the expectation of the Mutual Information between all
     pairs of clusterings drawn from one of six random models.
 
-    See :cite:`Gates2017impact` for a detailed derivation and explaination of the different
+    See :cite:`Gates2017impact` for a detailed derivation and explanation of the different
     random models.
 
     .. note:: Clustering 2 is considered the gold-standard clustering for one-sided expectations
@@ -1092,33 +948,36 @@ def expected_mi(n_elements, n_clusters1=2, n_clusters2=2, clu_size_seq1=None,
 
     :param int n_clusters2: optional
         The number of clusters in the second clustering, considered the
-        gold-standard clustering for the one-sided expecations
+        gold-standard clustering for the one-sided expectations
 
     :param list clu_size_seq1: optional
-        The cluster size seqence of the first clustering as a list of ints.
+        The cluster size sequence of the first clustering as a list of ints.
 
     :param list clu_size_seq2: optional
-        The cluster size seqence of the second clustering as a list of ints.
+        The cluster size sequence of the second clustering as a list of ints.
 
     :param str random_model:
         The random model to use:
 
-        'all' : uniform distrubtion over the set of all clusterings of
+        'all' : uniform distribution over the set of all clusterings of
                 n_elements
 
-        'all1' : one-sided selction from the uniform distrubtion over the set
+        'all1' : one-sided selection from the uniform distribution over the set
                  of all clusterings of n_elements
 
-        'num' : uniform distrubtion over the set of all clusterings of
+        'num' : uniform distribution over the set of all clusterings of
                 n_elements in n_clusters
 
-        'num1' : one-sided selction from the uniform distrubtion over the set
+        'num1' : one-sided selection from the uniform distribution over the set
                  of all clusterings of n_elements in n_clusters
 
         'perm' : the permutation model for a fixed cluster size sequence
 
-        'perm1' : one-sided selction from the permutation model for a fixed
+        'perm1' : one-sided selection from the permutation model for a fixed
                   cluster size sequence, same as 'perm'
+
+    :param float logbase: (default) 2
+        The base of all logarithms (recommended to use 2 for bits).
 
     :returns:
         The expected MI (between 0.0 and inf)
@@ -1236,12 +1095,12 @@ def expected_mi(n_elements, n_clusters1=2, n_clusters2=2, clu_size_seq1=None,
     return expected_H1_sum + expected_H2_sum - expected_H12_sum
 
 
-def adj_mi(clustering1, clustering2, random_model='perm', norm_type = 'sum', logbase=2):
+def adj_mi(clustering1, clustering2, random_model='perm', norm_type='sum', logbase=2):
     """
     This function calculates the adjusted Mutual Information for one of six random
     models.
 
-    See :cite:`Gates2017impact` for a detailed derivation and explaination of the different
+    See :cite:`Gates2017impact` for a detailed derivation and explanation of the different
     random models.
 
     .. note:: Clustering 2 is considered the gold-standard clustering for one-sided expectations
@@ -1255,20 +1114,20 @@ def adj_mi(clustering1, clustering2, random_model='perm', norm_type = 'sum', log
     :param string random_model:
         The random model to use:
 
-        'all' : uniform distrubtion over the set of all clusterings of n_elements
+        'all' : uniform distribution over the set of all clusterings of n_elements
 
-        'all1' : one-sided selction from the uniform distrubtion over the set
+        'all1' : one-sided selection from the uniform distribution over the set
             of all clusterings of n_elements
 
-        'num' : uniform distrubtion over the set of all clusterings of
+        'num' : uniform distribution over the set of all clusterings of
             n_elements in n_clusters
 
-        'num1' : one-sided selction from the uniform distrubtion over the set
+        'num1' : one-sided selection from the uniform distribution over the set
             of all clusterings of n_elements in n_clusters
 
         'perm' : the permutation model for a fixed cluster size sequence
 
-        'perm1' : one-sided selction from the permutation model for a fixed
+        'perm1' : one-sided selection from the permutation model for a fixed
             cluster size sequence, same as 'perm'
 
     :param str norm_type: 'sum' (default), 'max', 'min', 'sqrt', 'none'
@@ -1339,6 +1198,168 @@ def adj_mi(clustering1, clustering2, random_model='perm', norm_type = 'sum', log
         normterm
 
 
+def rmi(clustering1, clustering2, norm_type='none', logbase=2):
+    """
+    This function calculates the Reduced Mutual Information (RMI)
+    between two clusterings :cite:`Newman2019improved`.
+
+    RMI = MI(c1, c2) - log Omega(a, b) / n
+
+    where MI(c1, c2) is mutual information of the clusterings c1 and c2, and
+    where Omega(a, b) is the number of contingency tables with row and column
+    sums equal to a and b.
+
+    :param Clustering clustering1:
+        The first clustering.
+
+    :param Clustering clustering2:
+        The second clustering.
+
+    :param str norm_type: 'none' (default)
+        The normalization types are:
+        'none' returns the RMI without a normalization.
+        'normalized' returns the RMI with upper bound equals to 1.
+
+    :param float logbase: (default) 2
+        The base of all logarithms (recommended to use 2 for bits).
+
+    :returns:
+        The Reduced Mutual Information index (between 0.0 and inf)
+
+    >>> import clusim.clugen as clugen
+    >>> import clusim.sim as sim
+    >>> clustering1 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
+                                                    random_model='num')
+    >>> clustering2 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
+                                                    random_model='num')
+    >>> print(sim.rmi(clustering1, clustering2, norm_type='none'))
+    >>> print(sim.rmi(clustering1, clustering2, norm_type='normalized'))
+    """
+    def get_log_omega(a, b, logbase):
+        """Logarithm of the number of contingency table with fixed margins.
+
+        Implements an approximation by  to Diaconis and Efron :cite:
+        `diaconis1985testing`.
+
+        :param array a:
+            Row margin of the contingency table.
+
+        :param array b:
+            Column margin of the contingency table.
+
+        :param float logbase: (default) 2
+            The base of all logarithms (recommended to use 2 for bits).
+
+        :returns:
+            The logarithm of the number of contingency tables.
+        """
+        R = len(a)
+        S = len(b)
+        n = sum(a)
+        w = n / (n + 0.5 * R * S)
+        x = (1 - w) / R + w * a / n
+        y = (1 - w) / S + w * b / n
+        nu = (S + 1) / (S * sum(x * x)) - 1 / S
+        mu = (R + 1) / (R * sum(y * y)) - 1 / R
+
+        logOmega = (R - 1) * (S - 1) * np.log(n + 0.5 * R * S) \
+            + 0.5 * (R + nu - 2) * sum(np.log(y)) \
+            + 0.5 * (S + mu - 2) * sum(np.log(x)) \
+            + 0.5 * (sps.gammaln(mu * R) + sps.gammaln(nu * S) -
+                     R * (sps.gammaln(S) + sps.gammaln(mu)) -
+                     S * (sps.gammaln(R) + sps.gammaln(nu)))
+        return logOmega / np.log(logbase)
+
+    # Compute contingency table and margins
+    cont_tbl = contingency_table(clustering1, clustering2)
+    logOmega = get_log_omega(np.array(clustering1.clu_size_seq),
+                             np.array(clustering2.clu_size_seq),
+                             logbase)
+    # Compute exact MI:
+    I = sps.gammaln(clustering1.n_elements + 1)
+    for r in range(clustering1.n_clusters):
+        for s in range(clustering2.n_clusters):
+            I += sps.gammaln(cont_tbl[r][s] + 1)
+    for r in range(clustering1.n_clusters):
+        I -= sps.gammaln(clustering1.clu_size_seq[r] + 1)
+    for s in range(clustering2.n_clusters):
+        I -= sps.gammaln(clustering2.clu_size_seq[s] + 1)
+
+    RMI = I / np.log(logbase) - logOmega
+
+    if norm_type == 'none':
+        normterm = float(clustering1.n_elements)
+    elif norm_type == 'normalized':
+        normterm = 2 * sps.gammaln(clustering1.n_elements + 1) / np.log(logbase)
+        for r in range(clustering1.n_clusters):
+            normterm -= sps.gammaln(clustering1.clu_size_seq[r] + 1) / np.log(logbase)
+        for s in range(clustering2.n_clusters):
+            normterm -= sps.gammaln(clustering2.clu_size_seq[s] + 1) / np.log(logbase)
+        log_omega_aa = get_log_omega(np.array(clustering1.clu_size_seq),
+                                     np.array(clustering1.clu_size_seq),
+                                     logbase)
+        log_omega_bb = get_log_omega(np.array(clustering2.clu_size_seq),
+                                     np.array(clustering2.clu_size_seq),
+                                     logbase)
+        normterm -= (log_omega_aa + log_omega_bb)
+        normterm /= 2
+    return RMI / normterm
+
+
+def vi(clustering1, clustering2, norm_type='none'):
+    """
+    This function calculates the Variation of Information (VI)
+    between two clusterings :cite:`Meila2003comparingvi`.
+
+    VI is technically a distance measure and can assume values in the range
+    [0, inf), where 0 denotes identical clusterings.
+
+    VI = 2*S(c1, c2) - S(c1) - S(c2)
+
+    where S(c1) is the Shannon Entropy of the clustering size distribution, and
+    S(c1, c2) is the Shannon Entropy of the join clustering size distribution.
+
+    The VI can be transformed into a clustering similarity measure via the appropriate normalization.
+
+    VI_{sim} = 1 - 0.5*((S(c1,c2) - S(c1))/S(c2) + (S(c1,c2) - S(c2))/S(c1))
+
+    :param Clustering clustering1:
+        The first clustering.
+
+    :param Clustering clustering2:
+        The second clustering.
+
+    norm_type : 'none' (default) or 'entropy'
+        The normalization type.  'none' returns the standard VI as a distance metric,
+        'entropy' retuns the normalized VI as a similarity measure
+
+    :returns:
+        The Variation of Information index (between 0.0 and inf)
+
+    >>> import clusim.clugen as clugen
+    >>> import clusim.sim as sim
+    >>> clustering1 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
+                                                    random_model='num')
+    >>> clustering2 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
+                                                    random_model='num')
+    >>> print(sim.vi(clustering1, clustering2))
+    """
+    cont_tbl = contingency_table(clustering1, clustering2)
+
+    e1 = entropy(np.array(clustering1.clu_size_seq, dtype=float) /
+                 clustering1.n_elements)
+    e2 = entropy(np.array(clustering2.clu_size_seq, dtype=float) /
+                 clustering2.n_elements)
+
+    e12 = entropy(np.array(cont_tbl, dtype=float)/clustering1.n_elements)
+
+    if norm_type == 'entropy':
+        return 1.0 - 0.5 * ((e12 - e1)/e2 + (e12 - e2)/e1)
+    else:
+        return 2 * e12 - e1 - e2
+
+
+
 """
 These are for overlapping clusterings
 """
@@ -1348,7 +1369,7 @@ def geometric_accuracy(clustering1, clustering2):
     '''
     This function calculates the geometric accuracy between two (overlapping) clusterings.
 
-    See :cite:`Nepusz2012overlapprotein` for a detailed derivation and explaination of the measure.
+    See :cite:`Nepusz2012overlapprotein` for a detailed derivation and explanation of the measure.
 
     :param Clustering clustering1:
         The first clustering.
@@ -1375,7 +1396,7 @@ def overlap_quality(clustering1, clustering2):
     '''
     This function calculates the overlap quality between two (overlapping) clusterings.
 
-    See :cite:`Ahn2010link` for a detailed derivation and explaination of the measure.
+    See :cite:`Ahn2010link` for a detailed derivation and explanation of the measure.
 
     :param Clustering clustering1:
         The first clustering.
@@ -1404,9 +1425,9 @@ def overlap_quality(clustering1, clustering2):
 
 def onmi(clustering1, clustering2):
     '''
-    This function calculates the overlaping normalized mututal information.
+    This function calculates the overlapping normalized mutual information.
 
-    See :cite:`Lancichinetti2009onmi` for a detailed derivation and explaination of the measure.
+    See :cite:`Lancichinetti2009onmi` for a detailed derivation and explanation of the measure.
 
     :param Clustering clustering1:
         The first clustering.
@@ -1414,7 +1435,7 @@ def onmi(clustering1, clustering2):
     :param Clustering clustering2:
         The second clustering.
 
-    :returns: the overlaping normalized mutual information
+    :returns: the overlapping normalized mutual information
     '''
 
     cont_tbl = contingency_table(clustering1, clustering2)
@@ -1463,7 +1484,7 @@ def onmi(clustering1, clustering2):
 
 
 def make_overlapping_membership_matrix(clustering):
-
+    """Construct matrix of mapping nodes to clusterings."""
     A = spsparse.csr_matrix((clustering.n_elements, clustering.n_elements),
                             dtype='int')
     for clu in clustering.clusters:
@@ -1478,7 +1499,7 @@ def omega_index(clustering1, clustering2):
     '''
     This function calculates the omega index between two clusterings.
 
-    See :cite:`Collins1988omega` for a detailed derivation and explaination of the measure.
+    See :cite:`Collins1988omega` for a detailed derivation and explanation of the measure.
 
     :param Clustering clustering1:
         The first clustering.
