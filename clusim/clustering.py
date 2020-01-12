@@ -6,12 +6,13 @@
 .. moduleauthor:: Alex Gates <ajgates42@gmail.com>
  """
 import copy
+import json
 from collections import defaultdict
 
 import numpy as np
 import networkx as nx
 
-from clusim.dag import Dendrogram
+from clusim.dag import DAG, Dendrogram
 
 
 class Clustering(object):
@@ -45,7 +46,7 @@ class Clustering(object):
 
         if hier_graph is not None:
             self.is_hierarchical = True
-            self.hier_graph = hier_graph
+            self.hier_graph = DAG(hier_graph)
             self.hier_clusdict()
 
     def empty_start(self):
@@ -155,8 +156,8 @@ class Clustering(object):
         """
         This method creates a clustering from a cluster list:
         [ [el1, el2, ...], [el5, ...], ... ],  a list of lists
-        or a list of sets, where each inner list corresponds to 
-        the elements in a cluster.  Clustering features are then 
+        or a list of sets, where each inner list corresponds to
+        the elements in a cluster.  Clustering features are then
         calculated.
 
         :param list cluster_list: list of lists
@@ -358,6 +359,85 @@ class Clustering(object):
         self.from_clu2elm_dict(self.clu2elm_dict)
         return self
 
+    def to_dict(self):
+        """
+        This method turns a Custering object into a dictionary.
+        Intended for use with json to save the Clusering.
+
+        :returns: dictionary
+        """
+
+        clustering_dict = copy.deepcopy(self.__dict__)
+
+        if self.is_hierarchical:
+            clustering_dict['hier_graph'] = nx.readwrite.json_graph.node_link_data(self.hier_graph)
+        return clustering_dict
+
+    def from_dict(self, clustering_dict):
+        """
+        This method creates a Custering object from a dictionary.
+        Intended for use with json to load the Clusering.
+
+        :param: dict clustering_dict
+            The dictionary represetnation of the Clustering
+        """
+        elm2clu_dict = clustering_dict.get('elm2clu_dict', {})
+
+        # json automatically turns the keys of a dictionary into strings
+        # check if the elements were originally named with ints
+        if len(clustering_dict.get('elements', [])) and isinstance(clustering_dict['elements'][0], int):
+            elm2clu_dict = {int(e):cl for e,cl in elm2clu_dict.items()}
+
+        # check if the clusters were originally named with ints
+        if len(clustering_dict.get('clusters', [])) and isinstance(clustering_dict['clusters'][0], int):
+            elm2clu_dict = {e:{int(c) for c in cl} for e, cl in elm2clu_dict.items()}
+
+        # create the Clustering object
+        self.from_elm2clu_dict(elm2clu_dict)
+
+        # check if the Clustering is hierarchical
+        if clustering_dict.get('is_hierarchical', False):
+            self.is_hierarchical = True
+            self.hier_graph = DAG(nx.readwrite.json_graph.node_link_graph(clustering_dict['hier_graph'], directed = True, multigraph = False))
+            self.hier_clusdict()
+        return self
+
+    def save(self, file):
+        """
+        Save the Custering to a file using json.
+
+        :param: str file
+            The name of the file to dump the Clustering json
+
+        :param: io file
+            The python file to dump the Clustering json
+
+        """
+        if isinstance(file, str):
+            with open(file, 'w') as outfile:
+                json.dump(self.to_dict(), outfile, cls=SetEncoder)
+                outfile.write('\n')
+        else:
+            json.dump(self.to_dict(), file, cls=SetEncoder)
+            file.write('\n')
+
+    def load(self, file):
+        """
+        Load the Custering from a file using json.
+
+        :param: str file
+            The name of the file to load the Clustering json
+
+        :param: io file
+            The python file to load the Clustering json
+        """
+        if isinstance(file, str):
+            with open(file, 'r') as infile:
+                return self.from_dict(json.load(infile))
+        else:
+            return self.from_dict(json.load(file))
+
+
     ##############################################
     # extra support for hierarchical clusterings
     ##############################################
@@ -526,6 +606,13 @@ class ClusterError(ValueError):
         self.expression = expression
         self.message = message
 
+
+# json cant normally handle sets
+class SetEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, set):
+            return list(obj)
+        return json.JSONEncoder.default(self, obj)
 
 def print_clustering(clustering):
     """
