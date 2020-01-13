@@ -592,7 +592,7 @@ class Clustering(object):
 
     def hier_clusdict(self):
         if self.hierclusdict is None:
-            self.hierclusdict = {}
+            self.hierclusdict = copy.deepcopy(self.clu2elm_dict)
             for cluster in self.hier_graph.nodes():
                 self.hierclusdict[cluster] = self.downstream_elements(cluster)
             self.clusters = list(self.hierclusdict.keys())
