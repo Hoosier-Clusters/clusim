@@ -127,7 +127,7 @@ def element_sim_elscore(clustering1, clustering2, alpha=0.9, r=1., r2=None,
 
 
 def relabel_objects(object_list):
-    if np.all([type(i)==int for i in object_list]):
+    if np.all([isinstance(i, int) for i in object_list]):
         relabeled_elements = {obj: iobj for iobj, obj in enumerate(sorted(object_list))}
     else:
         relabeled_elements = {obj: iobj for iobj, obj in enumerate(sorted(object_list,
@@ -290,7 +290,7 @@ def make_cielg(clustering, r=1.0, rescale_path_type='max',
         cluster_height = clustering.hier_graph.rescale(
                              rescale_path_type=rescale_path_type)
 
-        def weight_function(c): return np.exp(r * (cluster_height[c]))
+        def weight_function(c): return np.exp(r * (cluster_height.get(c, 0.0)))
         clu2elm_dict = clustering.hier_clusdict()
     else:
         def weight_function(c): return 1.0
@@ -313,7 +313,13 @@ def make_cielg(clustering, r=1.0, rescale_path_type='max',
                                         shape=(clustering.n_elements,
                                                clustering.n_clusters))
     proj1 = bipartite_adj / bipartite_adj.sum(axis=1)
+    #print('axis 1', bipartite_adj.shape[1])
+    #print(np.where(bipartite_adj.sum(axis=1) == 0))
+    #print(bipartite_adj.sum(axis=1))
     proj2 = bipartite_adj / bipartite_adj.sum(axis=0)
+    #print(bipartite_adj.sum(axis=0).shape)
+    #print(np.where(bipartite_adj.sum(axis=0) == 0))
+    #print(bipartite_adj.sum(axis=0))
     projected_adj = proj1.dot(proj2.T)
     cielg = igraph.Graph.Weighted_Adjacency(projected_adj.tolist(),
                                              mode=igraph.ADJ_DIRECTED,
