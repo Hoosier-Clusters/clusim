@@ -109,11 +109,11 @@ class Clustering(object):
         """
 
         self.elm2clu_dict = {e:set(cl) for e, cl in elm2clu_dict.items()}
-        self.elements = list(self.elm2clu_dict.keys())
+        self.elements = sorted(list(self.elm2clu_dict.keys()))
         self.n_elements = len(self.elements)
 
         self.clu2elm_dict = self.to_clu2elm_dict()
-        self.clusters = list(self.clu2elm_dict.keys())
+        self.clusters = sorted(list(self.clu2elm_dict.keys()))
         self.n_clusters = len(self.clusters)
 
         self.clu_size_seq = self.find_clu_size_seq()
@@ -433,9 +433,13 @@ class Clustering(object):
         """
         if isinstance(file, str):
             with open(file, 'r') as infile:
-                return self.from_dict(json.load(infile))
+                cludict = json.load(infile)
         else:
-            return self.from_dict(json.load(file))
+            cludict = json.load(file)
+
+        if cludict['is_hierarchical']:
+            cludict['hier_graph'] = nx.readwrite.json_graph.node_link_graph(cludict['hier_graph'], directed = True, multigraph = False)
+        return self.from_dict(cludict)
 
 
     ##############################################
@@ -493,10 +497,18 @@ class Clustering(object):
         >>> clu = Clustering()
         >>> clu.from_scipy_linkage(Z, dist_rescaled=False)
         """
-        self.hier_graph = Dendrogram().from_linkage(linkage_matrix,
-                                                    dist_rescaled)
+        
+        # create lowest level clustering
         elm2clu_dict = {v:[v] for v in range(linkage_matrix.shape[0] + 1)}
         self.from_elm2clu_dict(elm2clu_dict=elm2clu_dict)
+
+        # now add the hierarchical graph
+        self.hier_graph = Dendrogram().from_linkage(linkage_matrix,
+                                                    dist_rescaled)
+        # and fill out all cluster memberships
+        self.hier_clusdict()
+        self.is_hierarchical = True
+            
         return self
 
     def to_dendropy_tree(self, taxon_namespace, weighted=False):
@@ -612,6 +624,8 @@ class SetEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, set):
             return list(obj)
+        elif isinstance(obj, nx.Graph):
+            return nx.readwrite.json_graph.node_link_data(obj)
         return json.JSONEncoder.default(self, obj)
 
 def print_clustering(clustering):
