@@ -36,6 +36,7 @@ available_similarity_measures = ['jaccard_index',
                                  'corrected_chance',
                                  'sample_expected_sim',
                                  'nmi',
+                                 'mi',
                                  'adj_mi',
                                  'rmi',
                                  'vi',
@@ -832,7 +833,7 @@ def sample_expected_sim(clustering1, clustering2, measure='jaccard_index',
     """
 
     # draw n_samples random samples from the random model
-    random_clustering1_list = [clugen.make_random_clustering(  # TODO: func undefined
+    random_clustering1_list = [clugen.make_random_clustering(
         n_elements=clustering1.n_elements, n_clusters=clustering1.n_clusters,
         clu_size_seq=clustering1.clu_size_seq, random_model=random_model,
         tol=1.0e-15) for isample in range(n_samples)]
@@ -863,6 +864,35 @@ def sample_expected_sim(clustering1, clustering2, measure='jaccard_index',
 These are the Information Theoretic Measures
 """
 
+def mi(clustering1, clustering2):
+
+    """
+    This function calculates the Mutual Information (MI)
+    between two clusterings :cite:`Danon2005comparingcomm`.
+
+    MI = (S(c1) + S(c2) - S(c1, c2))
+
+    where S(c1) is the Shannon Entropy of the clustering size distribution,
+    S(c1, c2) is the Shannon Entropy of the join clustering size distribution,
+
+    :param Clustering clustering1:
+        The first clustering.
+
+    :param Clustering clustering2:
+        The second clustering.
+
+    :returns:
+        The Mutual Information (between 0.0 and inf)
+
+    >>> import clusim.clugen as clugen
+    >>> import clusim.sim as sim
+    >>> clustering1 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
+                                                    random_model='num')
+    >>> clustering2 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
+                                                    random_model='num')
+    >>> print(sim.mi(clustering1, clustering2))
+    """
+    return nmi(clustering1, clustering2, norm_type='none')
 
 def nmi(clustering1, clustering2, norm_type='sum'):
 
