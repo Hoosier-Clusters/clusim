@@ -316,6 +316,22 @@ class Clustering(object):
         self.from_clu2elm_dict({clu_relabel[c]:el for c, el in self.clu2elm_dict.items()})
         return self
 
+    def relabel_clusters_to_match(self, target_clustering):
+        """
+        This method renames all clusters to have maximal overlap to the 'target_clustering'.
+        Is particularly useful for drawing the clusterings.
+
+        >>> from clusim.clustering import Clustering, print_clustering
+        >>> clu1 = Clustering(elm2clu_dict = {0:[0], 1:[0], 2:[0], 3:[1], 4:[2], 5:[2]})
+        >>> print(clu1.to_membership_list())
+        >>>
+        >>> clu2 = Clustering(elm2clu_dict = {0:[2], 1:[2], 2:[1], 3:[1], 4:[0], 5:[0]})
+        >>> clu1.relabel_clusters_to_match(clu2)
+        >>> print(clu1.to_membership_list())
+        """
+        new_clu_labels = remap2match(self, target_clustering)
+        self.from_clu2elm_dict({new_clu_labels[c]:el for c, el in self.clu2elm_dict.items()})
+        return self
 
     def find_num_overlap(self):
         """
@@ -497,7 +513,7 @@ class Clustering(object):
         >>> clu = Clustering()
         >>> clu.from_scipy_linkage(Z, dist_rescaled=False)
         """
-        
+
         # create lowest level clustering
         elm2clu_dict = {v:[v] for v in range(linkage_matrix.shape[0] + 1)}
         self.from_elm2clu_dict(elm2clu_dict=elm2clu_dict)
@@ -508,7 +524,7 @@ class Clustering(object):
         # and fill out all cluster memberships
         self.hier_clusdict()
         self.is_hierarchical = True
-            
+
         return self
 
     def to_dendropy_tree(self, taxon_namespace, weighted=False):
@@ -643,3 +659,53 @@ def print_clustering(clustering):
     """
     print('|'.join("".join(map(str, loe)) for loe
                    in clustering.clu2elm_dict.values()))
+
+
+def remap2match(clustering1, clustering2):
+    """
+    Renumber membership assignments so that the first clustering
+    has maximal overlap to the second clustering.  Useful for drawing consistend pictures.
+
+    Only works with partitions.
+
+    For example:
+
+    >>> print(remap2match([3,3,1,1,0],[2,2,3,3,3]))
+    [2 2 3 3 4]
+
+    Parameters
+    ----------
+    clustering1 : Clustering
+        clustering to remap
+    clustering2 : Clustering
+        clustering to match (treated as the groundtruth)
+
+    Returns
+    -------
+    dict
+        Remapped assignment of clusters from clustering1 to an equivalent label from clustering2
+
+    """
+    partition1 = np.asarray(clustering1.to_membership_list())
+    partition2 = np.asarray(clustering2.to_membership_list())
+
+    nmap = {}
+    to_remap = set(clustering1.clusters)
+    gtlist = partition2.tolist()
+    allowed_matches = set(gtlist + list(range(clustering2.n_clusters,
+        clustering2.n_clusters+clustering1.n_elements)))
+    while len(to_remap):
+        max_overlap, saved_pair = None, None
+        for c1 in to_remap:
+            for c2 in allowed_matches:
+                overlap = np.logical_and(partition1 == c1, partition2 == c2).sum()
+                if max_overlap is None or overlap > max_overlap:
+                    max_overlap = overlap
+                    saved_pair = (c1, c2)
+        old_c, new_c = saved_pair
+        if max_overlap == 0:
+            new_c = max(list(nmap.values()) + [0,]) + 1
+        nmap[old_c] = new_c
+        to_remap        = to_remap        - set([old_c,])
+        allowed_matches = allowed_matches - set([new_c,])
+    return nmap

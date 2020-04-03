@@ -22,7 +22,7 @@ from clusim.clusimelement import *
 
 available_similarity_measures = ['jaccard_index',
                                  'rand_index',
-                                 'adjrand_index'
+                                 'adjrand_index',
                                  'fowlkes_mallows_index',
                                  'fmeasure',
                                  'purity_index',
@@ -1224,8 +1224,7 @@ def adj_mi(clustering1, clustering2, random_model='perm', norm_type='sum', logba
     elif norm_type == 'none':
         normterm = 1.0
 
-    return (nmi(clustering1, clustering2, norm_type='none') - exp_mi) /\
-        normterm
+    return float(nmi(clustering1, clustering2, norm_type='none') - exp_mi) / float(normterm)
 
 
 def rmi(clustering1, clustering2, norm_type='none', logbase=2):

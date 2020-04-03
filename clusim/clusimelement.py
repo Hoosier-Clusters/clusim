@@ -364,7 +364,7 @@ def numerical_ppr_scores(cielg, clustering, alpha=0.9,
     """
     if relabeled_elements is None:
         relabeled_elements = relabel_objects(clustering.elements)
-        
+
     collect_regulargroups = collections.defaultdict(list)
     for e, cl in clustering.elm2clu_dict.items():
         collect_regulargroups[tuple(sorted(cl))].append(relabeled_elements[e])
