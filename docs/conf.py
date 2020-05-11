@@ -41,6 +41,7 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.coverage',
               'sphinx.ext.autosummary',
               'sphinx.ext.githubpages',
+              'sphinx.ext.napoleon',
               'numpydoc',
               'sphinxcontrib.bibtex']
 
