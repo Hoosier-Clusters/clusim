@@ -19,6 +19,7 @@ import scipy.special as sps
 
 import clusim.clugen as clugen
 from clusim.clusimelement import *
+from clusim.clusteringerror import ClusteringSimilarityError
 
 available_similarity_measures = ['jaccard_index',
                                  'rand_index',
@@ -69,7 +70,11 @@ def contingency_table(clustering1, clustering2):
     >>> cont_table = contingency_table(clustering1, clustering2)
     >>> print(cont_table)
     """
-    assert clustering1.n_elements == clustering2.n_elements
+    if clustering1.n_elements != clustering2.n_elements:
+        raise ClusteringSimilarityError
+
+    elif any(e1 != e2 for e1, e2 in zip(clustering1.elements, clustering2.elements)):
+        raise ClusteringSimilarityError
 
     return [[len(clustering1.clu2elm_dict[clu1] &
                  clustering2.clu2elm_dict[clu2])
@@ -1435,6 +1440,12 @@ def overlap_quality(clustering1, clustering2):
 
     :returns: the overlap quality
     '''
+    if clustering1.n_elements != clustering2.n_elements:
+        raise ClusteringSimilarityError
+
+    elif any(e1 != e2 for e1, e2 in zip(clustering1.elements, clustering2.elements)):
+        raise ClusteringSimilarityError
+
     num_memberships1 = [len(clustering1.elm2clu_dict[el])
                         for el in clustering1.elements]
     num_memberships2 = [len(clustering2.elm2clu_dict[el])
@@ -1538,6 +1549,11 @@ def omega_index(clustering1, clustering2):
 
     :returns: the omega index
     '''
+    if clustering1.n_elements != clustering2.n_elements:
+        raise ClusteringSimilarityError
+
+    elif any(e1 != e2 for e1, e2 in zip(clustering1.elements, clustering2.elements)):
+        raise ClusteringSimilarityError
 
     A1 = make_overlapping_membership_matrix(clustering1)
     A2 = make_overlapping_membership_matrix(clustering2)

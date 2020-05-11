@@ -10,5 +10,5 @@ __author__ = """\n""".join([
     'YY Ahn <yyahn@iu.edu>'
 ])
 
-__version__ = '0.3.7'
-__release__ = '0.3.7'
+__version__ = '0.4'
+__release__ = '0.4'

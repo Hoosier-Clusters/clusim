@@ -59,7 +59,7 @@ def make_random_clustering(n_elements=1, n_clusters=1, clu_size_seq=[1, 2],
         'num' : uniform distrubtion over the set of all clusterings of
                 n_elements in n_clusters
 
-        'perm' : the Permutaiton Model
+        'perm' : the Permutation Model
 
     :param float tol: optional
         The tolerance used by the algorithm for 'all' clusterings
@@ -85,6 +85,55 @@ def make_random_clustering(n_elements=1, n_clusters=1, clu_size_seq=[1, 2],
         new_clustering = generate_random_partition_perm(clu_size_seq)
     return new_clustering
 
+def cluster_missing_elements(element_list, elm2clu_dict, new_cluster_type = 'singleton'):
+    """
+    Sometimes a clustering algorithm does not assign every element to a cluster.
+    This function adds the missing elements to their own cluster(s).
+
+    :param list element_list:
+        The complete list of elements
+
+    :param dict elm2clu_dict:
+        { elementid: [clu1, clu2, ... ] }
+
+    :param str new_cluster_type:
+        The new type of clusters to use:
+
+        'singleton' : each unassigned element is put into its own singleton cluster
+
+        'giant' : all unassigned elements are put into a single giant cluster
+
+    :returns:
+        The new elm2clu_dict.
+
+    >>> import clusim.clugen as clugen
+    >>> from clusim.clustering import print_clustering
+
+    >>> clu = clugen.make_random_clustering(n_elements = 7)
+    >>> print_clustering(clu)
+    >>> clu = clugen.cluster_missing_elements(element_list = list(range(10)), elm2clu_dict = clu,  new_cluster_type='singleton')
+    >>> print_clustering(clu)
+    """
+
+    missing_elements = (set(element_list) - set(elm for elm, cl in elm2clu_dict.items() if len(cl) > 0 and not (None in cl or np.nan in cl)))
+
+    if len(missing_elements) > 0:
+
+        # find the largest integer used to label the clusters
+        new_clusterlabel = max([0] + [clu for elm, cl in elm2clu_dict.items() for clu in cl if isinstance(clu, int)]) + 1
+
+        for miss_elm in missing_elements:
+            elm2clu_dict[miss_elm] = [new_clusterlabel]
+
+            if new_cluster_type == 'singleton':
+                # singleton clusters have unique names
+                new_clusterlabel += 1
+
+            elif new_cluster_type == 'giant':
+                # one giant cluster keeps the same name
+                pass
+
+    return elm2clu_dict
 
 def make_singleton_clustering(n_elements):
     """
@@ -97,7 +146,7 @@ def make_singleton_clustering(n_elements):
     :returns:
         The new clustering.
 
-    >>> import import clusim.clugen as clugen
+    >>> import clusim.clugen as clugen
     >>> from clusim.clustering import print_clustering
     >>> clu = clugen.make_singleton_clustering(n_elements = 9)
     >>> print_clustering(clu)
@@ -105,7 +154,6 @@ def make_singleton_clustering(n_elements):
     new_clsutering = make_regular_clustering(n_elements=n_elements,
                                              n_clusters=n_elements)
     return new_clsutering
-
 
 def make_random_dendrogram(n_elements):
     """

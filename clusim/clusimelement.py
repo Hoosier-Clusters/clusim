@@ -8,16 +8,13 @@
 
 import numpy as np
 
-try:
-    import igraph
-except ImportError:
-    pass
-
-import scipy.sparse as spsparse
-
 import collections
 import itertools
 
+import igraph
+import scipy.sparse as spsparse
+
+from clusim.clusteringerror import ClusteringSimilarityError
 
 def element_sim(clustering1, clustering2, alpha=0.9, r=1., r2=None, rescale_path_type='max', ppr_implementation='prpack'):
     """
@@ -43,11 +40,11 @@ def element_sim(clustering1, clustering2, alpha=0.9, r=1., r2=None, rescale_path
 
     :param dict relabeled_elements: (optional)
         The elements maped to indices of the affinity matrix.
-    
+
     :param str ppr_implementation: (optional)
         Choose a implementation for personalized page-rank calcuation.
         'prpack': use PPR alogrithms in igraph
-        'power_iteration': use power_iteration method 
+        'power_iteration': use power_iteration method
 
     :returns: The element-wise similarity between the two clusterings
 
@@ -93,11 +90,11 @@ def element_sim_elscore(clustering1, clustering2, alpha=0.9, r=1., r2=None,
 
     :param dict relabeled_elements: (optional)
         The elements maped to indices of the affinity matrix.
-        
+
     :param str ppr_implementation: (optional)
         Choose a implementation for personalized page-rank calcuation.
         'prpack': use PPR alogrithms in igraph
-        'power_iteration': use power_iteration method 
+        'power_iteration': use power_iteration method
 
     :returns: The element-centric similarity between the two clusterings for each element as a 1d numpy array
 
@@ -115,8 +112,14 @@ def element_sim_elscore(clustering1, clustering2, alpha=0.9, r=1., r2=None,
     >>> print(elementScores)
     """
 
-    # the rows and columns of the affinity matrix correspond to relabeled
-    # elements
+    # Error handleing for comparisons
+    if clustering1.n_elements != clustering2.n_elements:
+        raise ClusteringSimilarityError
+
+    elif any(e1 != e2 for e1, e2 in zip(clustering1.elements, clustering2.elements)):
+        raise ClusteringSimilarityError
+
+    # the rows and columns of the affinity matrix correspond to relabeled elements
     if relabeled_elements is None:
         relabeled_elements = relabel_objects(clustering1.elements)
 
@@ -368,11 +371,11 @@ def numerical_ppr_scores(cielg, clustering, alpha=0.9,
 
     :param dict relabeled_elements: (optional) dict
         The elements maped to indices of the affinity matrix.
-        
+
     :param str ppr_implementation: (optional)
         Choose a implementation for personalized page-rank calcuation.
         'prpack': use PPR alogrithms in igraph
-        'power_iteration': use power_iteration method 
+        'power_iteration': use power_iteration method
 
 
     :returns: 2d numpy array
@@ -380,7 +383,7 @@ def numerical_ppr_scores(cielg, clustering, alpha=0.9,
     """
     if relabeled_elements is None:
         relabeled_elements = relabel_objects(clustering.elements)
-        
+
     if ppr_implementation not in ['prpack', 'power_iteration']:
         raise NotImplementedError
 
@@ -396,10 +399,10 @@ def numerical_ppr_scores(cielg, clustering, alpha=0.9,
         clustergraph = cielg.subgraph(cluster)
         cc_ppr_scores = np.zeros((clustergraph.vcount(),
                                   clustergraph.vcount()))
-        
+
         if ppr_implementation == 'power_iteration':
             W_matrix = get_sparse_transition_matrix(clustergraph)
-            
+
 
         for elementgroup in find_groups_in_cluster(cluster, elementgroupList):
             # we only have to solve for the ppr distribution once per group
@@ -411,7 +414,7 @@ def numerical_ppr_scores(cielg, clustering, alpha=0.9,
             elif ppr_implementation == 'power_iteration':
                 cc_ppr_scores[vertex.index] = calculate_ppr_with_power_iteration(
                     W_matrix, vertex.index, alpha=alpha, repetition=1000, th=0.0001)
-                
+
 
             # the other vertices in the group are permutations of that solution
             for v2 in elementgroup[1:]:
@@ -430,10 +433,10 @@ def get_sparse_transition_matrix(graph):
     for i, row in enumerate(transition_matrix):
         transition_matrix[i] = row/row.sum()
     transition_matrix = spsparse.csr_matrix(transition_matrix)
-    
+
     return transition_matrix
-    
-    
+
+
 def calculate_ppr_with_power_iteration(W_matrix, index, alpha=0.9, repetition=1000, th=0.0001):
     """
     Implementaion of the personalized page-rank with the power iteration
@@ -447,7 +450,7 @@ def calculate_ppr_with_power_iteration(W_matrix, index, alpha=0.9, repetition=10
 
     :param int repetition: (optional)
         Maximum iteration for calucalting personalized page-rank
-        
+
     :param int th: (optional)
         Calculation stop when ||p_i+1 - p_i||∞ falls below th
 
@@ -461,7 +464,7 @@ def calculate_ppr_with_power_iteration(W_matrix, index, alpha=0.9, repetition=10
         new_p =  ((1-alpha) * e_s) + ((alpha) * (p * W_matrix))
         if abs(new_p - p).max() < th:
             p = new_p
-            break   
+            break
         p = new_p
     return p.toarray()[0]
 

@@ -13,7 +13,7 @@ import numpy as np
 import networkx as nx
 
 from clusim.dag import DAG, Dendrogram
-
+from clusim.clusteringerror import EmptyClusteringError, InvalidElementError, InvalidClusterError, EmptyClusterError, UnassignedElementError
 
 class Clustering(object):
     """
@@ -91,6 +91,30 @@ class Clustering(object):
         """
         return copy.deepcopy(self)
 
+    def validate_clustering(self):
+        """
+        This method checks that the clustering is valid, else raise the appropriate Cluster Error.
+        """
+
+        if self.n_elements == 0 or self.n_clusters == 0:
+            raise EmptyClusteringError
+
+        if None in self.elements or np.nan in self.elements:
+            raise InvalidElementError
+
+        if None in self.clusters or np.nan in self.clusters:
+            raise InvalidClusterError
+
+        n_empty_clusters = sum(len(el) == 0 for clu, el in self.clu2elm_dict.items())
+        if n_empty_clusters > 0:
+            raise EmptyClusterError(n_emptys = n_empty_clusters)
+
+        n_unassigned_elm = sum(len(cl) == 0 for elm, cl in self.elm2clu_dict.items())
+        if n_unassigned_elm > 0:
+            raise UnassignedElementError(n_unassigned = n_unassigned_elm)
+
+
+
     def from_elm2clu_dict(self, elm2clu_dict):
         """
         This method creates a clustering from an elm2clu_dict dictionary:
@@ -116,6 +140,8 @@ class Clustering(object):
         self.clusters = sorted(list(self.clu2elm_dict.keys()))
         self.n_clusters = len(self.clusters)
 
+        self.validate_clustering()
+
         self.clu_size_seq = self.find_clu_size_seq()
 
         self.is_disjoint = self.find_num_overlap() == 0
@@ -140,12 +166,14 @@ class Clustering(object):
         """
 
         self.clu2elm_dict = {c:set(el) for c, el in clu2elm_dict.items()}
-        self.clusters = list(self.clu2elm_dict.keys())
+        self.clusters = sorted(list(self.clu2elm_dict.keys()))
         self.n_clusters = len(self.clusters)
 
         self.elm2clu_dict = self.to_elm2clu_dict()
-        self.elements = list(self.elm2clu_dict.keys())
+        self.elements = sorted(list(self.elm2clu_dict.keys()))
         self.n_elements = len(self.elements)
+
+        self.validate_clustering()
 
         self.clu_size_seq = self.find_clu_size_seq()
 
@@ -627,12 +655,6 @@ class Clustering(object):
             self.n_clusters = len(self.clusters)
         return self.hierclusdict
 
-
-class ClusterError(ValueError):
-
-    def __init__(self, expression, message):
-        self.expression = expression
-        self.message = message
 
 
 # json cant normally handle sets
