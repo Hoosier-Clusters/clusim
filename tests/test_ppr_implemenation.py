@@ -13,9 +13,6 @@ from numpy.testing import assert_approx_equal
 import clusim.sim as sim
 from clusim.clustering import Clustering
 
-g
-
-
 def test_simple_example():
     c1_elm2clu_dict = {0: [0, 1], 1: [1, 2], 2: [1, 3], 3: [0], 4: [2], 5: [1]}
     c2_elm2clu_dict = {0: [0], 1: [1], 2: [1], 3: [0, 3], 4: [2, 4], 5: [2]}
