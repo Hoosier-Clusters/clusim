@@ -19,7 +19,7 @@ import collections
 import itertools
 
 
-def element_sim(clustering1, clustering2, alpha=0.9, r=1., r2=None, rescale_path_type='max'):
+def element_sim(clustering1, clustering2, alpha=0.9, r=1., r2=None, rescale_path_type='max', ppr_implementation='prpack'):
     """
     The element-centric clustering similarity.
 
@@ -43,6 +43,11 @@ def element_sim(clustering1, clustering2, alpha=0.9, r=1., r2=None, rescale_path
 
     :param dict relabeled_elements: (optional)
         The elements maped to indices of the affinity matrix.
+    
+    :param str ppr_implementation: (optional)
+        Choose a implementation for personalized page-rank calcuation.
+        'prpack': use PPR alogrithms in igraph
+        'power_iteration': use power_iteration method 
 
     :returns: The element-wise similarity between the two clusterings
 
@@ -57,13 +62,14 @@ def element_sim(clustering1, clustering2, alpha=0.9, r=1., r2=None, rescale_path
 
     result_tuple = element_sim_elscore(clustering1, clustering2, alpha=alpha,
                                        r=r, r2=r2,
-                                       rescale_path_type=rescale_path_type)
+                                       rescale_path_type=rescale_path_type,
+                                       ppr_implementation=ppr_implementation)
     elementScores, relabeled_elements = result_tuple
     return np.mean(elementScores)
 
 
 def element_sim_elscore(clustering1, clustering2, alpha=0.9, r=1., r2=None,
-                        rescale_path_type='max', relabeled_elements=None):
+                        rescale_path_type='max', relabeled_elements=None, ppr_implementation='prpack'):
     """
     The element-centric clustering similarity for each element.
 
@@ -87,6 +93,11 @@ def element_sim_elscore(clustering1, clustering2, alpha=0.9, r=1., r2=None,
 
     :param dict relabeled_elements: (optional)
         The elements maped to indices of the affinity matrix.
+        
+    :param str ppr_implementation: (optional)
+        Choose a implementation for personalized page-rank calcuation.
+        'prpack': use PPR alogrithms in igraph
+        'power_iteration': use power_iteration method 
 
     :returns: The element-centric similarity between the two clusterings for each element as a 1d numpy array
 
@@ -115,10 +126,10 @@ def element_sim_elscore(clustering1, clustering2, alpha=0.9, r=1., r2=None,
     # make the two affinity matrices
     clu_affinity_matrix1 = make_affinity_matrix(clustering1, alpha=alpha, r=r,
                                                 rescale_path_type=rescale_path_type,
-                                                relabeled_elements=relabeled_elements)
+                                                relabeled_elements=relabeled_elements, ppr_implementation=ppr_implementation)
     clu_affinity_matrix2 = make_affinity_matrix(clustering2, alpha=alpha, r=r2,
                                                 rescale_path_type=rescale_path_type,
-                                                relabeled_elements=relabeled_elements)
+                                                relabeled_elements=relabeled_elements, ppr_implementation=ppr_implementation)
 
     # use the corrected L1 similarity
     nodeScores = cL1(clu_affinity_matrix1, clu_affinity_matrix2, alpha=alpha)
@@ -160,7 +171,7 @@ def cL1(x, y, alpha):
 
 
 def make_affinity_matrix(clustering, alpha=0.9, r=1., rescale_path_type='max',
-                         relabeled_elements=None):
+                         relabeled_elements=None, ppr_implementation='prpack'):
     """
     The element-centric clustering similarity affinity matrix for a
     clustering.  This function automatically determines the most efficient method
@@ -208,7 +219,7 @@ def make_affinity_matrix(clustering, alpha=0.9, r=1., rescale_path_type='max',
                              rescale_path_type=rescale_path_type,
                              relabeled_elements=relabeled_elements)
         pprscore = numerical_ppr_scores(cielg, clustering, alpha=alpha,
-                                        relabeled_elements=relabeled_elements)
+                                        relabeled_elements=relabeled_elements, ppr_implementation=ppr_implementation)
 
     return(pprscore)
 
@@ -345,7 +356,7 @@ def find_groups_in_cluster(clustervs, elementgroupList):
 
 
 def numerical_ppr_scores(cielg, clustering, alpha=0.9,
-                         relabeled_elements=None):
+                         relabeled_elements=None, ppr_implementation='prpack'):
     """
     The element-centric clustering similarity affinity matrix for a partition.
 
@@ -357,6 +368,11 @@ def numerical_ppr_scores(cielg, clustering, alpha=0.9,
 
     :param dict relabeled_elements: (optional) dict
         The elements maped to indices of the affinity matrix.
+        
+    :param str ppr_implementation: (optional)
+        Choose a implementation for personalized page-rank calcuation.
+        'prpack': use PPR alogrithms in igraph
+        'power_iteration': use power_iteration method 
 
 
     :returns: 2d numpy array
@@ -364,6 +380,9 @@ def numerical_ppr_scores(cielg, clustering, alpha=0.9,
     """
     if relabeled_elements is None:
         relabeled_elements = relabel_objects(clustering.elements)
+        
+    if ppr_implementation not in ['prpack', 'power_iteration']:
+        raise NotImplementedError
 
     collect_regulargroups = collections.defaultdict(list)
     for e, cl in clustering.elm2clu_dict.items():
@@ -377,13 +396,22 @@ def numerical_ppr_scores(cielg, clustering, alpha=0.9,
         clustergraph = cielg.subgraph(cluster)
         cc_ppr_scores = np.zeros((clustergraph.vcount(),
                                   clustergraph.vcount()))
+        
+        if ppr_implementation == 'power_iteration':
+            W_matrix = get_sparse_transition_matrix(clustergraph)
+            
 
         for elementgroup in find_groups_in_cluster(cluster, elementgroupList):
             # we only have to solve for the ppr distribution once per group
             vertex = clustergraph.vs[cluster.index(elementgroup[0])]
-            cc_ppr_scores[vertex.index] = clustergraph.personalized_pagerank(
-                directed=True, weights="weight", damping=(alpha),
-                reset_vertices=vertex, implementation='prpack')
+            if ppr_implementation == 'prpack':
+                cc_ppr_scores[vertex.index] = clustergraph.personalized_pagerank(
+                    directed=True, weights="weight", damping=(alpha),
+                    reset_vertices=vertex, implementation='prpack')
+            elif ppr_implementation == 'power_iteration':
+                cc_ppr_scores[vertex.index] = calculate_ppr_with_power_iteration(
+                    W_matrix, vertex.index, alpha=alpha, repetition=1000, th=0.0001)
+                
 
             # the other vertices in the group are permutations of that solution
             for v2 in elementgroup[1:]:
@@ -395,6 +423,47 @@ def numerical_ppr_scores(cielg, clustering, alpha=0.9,
         ppr_scores[[[v] for v in cluster], cluster] = cc_ppr_scores
 
     return ppr_scores
+
+
+def get_sparse_transition_matrix(graph):
+    transition_matrix = np.array(graph.get_adjacency(attribute='weight').data)
+    for i, row in enumerate(transition_matrix):
+        transition_matrix[i] = row/row.sum()
+    transition_matrix = spsparse.csr_matrix(transition_matrix)
+    
+    return transition_matrix
+    
+    
+def calculate_ppr_with_power_iteration(W_matrix, index, alpha=0.9, repetition=1000, th=0.0001):
+    """
+    Implementaion of the personalized page-rank with the power iteration
+    It is 20 times faster than the implemetation in igraph's "prpack" in large network
+
+    :param scipy.csr_matrix cielg: W_matrix : Transition matrix of the given network
+
+    :param int index: Index of the target nodes
+
+    :param float alpha: The personalized page-rank return probability as a float in [0,1].
+
+    :param int repetition: (optional)
+        Maximum iteration for calucalting personalized page-rank
+        
+    :param int th: (optional)
+        Calculation stop when ||p_i+1 - p_i||∞ falls below th
+
+    :returns: 1d numpy array
+        The personalized page-rank result for target nodes
+    """
+    total_length = W_matrix.shape[0]
+    e_s = spsparse.csr_matrix(([1], ([0],[index])), shape=(1, total_length))
+    p = spsparse.csr_matrix(([1], ([0],[index])), shape=(1, total_length))
+    for i in range(repetition):
+        new_p =  ((1-alpha) * e_s) + ((alpha) * (p * W_matrix))
+        if abs(new_p - p).max() < th:
+            p = new_p
+            break   
+        p = new_p
+    return p.toarray()[0]
 
 
 def element_sim_matrix(clustering_list, alpha=0.9, r=1.,
