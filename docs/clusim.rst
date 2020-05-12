@@ -2,6 +2,7 @@
    sphinx-quickstart on Thu Aug 23 00:00:27 2018.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
+:orphan:
 
 Welcome to CluSim's documentation!
 
