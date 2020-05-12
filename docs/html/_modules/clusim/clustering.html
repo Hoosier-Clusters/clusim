@@ -1,0 +1,844 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>clusim.clustering &#8212; clusim 0.4 documentation</title>
+    <link rel="stylesheet" href="../../_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  
+   
+
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../y.html">clusim 0.4 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="../../search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="../../y.html">Docs</a></li>
+              
+                <li><a href="../index.html">Module code</a></li>
+              
+              <li>clusim.clustering</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <h1>Source code for clusim.clustering</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: clustering</span>
+<span class="sd">    :synopsis: The main Clustering class</span>
+
+<span class="sd">.. moduleauthor:: Alex Gates &lt;ajgates42@gmail.com&gt;</span>
+<span class="sd"> &quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+
+<span class="kn">from</span> <span class="nn">clusim.dag</span> <span class="kn">import</span> <span class="n">DAG</span><span class="p">,</span> <span class="n">Dendrogram</span>
+<span class="kn">from</span> <span class="nn">clusim.clusteringerror</span> <span class="kn">import</span> <span class="n">EmptyClusteringError</span><span class="p">,</span> <span class="n">InvalidElementError</span><span class="p">,</span> <span class="n">InvalidClusterError</span><span class="p">,</span> <span class="n">EmptyClusterError</span><span class="p">,</span> <span class="n">UnassignedElementError</span>
+
+<div class="viewcode-block" id="Clustering"><a class="viewcode-back" href="../../clusim.html#clusim.clustering.Clustering">[docs]</a><span class="k">class</span> <span class="nc">Clustering</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class for clusterings.</span>
+
+<span class="sd">    :param dict elm2clu_dict: optional</span>
+<span class="sd">        Initialize based on an elm2clu_dict: { elementid: [clu1, clu2, ... ] }.</span>
+<span class="sd">        The value is a list of clusters to which the element belongs.</span>
+
+<span class="sd">    :param dict clu2elm_dict: optional</span>
+<span class="sd">        Initialize based on an clu2elm_dict: { clusid: [el1, el2, ... ]}.</span>
+<span class="sd">        Each cluster is a key with value a list of elements which belong to it.</span>
+
+<span class="sd">    :param networkx.Graph() hier_graph: optional</span>
+<span class="sd">        Initialize based on a hierarchical acyclic graph capturing the cluster</span>
+<span class="sd">        membership at each scale.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elm2clu_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">clu2elm_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hier_graph</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">empty_start</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">elm2clu_dict</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># create clustering from elm2clu_dict</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">from_elm2clu_dict</span><span class="p">(</span><span class="n">elm2clu_dict</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">clu2elm_dict</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># create clustering from clu2elm_dict</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">from_clu2elm_dict</span><span class="p">(</span><span class="n">clu2elm_dict</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">hier_graph</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">is_hierarchical</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hier_graph</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">(</span><span class="n">hier_graph</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hier_clusdict</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">empty_start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># number of elements</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_elements</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># number of clusters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_clusters</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># list of elements</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># list of clusters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># representation as an elm2clu_dict</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elm2clu_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">set</span><span class="p">)</span>
+        <span class="c1"># representation as an clu2elm_dict</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clu2elm_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">set</span><span class="p">)</span>
+        <span class="c1"># represetation as an acyclic graph</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hier_graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">DiGraph</span><span class="p">()</span>
+
+        <span class="c1"># cluster size sequence</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clu_size_seq</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># disjoint partitions?</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_disjoint</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># hierarchical partitions?</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_hierarchical</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># representation as an hiercluster dict</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hierclusdict</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="Clustering.copy"><a class="viewcode-back" href="../../clusim.html#clusim.clustering.Clustering.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a deep copy of the clustering.</span>
+
+<span class="sd">        :returns: deep copy of the clustering</span>
+
+<span class="sd">        &gt;&gt;&gt; from clusim.clustering import Clustering, print_clustering</span>
+<span class="sd">        &gt;&gt;&gt; clu = clusim.Clustering()</span>
+<span class="sd">        &gt;&gt;&gt; clu2 = clu.copy()</span>
+<span class="sd">        &gt;&gt;&gt; print_clustering(clu)</span>
+<span class="sd">        &gt;&gt;&gt; print_clustering(clu)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Clustering.validate_clustering"><a class="viewcode-back" href="../../clusim.html#clusim.clustering.Clustering.validate_clustering">[docs]</a>    <span class="k">def</span> <span class="nf">validate_clustering</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method checks that the clustering is valid, else raise the appropriate Cluster Error.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_elements</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_clusters</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">EmptyClusteringError</span>
+
+        <span class="k">if</span> <span class="kc">None</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">InvalidElementError</span>
+
+        <span class="k">if</span> <span class="kc">None</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">InvalidClusterError</span>
+
+        <span class="n">n_empty_clusters</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">el</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">clu</span><span class="p">,</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">clu2elm_dict</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">n_empty_clusters</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">EmptyClusterError</span><span class="p">(</span><span class="n">n_emptys</span> <span class="o">=</span> <span class="n">n_empty_clusters</span><span class="p">)</span>
+
+        <span class="n">n_unassigned_elm</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cl</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">elm</span><span class="p">,</span> <span class="n">cl</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elm2clu_dict</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">n_unassigned_elm</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">UnassignedElementError</span><span class="p">(</span><span class="n">n_unassigned</span> <span class="o">=</span> <span class="n">n_unassigned_elm</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Clustering.from_elm2clu_dict"><a class="viewcode-back" href="../../clusim.html#clusim.clustering.Clustering.from_elm2clu_dict">[docs]</a>    <span class="k">def</span> <span class="nf">from_elm2clu_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elm2clu_dict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method creates a clustering from an elm2clu_dict dictionary:</span>
+<span class="sd">        { elementid: [clu1, clu2, ... ] } where each element is a key with</span>
+<span class="sd">        value a list of clusters to which it belongs.  Clustering features</span>
+<span class="sd">        are then calculated.</span>
+
+<span class="sd">        :param dict elm2clu_dict:</span>
+<span class="sd">            { elementid: [clu1, clu2, ... ] }</span>
+
+<span class="sd">        &gt;&gt;&gt; from clusim.clustering import Clustering, print_clustering</span>
+<span class="sd">        &gt;&gt;&gt; elm2clu_dict = {0:[0], 1:[0], 2:[0,1], 3:[1], 4:[2], 5:[2]}</span>
+<span class="sd">        &gt;&gt;&gt; clu = Clustering()</span>
+<span class="sd">        &gt;&gt;&gt; clu.from_elm2clu_dict(elm2clu_dict)</span>
+<span class="sd">        &gt;&gt;&gt; print_clustering(clu)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">elm2clu_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="p">:</span><span class="nb">set</span><span class="p">(</span><span class="n">cl</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">cl</span> <span class="ow">in</span> <span class="n">elm2clu_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elm2clu_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_elements</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">clu2elm_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_clu2elm_dict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clu2elm_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_clusters</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate_clustering</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">clu_size_seq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_clu_size_seq</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_disjoint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_num_overlap</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="Clustering.from_clu2elm_dict"><a class="viewcode-back" href="../../clusim.html#clusim.clustering.Clustering.from_clu2elm_dict">[docs]</a>    <span class="k">def</span> <span class="nf">from_clu2elm_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clu2elm_dict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method creates a clustering from an clu2elm_dict dictionary:</span>
+<span class="sd">        { clusid: [el1, el22, ... ] } where each cluster is a key with</span>
+<span class="sd">        value a list of elements which belong to it.  Clustering features</span>
+<span class="sd">        are then calculated.</span>
+
+<span class="sd">        :param dict clu2elm_dict:</span>
+<span class="sd">            { clusid: [el1, el2, ... ] }</span>
+
+
+<span class="sd">        &gt;&gt;&gt; from clusim.clustering import Clustering, print_clustering</span>
+<span class="sd">        &gt;&gt;&gt; clu2elm_dict = {0:[0,1,2], 1:[2,3], 2:[4,5]}</span>
+<span class="sd">        &gt;&gt;&gt; clu = Clustering()</span>
+<span class="sd">        &gt;&gt;&gt; clu.from_clu2elm_dict(clu2elm_dict)</span>
+<span class="sd">        &gt;&gt;&gt; print_clustering(clu)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">clu2elm_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">c</span><span class="p">:</span><span class="nb">set</span><span class="p">(</span><span class="n">el</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">clu2elm_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clu2elm_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_clusters</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">elm2clu_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_elm2clu_dict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elm2clu_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_elements</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate_clustering</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">clu_size_seq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_clu_size_seq</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_disjoint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_num_overlap</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="Clustering.from_cluster_list"><a class="viewcode-back" href="../../clusim.html#clusim.clustering.Clustering.from_cluster_list">[docs]</a>    <span class="k">def</span> <span class="nf">from_cluster_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cluster_list</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method creates a clustering from a cluster list:</span>
+<span class="sd">        [ [el1, el2, ...], [el5, ...], ... ],  a list of lists</span>
+<span class="sd">        or a list of sets, where each inner list corresponds to</span>
+<span class="sd">        the elements in a cluster.  Clustering features are then</span>
+<span class="sd">        calculated.</span>
+
+<span class="sd">        :param list cluster_list: list of lists</span>
+<span class="sd">            [ [el1, el2, ...], [el5, ...], ... ]</span>
+
+<span class="sd">        &gt;&gt;&gt; from clusim.clustering import Clustering, print_clustering</span>
+<span class="sd">        &gt;&gt;&gt; cluster_list = [ [0,1,2], [2,3], [4,5]]</span>
+<span class="sd">        &gt;&gt;&gt; clu = Clustering()</span>
+<span class="sd">        &gt;&gt;&gt; clu.from_cluster_list(cluster_list)</span>
+<span class="sd">        &gt;&gt;&gt; print_clustering(clu)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">from_clu2elm_dict</span><span class="p">({</span><span class="n">iclus</span><span class="p">:</span> <span class="nb">set</span><span class="p">(</span><span class="n">clist</span><span class="p">)</span>
+                               <span class="k">for</span> <span class="n">iclus</span><span class="p">,</span> <span class="n">clist</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cluster_list</span><span class="p">)})</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="Clustering.to_cluster_list"><a class="viewcode-back" href="../../clusim.html#clusim.clustering.Clustering.to_cluster_list">[docs]</a>    <span class="k">def</span> <span class="nf">to_cluster_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method returns a clustering in cluster list format:</span>
+<span class="sd">        [ [el1, el2, ...], [el5, ...], ... ],  a list of lists,</span>
+<span class="sd">        where each inner list corresponds to the elements in</span>
+<span class="sd">        a cluster.</span>
+
+<span class="sd">        :returns:</span>
+<span class="sd">            cluster_list : list of lists, [ [el1, el2, ...], [el5, ...], ... ]</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">clu2elm_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span></div>
+
+<div class="viewcode-block" id="Clustering.from_membership_list"><a class="viewcode-back" href="../../clusim.html#clusim.clustering.Clustering.from_membership_list">[docs]</a>    <span class="k">def</span> <span class="nf">from_membership_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">membership_list</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method creates a clustering from a membership list:</span>
+<span class="sd">        [ clu_for_el1, clu_for_el2, ... ],  a list of cluster names where</span>
+<span class="sd">        the ith entry corresponds to the cluster membership of the ith element.</span>
+<span class="sd">        Clustering features are then calculated.</span>
+
+<span class="sd">        .. note:: Membership Lists can only represent partitions (no overlaps)</span>
+
+<span class="sd">        :param list membership_list: list of cluster names</span>
+<span class="sd">             clu_for_el1, clu_for_el2, ... ]</span>
+
+<span class="sd">        &gt;&gt;&gt; from clusim.clustering import Clustering, print_clustering</span>
+<span class="sd">        &gt;&gt;&gt; membership_list = [0,0,0,1,2,2]</span>
+<span class="sd">        &gt;&gt;&gt; clu = Clustering()</span>
+<span class="sd">        &gt;&gt;&gt; clu.from_membership_list(membership_list)</span>
+<span class="sd">        &gt;&gt;&gt; print_clustering(clu)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">from_elm2clu_dict</span><span class="p">({</span><span class="n">elm</span><span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="n">clu</span><span class="p">])</span>
+                                <span class="k">for</span> <span class="n">elm</span><span class="p">,</span> <span class="n">clu</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">membership_list</span><span class="p">)})</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="Clustering.to_membership_list"><a class="viewcode-back" href="../../clusim.html#clusim.clustering.Clustering.to_membership_list">[docs]</a>    <span class="k">def</span> <span class="nf">to_membership_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method returns the clustering as a membership list:</span>
+<span class="sd">        [ clu_for_el1, clu_for_el2, ... ],  a list of cluster names</span>
+<span class="sd">        the ith entry corresponds to the cluster membership of the ith element.</span>
+
+<span class="sd">        .. note:: Membership Lists can only represent partitions (no overlaps)</span>
+
+<span class="sd">        :returns:</span>
+<span class="sd">            list of element memberships, [ clu_for_el1, clu_for_el2, ... ]</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_disjoint</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ClusterError</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;Membership Lists can only be created for &quot;</span>
+                                   <span class="s2">&quot;disjoint clusterings. Your clustering &quot;</span>
+                                   <span class="s2">&quot;contains overlaps.&quot;</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_hierarchical</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ClusterError</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;Membership Lists can only be created for &quot;</span>
+                                   <span class="s2">&quot;disjoint clusterings. Your clustering is &quot;</span>
+                                   <span class="s2">&quot;hierarchical.&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elm2clu_dict</span><span class="p">[</span><span class="n">elm</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">elm</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">)]</span></div>
+
+<div class="viewcode-block" id="Clustering.clustering_from_igraph_cover"><a class="viewcode-back" href="../../clusim.html#clusim.clustering.Clustering.clustering_from_igraph_cover">[docs]</a>    <span class="k">def</span> <span class="nf">clustering_from_igraph_cover</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">igraphcover</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method creates a clustering from an igraph VertexCover object.</span>
+<span class="sd">        See the :class:`igraph.Cover.VertexCover` class.</span>
+<span class="sd">        Clustering features are then calculated.</span>
+
+<span class="sd">        :param igraph.Cover.VertexCover igraphcover:</span>
+<span class="sd">            the igraph VertexCover</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">igc</span> <span class="o">=</span> <span class="n">igraphcover</span><span class="o">.</span><span class="n">as_cover</span><span class="p">()</span><span class="o">.</span><span class="n">membership</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">from_elm2clu_dict</span><span class="p">({</span><span class="n">elm</span><span class="p">:</span> <span class="nb">set</span><span class="p">(</span><span class="n">clu</span><span class="p">)</span> <span class="k">for</span> <span class="n">elm</span><span class="p">,</span> <span class="n">clu</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">igc</span><span class="p">)})</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="Clustering.to_clu2elm_dict"><a class="viewcode-back" href="../../clusim.html#clusim.clustering.Clustering.to_clu2elm_dict">[docs]</a>    <span class="k">def</span> <span class="nf">to_clu2elm_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a clu2elm_dict: {clusterid: [el1, el2, ... ]} from the</span>
+<span class="sd">        stored elm2clu_dict.</span>
+
+<span class="sd">        :returns: dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">clu2elm_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">set</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">elm</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elm2clu_dict</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">clu</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elm2clu_dict</span><span class="p">[</span><span class="n">elm</span><span class="p">]:</span>
+                <span class="n">clu2elm_dict</span><span class="p">[</span><span class="n">clu</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">elm</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">clu2elm_dict</span></div>
+
+<div class="viewcode-block" id="Clustering.to_elm2clu_dict"><a class="viewcode-back" href="../../clusim.html#clusim.clustering.Clustering.to_elm2clu_dict">[docs]</a>    <span class="k">def</span> <span class="nf">to_elm2clu_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a elm2clu_dict: {elementid: [clu1, clu2, ... ]} from the</span>
+<span class="sd">        stored clu2elm_dict.</span>
+
+<span class="sd">        :returns: dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">elm2clu_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">set</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">clu</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">clu2elm_dict</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">elm</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">clu2elm_dict</span><span class="p">[</span><span class="n">clu</span><span class="p">]:</span>
+                <span class="n">elm2clu_dict</span><span class="p">[</span><span class="n">elm</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">clu</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">elm2clu_dict</span></div>
+
+<div class="viewcode-block" id="Clustering.find_clu_size_seq"><a class="viewcode-back" href="../../clusim.html#clusim.clustering.Clustering.find_clu_size_seq">[docs]</a>    <span class="k">def</span> <span class="nf">find_clu_size_seq</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method finds the cluster size sequence for the clustering.</span>
+
+<span class="sd">        :returns: list of integers</span>
+<span class="sd">            A list where the ith entry corresponds to the size of the ith</span>
+<span class="sd">            cluster.</span>
+
+<span class="sd">        &gt;&gt;&gt; from clusim.clustering import Clustering, print_clustering</span>
+<span class="sd">        &gt;&gt;&gt; elm2clu_dict = {0:[0], 1:[0], 2:[0,1], 3:[1], 4:[2], 5:[2]}</span>
+<span class="sd">        &gt;&gt;&gt; clu = Clustering(elm2clu_dict = elm2clu_dict)</span>
+<span class="sd">        &gt;&gt;&gt; print(&quot;Cluster Size Sequence:&quot;, clu.find_clu_size_seq())</span>
+<span class="sd">        * Cluster Size Sequence: [3, 2, 2]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">([</span><span class="nb">type</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">==</span><span class="nb">int</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="p">]):</span>
+            <span class="n">sorted_cluster</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sorted_cluster</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clu2elm_dict</span><span class="p">[</span><span class="n">clu</span><span class="p">])</span> <span class="k">for</span> <span class="n">clu</span> <span class="ow">in</span> <span class="n">sorted_cluster</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Clustering.relabel_clusters_by_size"><a class="viewcode-back" href="../../clusim.html#clusim.clustering.Clustering.relabel_clusters_by_size">[docs]</a>    <span class="k">def</span> <span class="nf">relabel_clusters_by_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method renames all clusters by their size.</span>
+
+<span class="sd">        &gt;&gt;&gt; from clusim.clustering import Clustering, print_clustering</span>
+<span class="sd">        &gt;&gt;&gt; elm2clu_dict = {0:[0], 1:[0], 2:[0], 3:[1], 4:[2], 5:[2]}</span>
+<span class="sd">        &gt;&gt;&gt; clu = Clustering(elm2clu_dict = elm2clu_dict)</span>
+<span class="sd">        &gt;&gt;&gt; print(&quot;Cluster Size Sequence:&quot;, clu.find_clu_size_seq())</span>
+<span class="sd">        &gt;&gt;&gt; clu.relabel_clusters_by_size()</span>
+<span class="sd">        * Cluster Size Sequence: [3, 2, 2]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">clu_oldorder</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span><span class="n">c</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="p">))}</span>
+        <span class="n">clu_neworder</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">find_clu_size_seq</span><span class="p">())</span>
+        <span class="n">clu_relabel</span> <span class="o">=</span> <span class="p">{</span><span class="n">clu_neworder</span><span class="p">[</span><span class="n">clu_oldorder</span><span class="p">[</span><span class="n">i</span><span class="p">]]:</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_clusters</span><span class="p">)}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">from_clu2elm_dict</span><span class="p">({</span><span class="n">clu_relabel</span><span class="p">[</span><span class="n">c</span><span class="p">]:</span><span class="n">el</span> <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">clu2elm_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()})</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="Clustering.relabel_clusters_to_match"><a class="viewcode-back" href="../../clusim.html#clusim.clustering.Clustering.relabel_clusters_to_match">[docs]</a>    <span class="k">def</span> <span class="nf">relabel_clusters_to_match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_clustering</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method renames all clusters to have maximal overlap to the &#39;target_clustering&#39;.</span>
+<span class="sd">        Is particularly useful for drawing the clusterings.</span>
+
+<span class="sd">        &gt;&gt;&gt; from clusim.clustering import Clustering, print_clustering</span>
+<span class="sd">        &gt;&gt;&gt; clu1 = Clustering(elm2clu_dict = {0:[0], 1:[0], 2:[0], 3:[1], 4:[2], 5:[2]})</span>
+<span class="sd">        &gt;&gt;&gt; print(clu1.to_membership_list())</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; clu2 = Clustering(elm2clu_dict = {0:[2], 1:[2], 2:[1], 3:[1], 4:[0], 5:[0]})</span>
+<span class="sd">        &gt;&gt;&gt; clu1.relabel_clusters_to_match(clu2)</span>
+<span class="sd">        &gt;&gt;&gt; print(clu1.to_membership_list())</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">new_clu_labels</span> <span class="o">=</span> <span class="n">remap2match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_clustering</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">from_clu2elm_dict</span><span class="p">({</span><span class="n">new_clu_labels</span><span class="p">[</span><span class="n">c</span><span class="p">]:</span><span class="n">el</span> <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">clu2elm_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()})</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="Clustering.find_num_overlap"><a class="viewcode-back" href="../../clusim.html#clusim.clustering.Clustering.find_num_overlap">[docs]</a>    <span class="k">def</span> <span class="nf">find_num_overlap</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method finds the number of elements which are in more than one</span>
+<span class="sd">        cluster in the clustering.</span>
+
+<span class="sd">        :returns:</span>
+<span class="sd">            The number of elements in at least two clusters.</span>
+
+<span class="sd">        &gt;&gt;&gt; from clusim.clustering import Clustering, print_clustering</span>
+<span class="sd">        &gt;&gt;&gt; elm2clu_dict = {0:[0], 1:[0], 2:[0,1], 3:[1], 4:[2], 5:[2]}</span>
+<span class="sd">        &gt;&gt;&gt; clu = Clustering(elm2clu_dict = elm2clu_dict)</span>
+<span class="sd">        &gt;&gt;&gt; print(&quot;Overlap size:&quot;, clu.find_num_overlap())</span>
+<span class="sd">        * Overlap size: 1</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elm2clu_dict</span><span class="p">[</span><span class="n">elm</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">elm</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="Clustering.merge_clusters"><a class="viewcode-back" href="../../clusim.html#clusim.clustering.Clustering.merge_clusters">[docs]</a>    <span class="k">def</span> <span class="nf">merge_clusters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">c1</span><span class="p">,</span> <span class="n">c2</span><span class="p">,</span> <span class="n">new_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method merges the elements in two clusters from the clustering.</span>
+<span class="sd">        The merged clustering will be named new_name if provided, otherwise</span>
+<span class="sd">        it will assume the name of cluster c1.</span>
+
+<span class="sd">        :returns: self</span>
+
+<span class="sd">        &gt;&gt;&gt; from clusim.clustering import Clustering, print_clustering</span>
+<span class="sd">        &gt;&gt;&gt; elm2clu_dict = {0:[0], 1:[0], 2:[0], 3:[1], 4:[2], 5:[2]}</span>
+<span class="sd">        &gt;&gt;&gt; clu = Clustering(elm2clu_dict = elm2clu_dict)</span>
+<span class="sd">        &gt;&gt;&gt; print_clustering(clu)</span>
+<span class="sd">        &gt;&gt;&gt; clu.merge_clusters(1,2, new_name = 3)</span>
+<span class="sd">        &gt;&gt;&gt; print_clustering(clu)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">new_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">new_name</span> <span class="o">=</span> <span class="n">c1</span>
+
+        <span class="n">new_clus</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clu2elm_dict</span><span class="p">[</span><span class="n">c1</span><span class="p">]</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">clu2elm_dict</span><span class="p">[</span><span class="n">c2</span><span class="p">]</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">clu2elm_dict</span><span class="p">[</span><span class="n">c1</span><span class="p">]</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">clu2elm_dict</span><span class="p">[</span><span class="n">c2</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">clu2elm_dict</span><span class="p">[</span><span class="n">new_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_clus</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">from_clu2elm_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clu2elm_dict</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="Clustering.to_dict"><a class="viewcode-back" href="../../clusim.html#clusim.clustering.Clustering.to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method turns a Custering object into a dictionary.</span>
+<span class="sd">        Intended for use with json to save the Clusering.</span>
+
+<span class="sd">        :returns: dictionary</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">clustering_dict</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_hierarchical</span><span class="p">:</span>
+            <span class="n">clustering_dict</span><span class="p">[</span><span class="s1">&#39;hier_graph&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">readwrite</span><span class="o">.</span><span class="n">json_graph</span><span class="o">.</span><span class="n">node_link_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hier_graph</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">clustering_dict</span></div>
+
+<div class="viewcode-block" id="Clustering.from_dict"><a class="viewcode-back" href="../../clusim.html#clusim.clustering.Clustering.from_dict">[docs]</a>    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clustering_dict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method creates a Custering object from a dictionary.</span>
+<span class="sd">        Intended for use with json to load the Clusering.</span>
+
+<span class="sd">        :param: dict clustering_dict</span>
+<span class="sd">            The dictionary represetnation of the Clustering</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">elm2clu_dict</span> <span class="o">=</span> <span class="n">clustering_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;elm2clu_dict&#39;</span><span class="p">,</span> <span class="p">{})</span>
+
+        <span class="c1"># json automatically turns the keys of a dictionary into strings</span>
+        <span class="c1"># check if the elements were originally named with ints</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">clustering_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;elements&#39;</span><span class="p">,</span> <span class="p">[]))</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">clustering_dict</span><span class="p">[</span><span class="s1">&#39;elements&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">elm2clu_dict</span> <span class="o">=</span> <span class="p">{</span><span class="nb">int</span><span class="p">(</span><span class="n">e</span><span class="p">):</span><span class="n">cl</span> <span class="k">for</span> <span class="n">e</span><span class="p">,</span><span class="n">cl</span> <span class="ow">in</span> <span class="n">elm2clu_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+        <span class="c1"># check if the clusters were originally named with ints</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">clustering_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;clusters&#39;</span><span class="p">,</span> <span class="p">[]))</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">clustering_dict</span><span class="p">[</span><span class="s1">&#39;clusters&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">elm2clu_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="p">:{</span><span class="nb">int</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cl</span><span class="p">}</span> <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">cl</span> <span class="ow">in</span> <span class="n">elm2clu_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+        <span class="c1"># create the Clustering object</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">from_elm2clu_dict</span><span class="p">(</span><span class="n">elm2clu_dict</span><span class="p">)</span>
+
+        <span class="c1"># check if the Clustering is hierarchical</span>
+        <span class="k">if</span> <span class="n">clustering_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;is_hierarchical&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">is_hierarchical</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hier_graph</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">readwrite</span><span class="o">.</span><span class="n">json_graph</span><span class="o">.</span><span class="n">node_link_graph</span><span class="p">(</span><span class="n">clustering_dict</span><span class="p">[</span><span class="s1">&#39;hier_graph&#39;</span><span class="p">],</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">multigraph</span> <span class="o">=</span> <span class="kc">False</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hier_clusdict</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="Clustering.save"><a class="viewcode-back" href="../../clusim.html#clusim.clustering.Clustering.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save the Custering to a file using json.</span>
+
+<span class="sd">        :param: str file</span>
+<span class="sd">            The name of the file to dump the Clustering json</span>
+
+<span class="sd">        :param: io file</span>
+<span class="sd">            The python file to dump the Clustering json</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">outfile</span><span class="p">:</span>
+                <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span> <span class="n">outfile</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">SetEncoder</span><span class="p">)</span>
+                <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span> <span class="n">file</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">SetEncoder</span><span class="p">)</span>
+            <span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Clustering.load"><a class="viewcode-back" href="../../clusim.html#clusim.clustering.Clustering.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load the Custering from a file using json.</span>
+
+<span class="sd">        :param: str file</span>
+<span class="sd">            The name of the file to load the Clustering json</span>
+
+<span class="sd">        :param: io file</span>
+<span class="sd">            The python file to load the Clustering json</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">infile</span><span class="p">:</span>
+                <span class="n">cludict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">infile</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cludict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">cludict</span><span class="p">[</span><span class="s1">&#39;is_hierarchical&#39;</span><span class="p">]:</span>
+            <span class="n">cludict</span><span class="p">[</span><span class="s1">&#39;hier_graph&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">readwrite</span><span class="o">.</span><span class="n">json_graph</span><span class="o">.</span><span class="n">node_link_graph</span><span class="p">(</span><span class="n">cludict</span><span class="p">[</span><span class="s1">&#39;hier_graph&#39;</span><span class="p">],</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">multigraph</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">cludict</span><span class="p">)</span></div>
+
+
+    <span class="c1">##############################################</span>
+    <span class="c1"># extra support for hierarchical clusterings</span>
+    <span class="c1">##############################################</span>
+
+<div class="viewcode-block" id="Clustering.downstream_elements"><a class="viewcode-back" href="../../clusim.html#clusim.clustering.Clustering.downstream_elements">[docs]</a>    <span class="k">def</span> <span class="nf">downstream_elements</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cluster</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method finds all elements contained in a cluster from a</span>
+<span class="sd">        hierarchical clustering by visiting all downstream clusters</span>
+<span class="sd">        and adding their elements.</span>
+
+<span class="sd">        :param cluster: the name of the parent cluster</span>
+
+<span class="sd">        :returns: element list</span>
+
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">cluster</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hier_graph</span><span class="o">.</span><span class="n">leaves</span><span class="p">():</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">clu2elm_dict</span><span class="p">[</span><span class="n">cluster</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">el</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">nx</span><span class="o">.</span><span class="n">dfs_preorder_nodes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hier_graph</span><span class="p">,</span> <span class="n">cluster</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">el</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clu2elm_dict</span><span class="p">[</span><span class="n">c</span><span class="p">])</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+
+            <span class="k">return</span> <span class="n">el</span></div>
+
+<div class="viewcode-block" id="Clustering.from_scipy_linkage"><a class="viewcode-back" href="../../clusim.html#clusim.clustering.Clustering.from_scipy_linkage">[docs]</a>    <span class="k">def</span> <span class="nf">from_scipy_linkage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">linkage_matrix</span><span class="p">,</span> <span class="n">dist_rescaled</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method creates a clustering from a scipy linkage object resulting</span>
+<span class="sd">        from the agglomerative hierarchical clustering.</span>
+<span class="sd">        Clustering features are then calculated.</span>
+
+<span class="sd">        :param numpy.matrix linkage_matrix:</span>
+<span class="sd">            the linkage matrix from scipy</span>
+
+<span class="sd">        :param Boolean dist_rescaled: (default False)</span>
+<span class="sd">            if True, the linkage distances are linearlly rescaled to be</span>
+<span class="sd">            in-between 0 and 1</span>
+
+
+<span class="sd">        &gt;&gt;&gt; from clusim.clustering import Clustering, print_clustering</span>
+<span class="sd">        &gt;&gt;&gt; from scipy.cluster.hierarchy import dendrogram, linkage</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; np.random.seed(42)</span>
+<span class="sd">        &gt;&gt;&gt; data1 = np.random.multivariate_normal([10, 0], [[3, 1], [1, 4]],</span>
+<span class="sd">                                                  size=[100,])</span>
+<span class="sd">        &gt;&gt;&gt; data2 = np.random.multivariate_normal([0, 20], [[3, 1], [1, 4]],</span>
+<span class="sd">                                                  size=[50,])</span>
+<span class="sd">        &gt;&gt;&gt; Xdata = np.concatenate((data1, data2), )</span>
+<span class="sd">        &gt;&gt;&gt; Z = linkage(Xdata, &#39;ward&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; clu = Clustering()</span>
+<span class="sd">        &gt;&gt;&gt; clu.from_scipy_linkage(Z, dist_rescaled=False)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># create lowest level clustering</span>
+        <span class="n">elm2clu_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="p">:[</span><span class="n">v</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">linkage_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">from_elm2clu_dict</span><span class="p">(</span><span class="n">elm2clu_dict</span><span class="o">=</span><span class="n">elm2clu_dict</span><span class="p">)</span>
+
+        <span class="c1"># now add the hierarchical graph</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hier_graph</span> <span class="o">=</span> <span class="n">Dendrogram</span><span class="p">()</span><span class="o">.</span><span class="n">from_linkage</span><span class="p">(</span><span class="n">linkage_matrix</span><span class="p">,</span>
+                                                    <span class="n">dist_rescaled</span><span class="p">)</span>
+        <span class="c1"># and fill out all cluster memberships</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hier_clusdict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_hierarchical</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+    <span class="k">def</span> <span class="nf">to_dendropy_tree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">taxon_namespace</span><span class="p">,</span> <span class="n">weighted</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">dendropy</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">dendropy</span><span class="o">.</span><span class="n">Tree</span><span class="p">(</span><span class="n">taxon_namespace</span><span class="o">=</span><span class="n">taxon_namespace</span><span class="p">)</span>
+
+        <span class="n">seed_node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hier_graph</span><span class="o">.</span><span class="n">roots</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">weighted</span><span class="p">:</span>
+            <span class="k">def</span> <span class="nf">edge_length</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="n">child</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hier_graph</span><span class="o">.</span><span class="n">linkage_dist</span><span class="p">[</span><span class="n">par</span><span class="p">]</span> <span class="o">-</span>
+                              <span class="bp">self</span><span class="o">.</span><span class="n">hier_graph</span><span class="o">.</span><span class="n">linkage_dist</span><span class="p">[</span><span class="n">child</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">def</span> <span class="nf">edge_length</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="n">child</span><span class="p">):</span>
+                <span class="k">return</span> <span class="mf">1.0</span>
+
+        <span class="n">tree_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">seed_node</span><span class="p">:</span> <span class="n">tree</span><span class="o">.</span><span class="n">seed_node</span><span class="p">}</span>
+        <span class="k">for</span> <span class="n">clus</span> <span class="ow">in</span> <span class="n">nx</span><span class="o">.</span><span class="n">topological_sort</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hier_graph</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hier_graph</span><span class="o">.</span><span class="n">successors</span><span class="p">(</span><span class="n">clus</span><span class="p">):</span>
+                <span class="n">tree_dict</span><span class="p">[</span><span class="n">child</span><span class="p">]</span> <span class="o">=</span> <span class="n">tree_dict</span><span class="p">[</span><span class="n">clus</span><span class="p">]</span><span class="o">.</span><span class="n">new_child</span><span class="p">(</span>
+                    <span class="n">edge_length</span><span class="o">=</span><span class="n">edge_length</span><span class="p">(</span><span class="n">clus</span><span class="p">,</span> <span class="n">child</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">clus</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hier_graph</span><span class="o">.</span><span class="n">leaves</span><span class="p">():</span>
+            <span class="n">tree_dict</span><span class="p">[</span><span class="n">clus</span><span class="p">]</span><span class="o">.</span><span class="n">taxon</span> <span class="o">=</span> <span class="n">taxon_namespace</span><span class="o">.</span><span class="n">get_taxon</span><span class="p">(</span>
+                <span class="nb">str</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clu2elm_dict</span><span class="p">[</span><span class="n">clus</span><span class="p">])[</span><span class="mi">0</span><span class="p">]))</span>
+
+        <span class="k">return</span> <span class="n">tree</span>
+
+<div class="viewcode-block" id="Clustering.from_digraph"><a class="viewcode-back" href="../../clusim.html#clusim.clustering.Clustering.from_digraph">[docs]</a>    <span class="k">def</span> <span class="nf">from_digraph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hier_graph</span><span class="p">,</span> <span class="n">elm2clu_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">clu2elm_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method creates a hierarchical clustering with a cluster structure specified</span>
+<span class="sd">        by an acyclic digraph, &#39;hier_graph&#39;.  The element membership into (at least) the</span>
+<span class="sd">        lowest resolution of the clusters must be specified by either a &#39;elm2clu_dict&#39; or</span>
+<span class="sd">        a &#39;clu2elm_dict&#39;.  The hierarchical clustering memeberships are then propagated</span>
+<span class="sd">        through the acyclic digraph.</span>
+<span class="sd">        Finally Clustering features are then calculated.</span>
+
+<span class="sd">        :param networkx.DiGraph() hier_graph:</span>
+<span class="sd">            Initialize based on a hierarchical acyclic graph capturing the cluster</span>
+<span class="sd">            membership at each scale.</span>
+
+<span class="sd">        :param dict elm2clu_dict: optional</span>
+<span class="sd">            Initialize based on an elm2clu_dict: { elementid: [clu1, clu2, ... ] }.</span>
+<span class="sd">            The value is a list of clusters to which the element belongs.</span>
+
+<span class="sd">        :param dict clu2elm_dict: optional</span>
+<span class="sd">            Initialize based on an clu2elm_dict: { clusid: [el1, el2, ... ]}.</span>
+<span class="sd">            Each cluster is a key with value a list of elements which belong to it.</span>
+
+
+<span class="sd">        &gt;&gt;&gt; from clusim.clustering import Clustering, print_clustering</span>
+<span class="sd">        &gt;&gt;&gt; import networkx as nx</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; G = nx.DiGraph()</span>
+<span class="sd">        &gt;&gt;&gt; G.add_edges_from([(0,1), (0,2)])</span>
+<span class="sd">        &gt;&gt;&gt; clu2elm_dict = {1:[0,1,3,4], 2:[5,6,7,8]}</span>
+<span class="sd">        &gt;&gt;&gt; clu = Clustering()</span>
+<span class="sd">        &gt;&gt;&gt; clu.from_digraph(hier_graph = G, clu2elm_dict = clu2elm_dict)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">elm2clu_dict</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># create clustering from elm2clu_dict</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">from_elm2clu_dict</span><span class="p">(</span><span class="n">elm2clu_dict</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">clu2elm_dict</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># create clustering from clu2elm_dict</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">from_clu2elm_dict</span><span class="p">(</span><span class="n">clu2elm_dict</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;You must specify the element membership into at least the leaf layer using either a elm2clu_dict or clu2elm_dict.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="n">hier_graph</span><span class="p">)</span> <span class="ow">is</span> <span class="n">nx</span><span class="o">.</span><span class="n">DiGraph</span><span class="p">:</span> <span class="c1">#</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;The hierarchical graph must be a networkx DiGraph object.&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">nx</span><span class="o">.</span><span class="n">is_directed_acyclic_graph</span><span class="p">(</span><span class="n">hier_graph</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;The hierarchical graph must be acyclic but your graph contains cycles.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_hierarchical</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hier_graph</span> <span class="o">=</span> <span class="n">hier_graph</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hier_clusdict</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+    <span class="k">def</span> <span class="nf">cut_at_depth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">cuttype</span><span class="o">=</span><span class="s1">&#39;shortestpath&#39;</span><span class="p">,</span>
+                     <span class="n">rescale_path_type</span><span class="o">=</span><span class="s1">&#39;max&#39;</span><span class="p">):</span>
+        <span class="n">clusters_at_depth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hier_graph</span><span class="o">.</span><span class="n">cut_at_depth</span><span class="p">(</span>
+            <span class="n">depth</span><span class="o">=</span><span class="n">depth</span><span class="p">,</span> <span class="n">cuttype</span><span class="o">=</span><span class="n">cuttype</span><span class="p">,</span> <span class="n">rescale_path_type</span><span class="o">=</span><span class="n">rescale_path_type</span><span class="p">)</span>
+
+        <span class="n">new_cluster_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">c</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">downstream_elements</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+                            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">clusters_at_depth</span><span class="p">}</span>
+        <span class="n">flat_clustering</span> <span class="o">=</span> <span class="n">Clustering</span><span class="p">(</span><span class="n">clu2elm_dict</span><span class="o">=</span><span class="n">new_cluster_dict</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">flat_clustering</span>
+
+    <span class="k">def</span> <span class="nf">hier_clusdict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hierclusdict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hierclusdict</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clu2elm_dict</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">cluster</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hier_graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">hierclusdict</span><span class="p">[</span><span class="n">cluster</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">downstream_elements</span><span class="p">(</span><span class="n">cluster</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hierclusdict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">n_clusters</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">hierclusdict</span></div>
+
+
+
+<span class="c1"># json cant normally handle sets</span>
+<div class="viewcode-block" id="SetEncoder"><a class="viewcode-back" href="../../clusim.html#clusim.clustering.SetEncoder">[docs]</a><span class="k">class</span> <span class="nc">SetEncoder</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="p">):</span>
+<div class="viewcode-block" id="SetEncoder.default"><a class="viewcode-back" href="../../clusim.html#clusim.clustering.SetEncoder.default">[docs]</a>    <span class="k">def</span> <span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">set</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">nx</span><span class="o">.</span><span class="n">readwrite</span><span class="o">.</span><span class="n">json_graph</span><span class="o">.</span><span class="n">node_link_data</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="print_clustering"><a class="viewcode-back" href="../../clusim.html#clusim.clustering.print_clustering">[docs]</a><span class="k">def</span> <span class="nf">print_clustering</span><span class="p">(</span><span class="n">clustering</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A function to print a clustering. Clusters are seperated by &#39;|&#39;. The fuction</span>
+<span class="sd">    will only print the leaf layer of a Hierarchical Clustering.</span>
+
+<span class="sd">    :param Clsutering clustering:</span>
+<span class="sd">        The clustering to print</span>
+
+<span class="sd">    &gt;&gt;&gt; import clusim.clugen as clugen</span>
+<span class="sd">    &gt;&gt;&gt; from clusim.clustering import print_clustering</span>
+<span class="sd">    &gt;&gt;&gt; clu = clugen.make_equal_clustering(n_elements = 9, n_clusters = 3)</span>
+<span class="sd">    &gt;&gt;&gt; print_clustering(clu)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">loe</span><span class="p">))</span> <span class="k">for</span> <span class="n">loe</span>
+                   <span class="ow">in</span> <span class="n">clustering</span><span class="o">.</span><span class="n">clu2elm_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span></div>
+
+
+<div class="viewcode-block" id="remap2match"><a class="viewcode-back" href="../../clusim.html#clusim.clustering.remap2match">[docs]</a><span class="k">def</span> <span class="nf">remap2match</span><span class="p">(</span><span class="n">clustering1</span><span class="p">,</span> <span class="n">clustering2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Renumber membership assignments so that the first clustering</span>
+<span class="sd">    has maximal overlap to the second clustering.  Useful for drawing consistend pictures.</span>
+
+<span class="sd">    Only works with partitions.</span>
+
+<span class="sd">    For example:</span>
+
+<span class="sd">    &gt;&gt;&gt; print(remap2match([3,3,1,1,0],[2,2,3,3,3]))</span>
+<span class="sd">    [2 2 3 3 4]</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    clustering1 : Clustering</span>
+<span class="sd">        clustering to remap</span>
+<span class="sd">    clustering2 : Clustering</span>
+<span class="sd">        clustering to match (treated as the groundtruth)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Remapped assignment of clusters from clustering1 to an equivalent label from clustering2</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">partition1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">clustering1</span><span class="o">.</span><span class="n">to_membership_list</span><span class="p">())</span>
+    <span class="n">partition2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">clustering2</span><span class="o">.</span><span class="n">to_membership_list</span><span class="p">())</span>
+
+    <span class="n">nmap</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">to_remap</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">clustering1</span><span class="o">.</span><span class="n">clusters</span><span class="p">)</span>
+    <span class="n">gtlist</span> <span class="o">=</span> <span class="n">partition2</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="n">allowed_matches</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">gtlist</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">clustering2</span><span class="o">.</span><span class="n">n_clusters</span><span class="p">,</span>
+        <span class="n">clustering2</span><span class="o">.</span><span class="n">n_clusters</span><span class="o">+</span><span class="n">clustering1</span><span class="o">.</span><span class="n">n_elements</span><span class="p">)))</span>
+    <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">to_remap</span><span class="p">):</span>
+        <span class="n">max_overlap</span><span class="p">,</span> <span class="n">saved_pair</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">c1</span> <span class="ow">in</span> <span class="n">to_remap</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">c2</span> <span class="ow">in</span> <span class="n">allowed_matches</span><span class="p">:</span>
+                <span class="n">overlap</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">partition1</span> <span class="o">==</span> <span class="n">c1</span><span class="p">,</span> <span class="n">partition2</span> <span class="o">==</span> <span class="n">c2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">max_overlap</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">overlap</span> <span class="o">&gt;</span> <span class="n">max_overlap</span><span class="p">:</span>
+                    <span class="n">max_overlap</span> <span class="o">=</span> <span class="n">overlap</span>
+                    <span class="n">saved_pair</span> <span class="o">=</span> <span class="p">(</span><span class="n">c1</span><span class="p">,</span> <span class="n">c2</span><span class="p">)</span>
+        <span class="n">old_c</span><span class="p">,</span> <span class="n">new_c</span> <span class="o">=</span> <span class="n">saved_pair</span>
+        <span class="k">if</span> <span class="n">max_overlap</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">new_c</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">nmap</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> <span class="o">+</span> <span class="p">[</span><span class="mi">0</span><span class="p">,])</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">nmap</span><span class="p">[</span><span class="n">old_c</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_c</span>
+        <span class="n">to_remap</span>        <span class="o">=</span> <span class="n">to_remap</span>        <span class="o">-</span> <span class="nb">set</span><span class="p">([</span><span class="n">old_c</span><span class="p">,])</span>
+        <span class="n">allowed_matches</span> <span class="o">=</span> <span class="n">allowed_matches</span> <span class="o">-</span> <span class="nb">set</span><span class="p">([</span><span class="n">new_c</span><span class="p">,])</span>
+    <span class="k">return</span> <span class="n">nmap</span></div>
+</pre></div>
+
+          </div>
+            
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../y.html">clusim 0.4 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="../../_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2017, Alexander Gates and Yong-Yeol Ahn. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

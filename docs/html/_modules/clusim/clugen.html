@@ -1,0 +1,577 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>clusim.clugen &#8212; clusim 0.4 documentation</title>
+    <link rel="stylesheet" href="../../_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  
+   
+
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../y.html">clusim 0.4 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="../../search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="../../y.html">Docs</a></li>
+              
+                <li><a href="../index.html">Module code</a></li>
+              
+              <li>clusim.clugen</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <h1>Source code for clusim.clugen</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: clugen</span>
+<span class="sd">    :synopsis: A set of functions to generate Clusterings and random Clusterings</span>
+
+<span class="sd">.. moduleauthor:: Alex Gates &lt;ajgates42@gmail.com&gt;</span>
+<span class="sd"> &quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">mpmath</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+
+<span class="kn">from</span> <span class="nn">clusim.clustering</span> <span class="kn">import</span> <span class="n">Clustering</span>
+<span class="kn">from</span> <span class="nn">clusim.dag</span> <span class="kn">import</span> <span class="n">Dendrogram</span>
+
+
+<div class="viewcode-block" id="make_equal_clustering"><a class="viewcode-back" href="../../clusim.html#clusim.clugen.make_equal_clustering">[docs]</a><span class="k">def</span> <span class="nf">make_equal_clustering</span><span class="p">(</span><span class="n">n_elements</span><span class="p">,</span> <span class="n">n_clusters</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function creates a random clustering with equally sized clusters.</span>
+<span class="sd">    If n_elements % n_clusters != 0, cluster sizes will differ by one</span>
+<span class="sd">    element.</span>
+
+<span class="sd">    :param int n_elements:</span>
+<span class="sd">        The number of elements</span>
+
+<span class="sd">    :param int n_clusters:</span>
+<span class="sd">        The number of clusters</span>
+
+<span class="sd">    :returns:</span>
+<span class="sd">        The new clustering with equally sized clusters.</span>
+
+<span class="sd">    &gt;&gt;&gt; import clusim.clugen as clugen</span>
+<span class="sd">    &gt;&gt;&gt; from clusim.clustering import print_clustering</span>
+<span class="sd">    &gt;&gt;&gt; clu = clugen.make_equal_clustering(n_elements = 9, n_clusters = 3)</span>
+<span class="sd">    &gt;&gt;&gt; print_clustering(clu)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">new_elm2clu_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">el</span><span class="p">:</span> <span class="p">[</span><span class="n">el</span> <span class="o">%</span> <span class="n">n_clusters</span><span class="p">]</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_elements</span><span class="p">)}</span>
+    <span class="n">new_clustering</span> <span class="o">=</span> <span class="n">Clustering</span><span class="p">(</span><span class="n">new_elm2clu_dict</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_clustering</span></div>
+
+
+<div class="viewcode-block" id="make_random_clustering"><a class="viewcode-back" href="../../clusim.html#clusim.clugen.make_random_clustering">[docs]</a><span class="k">def</span> <span class="nf">make_random_clustering</span><span class="p">(</span><span class="n">n_elements</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_clusters</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">clu_size_seq</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
+                           <span class="n">random_model</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1.0e-15</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function creates a random clustering according to one of three</span>
+<span class="sd">    random models. It is a wrapper around the specific functions for each random model.</span>
+
+<span class="sd">    :param int n_elements:</span>
+<span class="sd">        The number of elements</span>
+
+<span class="sd">    :param int n_clusters:</span>
+<span class="sd">        The number of clusters</span>
+
+<span class="sd">    :param str random_mode:</span>
+<span class="sd">        The random model to use:</span>
+
+<span class="sd">        &#39;all&#39; : uniform distrubtion over the set of all clusterings of</span>
+<span class="sd">                n_elements</span>
+
+<span class="sd">        &#39;num&#39; : uniform distrubtion over the set of all clusterings of</span>
+<span class="sd">                n_elements in n_clusters</span>
+
+<span class="sd">        &#39;perm&#39; : the Permutation Model</span>
+
+<span class="sd">    :param float tol: optional</span>
+<span class="sd">        The tolerance used by the algorithm for &#39;all&#39; clusterings</span>
+
+<span class="sd">    :returns:</span>
+<span class="sd">        The new clustering.</span>
+
+<span class="sd">    &gt;&gt;&gt; import clusim.clugen as clugen</span>
+<span class="sd">    &gt;&gt;&gt; from clusim.clustering import print_clustering</span>
+<span class="sd">    &gt;&gt;&gt; clu = clugen.make_random_clustering(n_elements = 9, n_clusters = 3,</span>
+<span class="sd">                                     random_model = &#39;num&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; print_clustering(clu)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">random_model</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="s1">&#39;all1&#39;</span><span class="p">]:</span>
+        <span class="n">new_clustering</span> <span class="o">=</span> <span class="n">generate_random_partition_all</span><span class="p">(</span><span class="n">n_elements</span><span class="o">=</span><span class="n">n_elements</span><span class="p">,</span>
+                                                       <span class="n">tol</span><span class="o">=</span><span class="n">tol</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">random_model</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;num&#39;</span><span class="p">,</span> <span class="s1">&#39;num1&#39;</span><span class="p">]:</span>
+        <span class="n">new_clustering</span> <span class="o">=</span> <span class="n">generate_random_partition_num</span><span class="p">(</span><span class="n">n_elements</span><span class="o">=</span><span class="n">n_elements</span><span class="p">,</span>
+                                                       <span class="n">n_clusters</span><span class="o">=</span><span class="n">n_clusters</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">random_model</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;perm&#39;</span><span class="p">]:</span>
+        <span class="n">new_clustering</span> <span class="o">=</span> <span class="n">generate_random_partition_perm</span><span class="p">(</span><span class="n">clu_size_seq</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_clustering</span></div>
+
+<div class="viewcode-block" id="cluster_missing_elements"><a class="viewcode-back" href="../../clusim.html#clusim.clugen.cluster_missing_elements">[docs]</a><span class="k">def</span> <span class="nf">cluster_missing_elements</span><span class="p">(</span><span class="n">element_list</span><span class="p">,</span> <span class="n">elm2clu_dict</span><span class="p">,</span> <span class="n">new_cluster_type</span> <span class="o">=</span> <span class="s1">&#39;singleton&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sometimes a clustering algorithm does not assign every element to a cluster.</span>
+<span class="sd">    This function adds the missing elements to their own cluster(s).</span>
+
+<span class="sd">    :param list element_list:</span>
+<span class="sd">        The complete list of elements</span>
+
+<span class="sd">    :param dict elm2clu_dict:</span>
+<span class="sd">        { elementid: [clu1, clu2, ... ] }</span>
+
+<span class="sd">    :param str new_cluster_type:</span>
+<span class="sd">        The new type of clusters to use:</span>
+
+<span class="sd">        &#39;singleton&#39; : each unassigned element is put into its own singleton cluster</span>
+
+<span class="sd">        &#39;giant&#39; : all unassigned elements are put into a single giant cluster</span>
+
+<span class="sd">    :returns:</span>
+<span class="sd">        The new elm2clu_dict.</span>
+
+<span class="sd">    &gt;&gt;&gt; import clusim.clugen as clugen</span>
+<span class="sd">    &gt;&gt;&gt; from clusim.clustering import print_clustering</span>
+
+<span class="sd">    &gt;&gt;&gt; clu = clugen.make_random_clustering(n_elements = 7)</span>
+<span class="sd">    &gt;&gt;&gt; print_clustering(clu)</span>
+<span class="sd">    &gt;&gt;&gt; clu = clugen.cluster_missing_elements(element_list = list(range(10)), elm2clu_dict = clu,  new_cluster_type=&#39;singleton&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; print_clustering(clu)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">missing_elements</span> <span class="o">=</span> <span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">element_list</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">elm</span> <span class="k">for</span> <span class="n">elm</span><span class="p">,</span> <span class="n">cl</span> <span class="ow">in</span> <span class="n">elm2clu_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cl</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="kc">None</span> <span class="ow">in</span> <span class="n">cl</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span> <span class="ow">in</span> <span class="n">cl</span><span class="p">)))</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing_elements</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+
+        <span class="c1"># find the largest integer used to label the clusters</span>
+        <span class="n">new_clusterlabel</span> <span class="o">=</span> <span class="nb">max</span><span class="p">([</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">clu</span> <span class="k">for</span> <span class="n">elm</span><span class="p">,</span> <span class="n">cl</span> <span class="ow">in</span> <span class="n">elm2clu_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">for</span> <span class="n">clu</span> <span class="ow">in</span> <span class="n">cl</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">clu</span><span class="p">,</span> <span class="nb">int</span><span class="p">)])</span> <span class="o">+</span> <span class="mi">1</span>
+
+        <span class="k">for</span> <span class="n">miss_elm</span> <span class="ow">in</span> <span class="n">missing_elements</span><span class="p">:</span>
+            <span class="n">elm2clu_dict</span><span class="p">[</span><span class="n">miss_elm</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">new_clusterlabel</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">new_cluster_type</span> <span class="o">==</span> <span class="s1">&#39;singleton&#39;</span><span class="p">:</span>
+                <span class="c1"># singleton clusters have unique names</span>
+                <span class="n">new_clusterlabel</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="k">elif</span> <span class="n">new_cluster_type</span> <span class="o">==</span> <span class="s1">&#39;giant&#39;</span><span class="p">:</span>
+                <span class="c1"># one giant cluster keeps the same name</span>
+                <span class="k">pass</span>
+
+    <span class="k">return</span> <span class="n">elm2clu_dict</span></div>
+
+<div class="viewcode-block" id="make_singleton_clustering"><a class="viewcode-back" href="../../clusim.html#clusim.clugen.make_singleton_clustering">[docs]</a><span class="k">def</span> <span class="nf">make_singleton_clustering</span><span class="p">(</span><span class="n">n_elements</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function creates a clustering with each element in its own</span>
+<span class="sd">    cluster.</span>
+
+<span class="sd">    :param int n_elements:</span>
+<span class="sd">        The number of elements</span>
+
+<span class="sd">    :returns:</span>
+<span class="sd">        The new clustering.</span>
+
+<span class="sd">    &gt;&gt;&gt; import clusim.clugen as clugen</span>
+<span class="sd">    &gt;&gt;&gt; from clusim.clustering import print_clustering</span>
+<span class="sd">    &gt;&gt;&gt; clu = clugen.make_singleton_clustering(n_elements = 9)</span>
+<span class="sd">    &gt;&gt;&gt; print_clustering(clu)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">new_clsutering</span> <span class="o">=</span> <span class="n">make_regular_clustering</span><span class="p">(</span><span class="n">n_elements</span><span class="o">=</span><span class="n">n_elements</span><span class="p">,</span>
+                                             <span class="n">n_clusters</span><span class="o">=</span><span class="n">n_elements</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_clsutering</span></div>
+
+<div class="viewcode-block" id="make_random_dendrogram"><a class="viewcode-back" href="../../clusim.html#clusim.clugen.make_random_dendrogram">[docs]</a><span class="k">def</span> <span class="nf">make_random_dendrogram</span><span class="p">(</span><span class="n">n_elements</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function creates a random Hierarchical Clustering.</span>
+
+<span class="sd">    :param int n_elements The number of elements</span>
+
+<span class="sd">    :returns:</span>
+<span class="sd">        The new clustering.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dendro_graph</span> <span class="o">=</span> <span class="n">Dendrogram</span><span class="p">()</span>
+    <span class="n">dendro_graph</span><span class="o">.</span><span class="n">make_random_dendrogram_aglomerative</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="n">n_elements</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">HierClustering</span><span class="p">(</span><span class="n">clu2elm_dict</span><span class="o">=</span><span class="p">{</span><span class="n">e</span><span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="n">e</span><span class="p">])</span>
+                                        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">dendro_graph</span><span class="o">.</span><span class="n">leaves</span><span class="p">()},</span>
+                          <span class="n">hier_graph</span><span class="o">=</span><span class="n">dendro_graph</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="shuffle_memberships"><a class="viewcode-back" href="../../clusim.html#clusim.clugen.shuffle_memberships">[docs]</a><span class="k">def</span> <span class="nf">shuffle_memberships</span><span class="p">(</span><span class="n">clustering</span><span class="p">,</span> <span class="n">percent</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function creates a new clustering by shuffling the element</span>
+<span class="sd">    memberships from the original clustering.</span>
+
+<span class="sd">    :param Clustering clustering: The original clustering.</span>
+
+<span class="sd">    :param float percent: optional (default 1.0)</span>
+<span class="sd">        The fractional percentage (between 0.0 and 1.0) of the elements to</span>
+<span class="sd">        shuffle.</span>
+
+<span class="sd">    :returns: The new clustering.</span>
+
+<span class="sd">    &gt;&gt;&gt; import clusim.clugen as clugen</span>
+<span class="sd">    &gt;&gt;&gt; from clusim.clustering import print_clustering</span>
+<span class="sd">    &gt;&gt;&gt; orig_clu = clugen.make_random_clustering(n_elements = 9, n_clusters = 3,</span>
+<span class="sd">                                          random_model = &#39;num&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; print_clustering(orig_clu)</span>
+<span class="sd">    &gt;&gt;&gt; shuffle_clu = clugen.shuffle_memberships(orig_clu, percent = 0.5)</span>
+<span class="sd">    &gt;&gt;&gt; print_clustering(shuffle_clu)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">el_to_shuffle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">clustering</span><span class="o">.</span><span class="n">elements</span><span class="p">,</span>
+                                     <span class="nb">int</span><span class="p">(</span><span class="n">percent</span> <span class="o">*</span> <span class="n">clustering</span><span class="o">.</span><span class="n">n_elements</span><span class="p">),</span>
+                                     <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">shuffled_el</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="n">el_to_shuffle</span><span class="p">)</span>
+    <span class="n">newkeys</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">el_to_shuffle</span><span class="p">,</span> <span class="n">shuffled_el</span><span class="p">))</span>
+
+    <span class="n">new_elm2clu_dict</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">clustering</span><span class="o">.</span><span class="n">elm2clu_dict</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">shuffled_el</span><span class="p">:</span>
+        <span class="n">new_elm2clu_dict</span><span class="p">[</span><span class="n">el</span><span class="p">]</span> <span class="o">=</span> <span class="n">clustering</span><span class="o">.</span><span class="n">elm2clu_dict</span><span class="p">[</span><span class="n">newkeys</span><span class="p">[</span><span class="n">el</span><span class="p">]]</span>
+
+    <span class="k">if</span> <span class="n">clustering</span><span class="o">.</span><span class="n">is_hierarchical</span><span class="p">:</span>
+        <span class="n">new_clustering</span> <span class="o">=</span> <span class="n">HierClustering</span><span class="p">(</span><span class="n">elm2clu_dict</span><span class="o">=</span><span class="n">new_elm2clu_dict</span><span class="p">,</span>
+                                        <span class="n">hier_graph</span><span class="o">=</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">clustering</span><span class="o">.</span><span class="n">hiergraph</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">new_clustering</span> <span class="o">=</span> <span class="n">Clustering</span><span class="p">(</span><span class="n">elm2clu_dict</span><span class="o">=</span><span class="n">new_elm2clu_dict</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_clustering</span></div>
+
+
+<div class="viewcode-block" id="shuffle_memberships_pa"><a class="viewcode-back" href="../../clusim.html#clusim.clugen.shuffle_memberships_pa">[docs]</a><span class="k">def</span> <span class="nf">shuffle_memberships_pa</span><span class="p">(</span><span class="n">clustering</span><span class="p">,</span> <span class="n">n_steps</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">constant_num_clusters</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function creates a new clustering by shuffling the element</span>
+<span class="sd">        memberships from the original clustering according to the preferential</span>
+<span class="sd">        attachment model.</span>
+
+<span class="sd">        See :cite:`Gates2017impact` for a detailed explaination of the preferential</span>
+<span class="sd">        attachment model.</span>
+
+<span class="sd">        :param Clustering clustering: The original clustering.</span>
+
+<span class="sd">        :param int n_steps: optional (default 1)</span>
+<span class="sd">            The number of times to run the preferential attachment algorithm.</span>
+
+<span class="sd">        :param Boolean constant_num_clusters: optional (default True)</span>
+<span class="sd">            Reject a shuffling move if it leaves a cluster with no elements.</span>
+<span class="sd">            Set to True to keep the number of clusters constant.</span>
+
+<span class="sd">        :returns:</span>
+<span class="sd">            The new clustering with shuffled memberships.</span>
+
+<span class="sd">        &gt;&gt;&gt; import clusim.clugen as clugen</span>
+<span class="sd">        &gt;&gt;&gt; from clusim.clustering import print_clustering</span>
+<span class="sd">        &gt;&gt;&gt; orig_clu = clugen.make_random_clustering(n_elements=9, n_clusters=3,</span>
+<span class="sd">                                              random_model=&#39;num&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; print_clustering(orig_clu)</span>
+<span class="sd">        &gt;&gt;&gt; shuffle_clu = clugen.shuffle_memberships_pa(orig_clu, n_steps=10,</span>
+<span class="sd">                                                 constant_num_clusters=True)</span>
+<span class="sd">        &gt;&gt;&gt; print_clustering(shuffle_clu)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n_elements_norm</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">clustering</span><span class="o">.</span><span class="n">n_elements</span><span class="p">)</span>
+
+    <span class="n">Nclusters</span> <span class="o">=</span> <span class="n">clustering</span><span class="o">.</span><span class="n">n_clusters</span>
+
+    <span class="n">cluster_list</span> <span class="o">=</span> <span class="n">clustering</span><span class="o">.</span><span class="n">to_cluster_list</span><span class="p">()</span>
+    <span class="n">cluster_size_prob</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">cluster_list</span><span class="p">)))</span> <span class="o">*</span> <span class="n">n_elements_norm</span>
+    <span class="n">clusternames</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">Nclusters</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">istep</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_steps</span><span class="p">):</span>
+        <span class="n">from_cluster</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">clusternames</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">cluster_size_prob</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cluster_size_prob</span><span class="p">[</span><span class="n">from_cluster</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">1.5</span><span class="o">*</span><span class="n">n_elements_norm</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">constant_num_clusters</span><span class="p">:</span>
+
+            <span class="n">exchanged_element</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">cluster_list</span><span class="p">[</span><span class="n">from_cluster</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span>
+                                                 <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">new_cluster</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">clusternames</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">cluster_size_prob</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">new_cluster</span> <span class="o">!=</span> <span class="n">from_cluster</span><span class="p">:</span>
+                <span class="n">cluster_list</span><span class="p">[</span><span class="n">from_cluster</span><span class="p">]</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">exchanged_element</span><span class="p">)</span>
+                <span class="n">cluster_size_prob</span><span class="p">[</span><span class="n">from_cluster</span><span class="p">]</span> <span class="o">-=</span> <span class="n">n_elements_norm</span>
+
+                <span class="n">cluster_list</span><span class="p">[</span><span class="n">new_cluster</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">exchanged_element</span><span class="p">)</span>
+                <span class="n">cluster_size_prob</span><span class="p">[</span><span class="n">new_cluster</span><span class="p">]</span> <span class="o">+=</span> <span class="n">n_elements_norm</span>
+
+    <span class="n">new_clustering</span> <span class="o">=</span> <span class="n">Clustering</span><span class="p">()</span>
+    <span class="n">new_clustering</span><span class="o">.</span><span class="n">from_cluster_list</span><span class="p">(</span><span class="n">cluster_list</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">new_clustering</span></div>
+
+
+<span class="k">def</span> <span class="nf">generate_random_partition_perm</span><span class="p">(</span><span class="n">clu_size_seq</span><span class="p">):</span>
+    <span class="n">n_elements</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">clu_size_seq</span><span class="p">)</span>
+    <span class="n">n_clusters</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">clu_size_seq</span><span class="p">)</span>
+    <span class="n">elm_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_elements</span><span class="p">))</span>
+    <span class="n">clu_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([[</span><span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">clu_size_seq</span><span class="p">)])</span>
+
+    <span class="n">cluster_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">elm_list</span><span class="p">[</span><span class="n">clu_idx</span><span class="p">[</span><span class="n">iclus</span><span class="p">]:</span><span class="n">clu_idx</span><span class="p">[</span><span class="n">iclus</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]]</span>
+                    <span class="k">for</span> <span class="n">iclus</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_clusters</span><span class="p">)]</span>
+
+    <span class="n">new_clustering</span> <span class="o">=</span> <span class="n">Clustering</span><span class="p">()</span>
+    <span class="n">new_clustering</span><span class="o">.</span><span class="n">from_cluster_list</span><span class="p">(</span><span class="n">cluster_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_clustering</span>
+
+
+<span class="k">def</span> <span class="nf">_random_partition_num_iterator</span><span class="p">(</span><span class="n">n_elements</span><span class="p">,</span> <span class="n">n_clusters</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;http://thousandfold.net/cz/2013/09/25/sampling-uniformly-from-the-set-of-partitions-in-a-fixed-number-of-nonempty-sets/&#39;&#39;&#39;</span>
+
+    <span class="k">assert</span> <span class="n">n_clusters</span> <span class="o">&lt;=</span> <span class="n">n_elements</span>
+
+    <span class="k">if</span> <span class="n">n_elements</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">current_partition</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">]]</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">stirling_prob</span> <span class="o">=</span> <span class="n">mpmath</span><span class="o">.</span><span class="n">stirling2</span><span class="p">(</span><span class="n">n_elements</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n_clusters</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">mpmath</span><span class="o">.</span><span class="n">stirling2</span><span class="p">(</span><span class="n">n_elements</span><span class="p">,</span> <span class="n">n_clusters</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">stirling_prob</span><span class="p">:</span>
+            <span class="n">current_partition</span> <span class="o">=</span> <span class="n">_random_partition_num_iterator</span><span class="p">(</span><span class="n">n_elements</span><span class="o">=</span><span class="n">n_elements</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n_clusters</span><span class="o">=</span><span class="n">n_clusters</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">current_partition</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">n_elements</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">current_partition</span> <span class="o">=</span> <span class="n">_random_partition_num_iterator</span><span class="p">(</span><span class="n">n_elements</span><span class="o">=</span><span class="n">n_elements</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n_clusters</span><span class="o">=</span><span class="n">n_clusters</span><span class="p">)</span>
+            <span class="n">current_clu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">n_clusters</span><span class="p">)</span>
+            <span class="n">current_partition</span><span class="p">[</span><span class="n">current_clu</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n_elements</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">current_partition</span>
+
+
+<span class="k">def</span> <span class="nf">generate_random_partition_num</span><span class="p">(</span><span class="n">n_elements</span><span class="p">,</span> <span class="n">n_clusters</span><span class="p">):</span>
+
+    <span class="n">clu_list</span> <span class="o">=</span> <span class="n">_random_partition_num_iterator</span><span class="p">(</span><span class="n">n_elements</span><span class="p">,</span> <span class="n">n_clusters</span><span class="p">)</span>
+
+    <span class="n">new_clustering</span> <span class="o">=</span> <span class="n">Clustering</span><span class="p">()</span>
+    <span class="n">new_clustering</span><span class="o">.</span><span class="n">from_cluster_list</span><span class="p">(</span><span class="n">clu_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_clustering</span>
+
+
+<span class="n">all_partition_weight_dict</span> <span class="o">=</span> <span class="p">{}</span>
+<div class="viewcode-block" id="generate_random_partition_all"><a class="viewcode-back" href="../../clusim.html#clusim.clugen.generate_random_partition_all">[docs]</a><span class="k">def</span> <span class="nf">generate_random_partition_all</span><span class="p">(</span><span class="n">n_elements</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1.0e-15</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function creates a random clustering according to the &#39;All&#39;</span>
+<span class="sd">        random model by uniformly selecting a clustering from the ensemble of all</span>
+<span class="sd">        clusterings with n_elements.</span>
+
+<span class="sd">        :param int n_elements:</span>
+<span class="sd">            The number of elements</span>
+
+<span class="sd">        :param float tol: (optional)</span>
+<span class="sd">            The tolerance used by the algorithm to approximate the probability distrubtion</span>
+
+<span class="sd">        :returns: The randomly genderated clustering.</span>
+
+<span class="sd">        &gt;&gt;&gt; import clusim.clugen as clugen</span>
+<span class="sd">        &gt;&gt;&gt; from clusim.clustering import print_clustering</span>
+<span class="sd">        &gt;&gt;&gt; clu = clugen.generate_random_partition_all(n_elements = 9)</span>
+<span class="sd">        &gt;&gt;&gt; print_clustering(clu)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">n_elements</span><span class="p">,</span> <span class="n">tol</span><span class="p">)</span> <span class="ow">in</span> <span class="n">all_partition_weight_dict</span><span class="p">:</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">all_partition_weight_dict</span><span class="p">[(</span><span class="n">n_elements</span><span class="p">,</span> <span class="n">tol</span><span class="p">)]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">mpmath</span><span class="o">.</span><span class="n">bell</span><span class="p">(</span><span class="n">n_elements</span><span class="p">)</span>
+        <span class="k">while</span> <span class="nb">sum</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">tol</span><span class="p">:</span>
+            <span class="n">weights</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mpmath</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">n_elements</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">b</span> <span class="o">*</span> <span class="n">mpmath</span><span class="o">.</span><span class="n">e</span> <span class="o">*</span> <span class="n">mpmath</span><span class="o">.</span><span class="n">factorial</span><span class="p">(</span><span class="n">u</span><span class="p">)))</span>
+            <span class="n">u</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">all_partition_weight_dict</span><span class="p">[(</span><span class="n">n_elements</span><span class="p">,</span> <span class="n">tol</span><span class="p">)]</span> <span class="o">=</span> <span class="n">weights</span>
+
+    <span class="n">K</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">p</span><span class="o">=</span><span class="n">weights</span><span class="p">)</span>
+    <span class="n">colors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">K</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">n_elements</span><span class="p">)</span>
+
+    <span class="n">new_clustering</span> <span class="o">=</span> <span class="n">Clustering</span><span class="p">()</span>
+    <span class="n">new_clustering</span><span class="o">.</span><span class="n">from_membership_list</span><span class="p">(</span><span class="n">colors</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_clustering</span></div>
+
+
+<div class="viewcode-block" id="enumerate_random_partition_num"><a class="viewcode-back" href="../../clusim.html#clusim.clugen.enumerate_random_partition_num">[docs]</a><span class="k">def</span> <span class="nf">enumerate_random_partition_num</span><span class="p">(</span><span class="n">n_elements</span><span class="p">,</span> <span class="n">n_clusters</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A generator for every partition in &#39;Num&#39;, the ensemble of all clusterings</span>
+<span class="sd">        with n_elements grouped into n_clusters, non-empty clusters.</span>
+
+<span class="sd">        Based on the solution provided by Adeel Zafar Soomro: `a link`_.</span>
+
+<span class="sd">        .. _a link: http://codereview.stackexchange.com/questions/1526/finding-all-k-subset-partitions</span>
+
+<span class="sd">        which was itself based on the algorithm from Knuth:</span>
+<span class="sd">        (Algorithm U) is described by Knuth in the Art of Computer Programming,</span>
+<span class="sd">        Volume 4, Fascicle 3B</span>
+
+<span class="sd">        :param int n_elements:</span>
+<span class="sd">            The number of elements</span>
+
+<span class="sd">        :param int n_clusters:</span>
+<span class="sd">            The number of clusters</span>
+
+<span class="sd">        :returns:</span>
+<span class="sd">            The new clustering as a cluster list.</span>
+
+<span class="sd">        &gt;&gt;&gt; import clusim.clugen as clugen</span>
+<span class="sd">        &gt;&gt;&gt; from clusim.clustering import print_clustering</span>
+<span class="sd">        &gt;&gt;&gt; for clu in clugen.clustering_ensemble_generator_num(n_elements=5, n_clusters=3):</span>
+<span class="sd">        &gt;&gt;&gt;     print_clustering(clu)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">elm_list</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_elements</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">visit</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>
+        <span class="n">ps</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_clusters</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="n">ps</span><span class="p">[</span><span class="n">a</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">elm_list</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">ps</span>
+
+    <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">nu</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">mu</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">visit</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">f</span><span class="p">(</span><span class="n">mu</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nu</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="n">mu</span> <span class="o">+</span> <span class="n">sigma</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="n">v</span>
+        <span class="k">if</span> <span class="n">nu</span> <span class="o">==</span> <span class="n">mu</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">a</span><span class="p">[</span><span class="n">mu</span><span class="p">]</span> <span class="o">=</span> <span class="n">mu</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="k">yield</span> <span class="n">visit</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+            <span class="k">while</span> <span class="n">a</span><span class="p">[</span><span class="n">nu</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">a</span><span class="p">[</span><span class="n">nu</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">nu</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
+                <span class="k">yield</span> <span class="n">visit</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">nu</span> <span class="o">&gt;</span> <span class="n">mu</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">mu</span> <span class="o">+</span> <span class="n">sigma</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">a</span><span class="p">[</span><span class="n">nu</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">mu</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">a</span><span class="p">[</span><span class="n">mu</span><span class="p">]</span> <span class="o">=</span> <span class="n">mu</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="n">nu</span><span class="p">]</span> <span class="o">+</span> <span class="n">sigma</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">b</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">nu</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>
+                    <span class="k">yield</span> <span class="n">v</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">f</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">nu</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>
+                    <span class="k">yield</span> <span class="n">v</span>
+            <span class="k">while</span> <span class="n">a</span><span class="p">[</span><span class="n">nu</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">a</span><span class="p">[</span><span class="n">nu</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">nu</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="n">nu</span><span class="p">]</span> <span class="o">+</span> <span class="n">sigma</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">b</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">nu</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>
+                        <span class="k">yield</span> <span class="n">v</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">f</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">nu</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>
+                        <span class="k">yield</span> <span class="n">v</span>
+
+    <span class="k">def</span> <span class="nf">b</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">nu</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">nu</span> <span class="o">==</span> <span class="n">mu</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">while</span> <span class="n">a</span><span class="p">[</span><span class="n">nu</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">mu</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">visit</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+                <span class="n">a</span><span class="p">[</span><span class="n">nu</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">nu</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">yield</span> <span class="n">visit</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+            <span class="n">a</span><span class="p">[</span><span class="n">mu</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">elif</span> <span class="n">nu</span> <span class="o">&gt;</span> <span class="n">mu</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="n">nu</span><span class="p">]</span> <span class="o">+</span> <span class="n">sigma</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">f</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">nu</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>
+                    <span class="k">yield</span> <span class="n">v</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">b</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">nu</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>
+                    <span class="k">yield</span> <span class="n">v</span>
+            <span class="k">while</span> <span class="n">a</span><span class="p">[</span><span class="n">nu</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">mu</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">a</span><span class="p">[</span><span class="n">nu</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">nu</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="n">nu</span><span class="p">]</span> <span class="o">+</span> <span class="n">sigma</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">f</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">nu</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>
+                        <span class="k">yield</span> <span class="n">v</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">b</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">nu</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>
+                        <span class="k">yield</span> <span class="n">v</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">mu</span> <span class="o">+</span> <span class="n">sigma</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">a</span><span class="p">[</span><span class="n">nu</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">a</span><span class="p">[</span><span class="n">mu</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">mu</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">visit</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">b</span><span class="p">(</span><span class="n">mu</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nu</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="n">mu</span> <span class="o">+</span> <span class="n">sigma</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="n">v</span>
+
+    <span class="k">if</span> <span class="n">n_clusters</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[[</span><span class="n">elm_list</span><span class="p">]]</span>
+    <span class="k">elif</span> <span class="n">n_clusters</span> <span class="o">==</span> <span class="n">n_elements</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[[[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">elm_list</span><span class="p">]]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">n_elements</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_clusters</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">a</span><span class="p">[</span><span class="n">n_elements</span> <span class="o">-</span> <span class="n">n_clusters</span> <span class="o">+</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">j</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">f</span><span class="p">(</span><span class="n">n_clusters</span><span class="p">,</span> <span class="n">n_elements</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">n_elements</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+            
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../y.html">clusim 0.4 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="../../_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2017, Alexander Gates and Yong-Yeol Ahn. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>
