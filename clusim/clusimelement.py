@@ -267,7 +267,7 @@ def ppr_partition(clustering, alpha=0.9, relabeled_elements=None):
 
 
 def make_cielg(clustering, r=1.0, rescale_path_type='max',
-                relabeled_elements=None, approach='previous'):
+                relabeled_elements=None):
     """
     Create the cluster-induced element graph for a Clustering.
 
