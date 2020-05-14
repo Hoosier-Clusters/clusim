@@ -21,7 +21,7 @@ Contributors
 Optionally, add your desired name and include a few relevant links. The order
 is an attempt at historical ordering.
 
-- Jean-Gabriel Young, GitHub: ``jg-you <https://github.com/jg-you>``_
+- Jean-Gabriel Young, GitHub: `jg-you <https://github.com/jg-you>`_
 - Jisung Yoon, GitHub: `jisungyoon <https://github.com/jisungyoon>`_
 
 Support
