@@ -326,18 +326,13 @@ def make_cielg(clustering, r=1.0, rescale_path_type='max',
                                          (edge_seq[:, 0], edge_seq[:, 1])),
                                         shape=(clustering.n_elements,
                                                clustering.n_clusters))
-    proj1 = bipartite_adj / bipartite_adj.sum(axis=1)
-    #print('axis 1', bipartite_adj.shape[1])
-    #print(np.where(bipartite_adj.sum(axis=1) == 0))
-    #print(bipartite_adj.sum(axis=1))
-    proj2 = bipartite_adj / bipartite_adj.sum(axis=0)
-    #print(bipartite_adj.sum(axis=0).shape)
-    #print(np.where(bipartite_adj.sum(axis=0) == 0))
-    #print(bipartite_adj.sum(axis=0))
-    projected_adj = proj1.dot(proj2.T)
-    cielg = igraph.Graph.Weighted_Adjacency(projected_adj.tolist(),
-                                             mode=igraph.ADJ_DIRECTED,
-                                             attr="weight", loops=True)
+    
+
+    proj1 = spsparse.coo_matrix(bipartite_adj / bipartite_adj.sum(axis=1))
+    proj2 = spsparse.coo_matrix(bipartite_adj / bipartite_adj.sum(axis=0))
+    projected_adj = proj1.dot(proj2.T).tocoo()
+    cielg = igraph.Graph(list(zip(projected_adj.row.tolist(), projected_adj.col.tolist())), 
+                             edge_attrs={'weight': projected_adj.data.tolist()}, directed=True)
     return cielg
 
 
