@@ -201,7 +201,7 @@ class Clustering(object):
                                for iclus, clist in enumerate(cluster_list)})
         return self
 
-    def from_cluster_labels(self, labels):
+    def from_labels(self, labels):
         """
         This method creates a clustering from an array-like of class labels:
         [el1_clu, el2_clu, el3_clu, ... ], a list in which each entry 
@@ -214,7 +214,7 @@ class Clustering(object):
         >>> from clusim.clustering import Clustering, print_clustering
         >>> labels = [0,0,0,1,2,2]
         >>> clu = Clustering()
-        >>> clu.from_cluster_labels(labels)
+        >>> clu.from_labels(labels)
         >>> print_clustering(clu)
         """
         clu2elm_dict = dict()
