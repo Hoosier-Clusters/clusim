@@ -201,6 +201,31 @@ class Clustering(object):
                                for iclus, clist in enumerate(cluster_list)})
         return self
 
+    def from_labels(self, labels):
+        """
+        This method creates a clustering from an array-like of class labels:
+        [el1_clu, el2_clu, el3_clu, ... ], a list in which each entry 
+        corresponds to the cluster label of an element and elements are identified
+        by the integer indices of the list.
+
+        :param list labels: list
+            [el1_clu, el2_clu, el3_clu, ... ]
+
+        >>> from clusim.clustering import Clustering, print_clustering
+        >>> labels = [0,0,0,1,2,2]
+        >>> clu = Clustering()
+        >>> clu.from_labels(labels)
+        >>> print_clustering(clu)
+        """
+        clu2elm_dict = dict()
+        for elm, label in enumerate(labels):
+            if label not in clu2elm_dict:
+                clu2elm_dict[label] = [elm]
+            else:
+                clu2elm_dict[label] += [elm]
+        self.from_clu2elm_dict(clu2elm_dict)
+        return self
+
     def to_cluster_list(self):
         """
         This method returns a clustering in cluster list format:
