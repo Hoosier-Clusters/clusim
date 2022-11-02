@@ -1235,7 +1235,8 @@ def adj_mi(clustering1, clustering2, random_model='perm', norm_type='sum', logba
 def rmi(clustering1, clustering2, norm_type='none', logbase=2):
     """
     This function calculates the Reduced Mutual Information (RMI)
-    between two clusterings :cite:`Newman2019improved`.
+    between two clusterings :cite:`Newman2019improved`, modified 
+    with an improved estimate from :cite:`Jerdee2022estimate`.
 
     RMI = MI(c1, c2) - log Omega(a, b) / n
 
@@ -1269,16 +1270,31 @@ def rmi(clustering1, clustering2, norm_type='none', logbase=2):
     >>> print(sim.rmi(clustering1, clustering2, norm_type='none'))
     >>> print(sim.rmi(clustering1, clustering2, norm_type='normalized'))
     """
-    def get_log_omega(a, b, logbase):
+
+    def log_binomial(a, b):
+        """Logarithm of binomial(a,b)
+
+        :param float a:
+
+        :param float b:
+
+        :returns:
+            Logarithm of binomial(a,b)
+        """
+        if a > 0 and b > 0:
+            return sps.gammaln(a + 1) - sps.gammaln(b + 1) - sps.gammaln(a-b+1)
+        return 0
+
+    def get_log_omega(rs, cs, logbase):
         """Logarithm of the number of contingency table with fixed margins.
 
-        Implements an approximation by  to Diaconis and Efron :cite:
-        `diaconis1985testing`.
+        Implements an approximation by Jerdee, Kirkley, and Newman :cite:
+        `Jerdee2022estimate`.
 
-        :param array a:
+        :param array rs:
             Row margin of the contingency table.
 
-        :param array b:
+        :param array cs:
             Column margin of the contingency table.
 
         :param float logbase: (default) 2
@@ -1287,21 +1303,19 @@ def rmi(clustering1, clustering2, norm_type='none', logbase=2):
         :returns:
             The logarithm of the number of contingency tables.
         """
-        R = len(a)
-        S = len(b)
-        n = sum(a)
-        w = n / (n + 0.5 * R * S)
-        x = (1 - w) / R + w * a / n
-        y = (1 - w) / S + w * b / n
-        nu = (S + 1) / (S * sum(x * x)) - 1 / S
-        mu = (R + 1) / (R * sum(y * y)) - 1 / R
-
-        logOmega = (R - 1) * (S - 1) * np.log(n + 0.5 * R * S) \
-            + 0.5 * (R + nu - 2) * sum(np.log(y)) \
-            + 0.5 * (S + mu - 2) * sum(np.log(x)) \
-            + 0.5 * (sps.gammaln(mu * R) + sps.gammaln(nu * S) -
-                     R * (sps.gammaln(S) + sps.gammaln(mu)) -
-                     S * (sps.gammaln(R) + sps.gammaln(nu)))
+        rs = np.array(rs)
+        cs = np.array(cs)
+        if len(cs) < len(rs): # Swap definitions so that (# rows) <= (# columns) to improve performance
+            rs = np.array(cs)
+            cs = np.array(rs)
+        m = len(rs)
+        N = np.sum(rs)
+        alphaC = ((1-1/N)+(1-np.sum((cs/N)**2))/m)/(np.sum((cs/N)**2)-1/N)
+        logOmega = -log_binomial(N + m*alphaC - 1, m*alphaC - 1)
+        for r in rs:
+            logOmega += log_binomial(r + alphaC - 1, alphaC-1)
+        for c in cs:
+            logOmega += log_binomial(c + m - 1, m - 1)
         return logOmega / np.log(logbase)
 
     # Compute contingency table and margins
