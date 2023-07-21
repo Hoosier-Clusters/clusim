@@ -27,7 +27,7 @@ setup(name=__package__,
             'scipy',
             'networkx',
             'mpmath',
-            'python-igraph'
+            'igraph'
       ],
       include_package_data=True
       )
