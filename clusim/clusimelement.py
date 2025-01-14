@@ -16,7 +16,7 @@ import scipy.sparse as spsparse
 
 from clusim.clusteringerror import ClusteringSimilarityError
 
-def element_sim(clustering1, clustering2, alpha=0.9, r=1., r2=None, rescale_path_type='max', ppr_implementation='prpack'):
+def element_sim(clustering1, clustering2, alpha=0.9, r=1., r2=None, differing_elements = None, rescale_path_type='max', ppr_implementation='prpack'):
     """
     The element-centric clustering similarity.
 
@@ -59,14 +59,16 @@ def element_sim(clustering1, clustering2, alpha=0.9, r=1., r2=None, rescale_path
 
     result_tuple = element_sim_elscore(clustering1, clustering2, alpha=alpha,
                                        r=r, r2=r2,
+                                       differing_elements = differing_elements,
                                        rescale_path_type=rescale_path_type,
                                        ppr_implementation=ppr_implementation)
     elementScores, relabeled_elements = result_tuple
     return np.mean(elementScores)
 
 
-def element_sim_elscore(clustering1, clustering2, alpha=0.9, r=1., r2=None,
-                        rescale_path_type='max', relabeled_elements=None, ppr_implementation='prpack'):
+def element_sim_elscore(clustering1, clustering2, alpha=0.9, r=1., r2=None, differing_elements=None,
+                        rescale_path_type='max', relabeled_elements=None, 
+                        ppr_implementation='prpack'):
     """
     The element-centric clustering similarity for each element.
 
@@ -82,6 +84,14 @@ def element_sim_elscore(clustering1, clustering2, alpha=0.9, r=1., r2=None,
 
     :param float r2: The hierarchical scaling parameter for clustering2.  This defaults to None
         forcing r2 = r1
+    
+    :param str differing_elements: default None
+        How to handle when the element sets differ.
+        None : enforce element sets must be the same
+        'inter' : evaluate similarity on the intersection of the two element sets
+        'isolated' : evaluate similarity on the union of the two element sets considering each new element in an isolated cluster
+        'supercluster' : evaluate similarity on the union of the two element sets considering the new elements in a single supercluster
+
 
     :param str rescale_path_type: rescale the hierarchical height by:
         'max' : the maximum path from the root
@@ -113,18 +123,39 @@ def element_sim_elscore(clustering1, clustering2, alpha=0.9, r=1., r2=None,
     """
 
     # Error handleing for comparisons
-    if clustering1.n_elements != clustering2.n_elements:
+    if differing_elements is None and clustering1.n_elements != clustering2.n_elements:
         raise ClusteringSimilarityError
 
-    elif any(e1 != e2 for e1, e2 in zip(clustering1.elements, clustering2.elements)):
+    elif differing_elements is None and any(e1 != e2 for e1, e2 in zip(clustering1.elements, clustering2.elements)):
         raise ClusteringSimilarityError
+
+    if r2 is None:
+        r2 = r
+
+    # for the case when the elements sets differ, and the union is used, we need to add elements to both clusters
+    if differing_elements == 'supercluster' or differing_elements == 'isolated':
+        elem2add_c2 = set(clustering1.elements) - set(clustering2.elements)
+        elem2add_c1 = set(clustering2.elements) - set(clustering1.elements)
+
+        new_c1_cluster_start = max((x for x in clustering1.clusters if isinstance(x, int)), default=0) + 1
+        new_c2_cluster_start = max((x for x in clustering2.clusters if isinstance(x, int)), default=0) + 1
+
+        if differing_elements == 'supercluster':
+            clustering1 = clustering1.update_from_elm2clu_dict({e:set([new_c1_cluster_start]) for e in elem2add_c2})
+            clustering2 = clustering2.update_from_elm2clu_dict({e:set([new_c2_cluster_start]) for e in elem2add_c1})
+        elif differing_elements == 'isolated':
+            clustering1 = clustering1.update_from_elm2clu_dict({e:set([new_c1_cluster_start + i]) for i,e in enumerate(elem2add_c1)})
+            clustering2 = clustering2.update_from_elm2clu_dict({e:set([new_c2_cluster_start + i]) for i,e in enumerate(elem2add_c2)})
+
 
     # the rows and columns of the affinity matrix correspond to relabeled elements
     if relabeled_elements is None:
         relabeled_elements = relabel_objects(clustering1.elements)
 
-    if r2 is None:
-        r2 = r
+        if not differing_elements is None:
+            relabeled_elements2 = relabel_objects(clustering2.elements)
+        else:
+            relabeled_elements2 = relabeled_elements
 
     # make the two affinity matrices
     clu_affinity_matrix1 = make_affinity_matrix(clustering1, alpha=alpha, r=r,
@@ -132,12 +163,27 @@ def element_sim_elscore(clustering1, clustering2, alpha=0.9, r=1., r2=None,
                                                 relabeled_elements=relabeled_elements, ppr_implementation=ppr_implementation)
     clu_affinity_matrix2 = make_affinity_matrix(clustering2, alpha=alpha, r=r2,
                                                 rescale_path_type=rescale_path_type,
-                                                relabeled_elements=relabeled_elements, ppr_implementation=ppr_implementation)
+                                                relabeled_elements=relabeled_elements2, ppr_implementation=ppr_implementation)
+
+    # for the case when the elements sets differ, and the intersection is used, we need to limit the affinity matrices to the intersection elements
+    if differing_elements == 'inter':
+        inter_elements = sorted(list(set(clustering1.elements).intersection(set(clustering2.elements))))
+        inter_idx1 = [relabeled_elements[e] for e in inter_elements]
+        clu_affinity_matrix1 = clu_affinity_matrix1[inter_idx1][:,inter_idx1]
+
+        inter_idx2 = [relabeled_elements2[e] for e in inter_elements]
+        clu_affinity_matrix2 = clu_affinity_matrix2[inter_idx2][:,inter_idx2]
+
 
     # use the corrected L1 similarity
     nodeScores = cL1(clu_affinity_matrix1, clu_affinity_matrix2, alpha=alpha)
 
-    return nodeScores, relabeled_elements
+    if differing_elements is None:
+        return nodeScores, relabeled_elements
+    elif differing_elements == 'inter':
+        return nodeScores, {e:i for i,e in enumerate(inter_elements)}
+    else:
+        return nodeScores, relabeled_elements, relabeled_elements2
 
 
 def relabel_objects(object_list):

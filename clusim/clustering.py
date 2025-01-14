@@ -332,6 +332,40 @@ class Clustering(object):
 
         return elm2clu_dict
 
+    def update_from_elm2clu_dict(self, new_elm2clu_dict):
+        """
+        This method updates a clustering from an new_elm2clu_dict dictionary:
+        { elementid: [clu1, clu2, ... ] } where each element is a key with
+        value a list of clusters to which it belongs.  Clustering features
+        are then re-calculated.
+
+        :param dict elm2clu_dict:
+            { elementid: [clu1, clu2, ... ] }
+
+        >>> from clusim.clustering import Clustering, print_clustering
+        >>> elm2clu_dict = {0:[0], 1:[0], 2:[0,1], 3:[1], 4:[2], 5:[2]}
+        >>> clu = Clustering()
+        >>> clu.from_elm2clu_dict(elm2clu_dict)
+        >>> print_clustering(clu)
+        """
+
+        # take the union of the sets of clusters to which each element is mapped
+        self.elm2clu_dict = {k: self.elm2clu_dict.get(k, set()).union(new_elm2clu_dict.get(k, set())) for k in self.elm2clu_dict.keys() | new_elm2clu_dict.keys()}
+
+        self.elements = sorted(list(self.elm2clu_dict.keys()))
+        self.n_elements = len(self.elements)
+
+        self.clu2elm_dict = self.to_clu2elm_dict()
+        self.clusters = sorted(list(self.clu2elm_dict.keys()))
+        self.n_clusters = len(self.clusters)
+
+        self.validate_clustering()
+
+        self.clu_size_seq = self.find_clu_size_seq()
+
+        self.is_disjoint = self.find_num_overlap() == 0
+        return self
+
     def find_clu_size_seq(self):
         """
         This method finds the cluster size sequence for the clustering.

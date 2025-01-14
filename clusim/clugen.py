@@ -269,6 +269,37 @@ def shuffle_memberships_pa(clustering, n_steps=1, constant_num_clusters=True):
 
     return new_clustering
 
+def subsample_elements(clustering, percent = 1.0):
+    """
+    This function creates a new clustering by sampling a subset of the elements from the original clustering.
+
+    :param Clustering clustering: The original clustering.
+
+    :param float percent: optional (default 1.0)
+        The fractional percentage (between 0.0 and 1.0) of the elements to retain.
+
+    :returns: The new clustering.
+
+    >>> import clusim.clugen as clugen
+    >>> from clusim.clustering import print_clustering
+    >>> orig_clu = clugen.make_random_clustering(n_elements = 9, n_clusters = 3,
+                                          random_model = 'num')
+    >>> print_clustering(orig_clu)
+    >>> subsampled_clu = clugen.subsample_elements(orig_clu, percent = 0.5)
+    >>> print_clustering(shuffle_clu)
+    """
+    el_to_keep = np.random.choice(clustering.elements,
+                                     int(percent * clustering.n_elements),
+                                     replace=False)
+
+    new_elm2clu_dict = {e:clustering.elm2clu_dict[e] for e in el_to_keep}
+    if clustering.is_hierarchical:
+        new_clustering = HierClustering(elm2clu_dict=new_elm2clu_dict,
+                                        hier_graph=copy.deepcopy(clustering.hiergraph))
+    else:
+        new_clustering = Clustering(elm2clu_dict=new_elm2clu_dict)
+    return new_clustering
+
 
 def generate_random_partition_perm(clu_size_seq):
     n_elements = sum(clu_size_seq)
