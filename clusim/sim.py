@@ -1285,7 +1285,7 @@ def rmi(clustering1, clustering2, norm_type='none', logbase=2):
             return sps.gammaln(a + 1) - sps.gammaln(b + 1) - sps.gammaln(a-b+1)
         return 0
 
-    def get_log_omega(rs, cs, logbase):
+    def get_log_omega(rs, cs, logbase = 2):
         """Logarithm of the number of contingency table with fixed margins.
 
         Implements an approximation by Jerdee, Kirkley, and Newman :cite:
@@ -1352,6 +1352,217 @@ def rmi(clustering1, clustering2, norm_type='none', logbase=2):
         normterm -= (log_omega_aa + log_omega_bb)
         normterm /= 2
     return RMI / normterm
+
+
+def finite_sample_collision(clustering1, clustering2=None, k=2):
+    """
+    This function calculates the k-tuple finite–sample, 
+    without–replacement estimator for the collision probability
+    as introduced in :cite:`Gates2026unify`.
+
+    :param Clustering clustering1:
+        The primary clustering.
+
+    :param Clustering clustering2: (defualt None)
+        The secondary clustering - if included then do the joint collision probabilities.
+
+    :param int k: (default) 2
+        The apprximation order to use, implemented for k=3,4.
+
+    :returns:
+            The collision probability
+    """
+    
+    if clustering2 is None:
+        # a single clustering collision probability
+        return sum(mpmath.binomial(a, k) for a in clustering1.clu_size_seq) / mpmath.binomial(clustering1.n_elements, k)
+
+    else:
+        cont_tbl = np.array(contingency_table(clustering1, clustering2))
+        
+        return sum(mpmath.binomial(n, k) for n in cont_tbl.flatten()) / mpmath.binomial(clustering1.n_elements, k)
+
+
+def renyi_contrast(clustering1, clustering2, alpha=2, smooth=1e-12, logbase=2):
+    """
+    This function calculates the k-tuple finite–sample, 
+    without–replacement estimator for the Renyi contrast
+    as introduced in :cite:`Gates2026unify`.
+
+    :param Clustering clustering1:
+        The first clustering.
+
+    :param Clustering clustering2: 
+        The second clustering.
+
+    :param int alpha: (default) 2
+        The apprximation order to use, implemented for alpha=2,3.
+    
+    :param float smooth: (default) 1e-12
+        The smoothing adjustment for numerical stability.
+    
+    :param float logbase: (default) 2
+        The base of all logarithms (recommended to use 2 for bits).
+
+    :returns:
+        The Renyi contrast
+    """
+    C_a = finite_sample_collision(clustering1, k=alpha)
+    C_b = finite_sample_collision(clustering2, k=alpha)
+    C_ab = finite_sample_collision(clustering1, clustering2, k=alpha)
+        
+    return (mpmath.log(C_ab + smooth) - mpmath.log(C_a+ smooth) - mpmath.log(C_b+ smooth))/(1.0-alpha)/mpmath.log(logbase)
+
+def ktuple_approximate_mi(clustering1, clustering2, k=3, smooth=1e-12, logbase=2):
+    """
+    This function calculates the k-tuple approximations to the MI
+    between two clusterings as introduced in :cite:`Gates2026unify` based on
+    the Rényi collision contrasts of order alpha.
+
+    :param Clustering clustering1:
+        The first clustering.
+
+    :param Clustering clustering2:
+        The second clustering.
+
+    :param int k: (default) 3
+        The apprximation order to use, implemented for k=2,3,4.
+
+    :param float smooth: (default) 1e-12
+        The smoothing adjustment for numerical stability.
+
+    :param float logbase: (default) 2
+        The base of all logarithms (recommended to use 2 for bits).
+
+    :returns:
+        The Rényi collision contrast apprximation to mutual information using
+        collisions of k-tuples up to order k.
+
+    >>> import clusim.clugen as clugen
+    >>> import clusim.sim as sim
+    >>> clustering1 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
+                                                    random_model='num')
+    >>> clustering2 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
+                                                    random_model='num')
+    >>> print(sim.ktuple_approximate_mi(clustering1, clustering2, k=3))
+    >>> print(sim.ktuple_approximate_mi(clustering1, clustering2, k=4))
+    """
+
+    if k < 2 or k > 4:
+        raise NotImplementedError("The approximation is only implemented for k=2,3,4")
+
+    elif k == 2:
+        # I^(2) = -J_2
+        return -renyi_contrast(clustering1, clustering2, alpha=2, smooth=smooth, logbase=logbase)
+    elif k == 3:
+        # I^(3) = J_3 - 2*J_2  
+        J2 = renyi_contrast(clustering1, clustering2, alpha=2, smooth=smooth, logbase=logbase)
+        J3 = renyi_contrast(clustering1, clustering2, alpha=3, smooth=smooth, logbase=logbase)
+        return J3 - 2*J2 
+    elif k == 4:
+        # I^(4) =  - J_4 + 3*J_3 - 3*J_2
+        J2 = renyi_contrast(clustering1, clustering2, alpha=2, smooth=smooth, logbase=logbase)
+        J3 = renyi_contrast(clustering1, clustering2, alpha=3, smooth=smooth, logbase=logbase)
+        J4 = renyi_contrast(clustering1, clustering2, alpha=4, smooth=smooth, logbase=logbase)
+        return - 3*J2 + 3*J3 - J4
+
+def normed_ktuple_approximate_mi(clustering1, clustering2, k=3, smooth=1e-12, logbase=2, norm_type='sum'):
+    """
+    This function calculates the normed k-tuple approximations to the MI
+    between two clusterings as introduced in :cite:`Gates2026unify` based on
+    the Rényi collision contrasts of order alpha.
+
+    :param Clustering clustering1:
+        The first clustering.
+
+    :param Clustering clustering2:
+        The second clustering.
+
+    :param int k: (default) 3
+        The apprximation order to use, implemented for k=2,3,4.
+
+    :param float smooth: (default) 1e-12
+        The smoothing adjustment for numerical stability.
+
+    :param float logbase: (default) 2
+        The base of all logarithms (recommended to use 2 for bits).
+
+    :param str norm_type: 'sum' (default), 'max', 'min', 'sqrt', 'none'
+        The normalization type used if the measure is 'nmi'
+        'sum' uses the average of the two clustering entropies,
+        'max' uses the maximum of the two clustering entropies,
+        'min' uses the minimum of the two clustering entropies,
+        'sqrt' uses the geometric mean of the two clustering entropies,
+        'none' returns the Mutual Information without a normalization
+
+    :returns:
+        The Rényi collision contrast apprximation to mutual information using
+        collisions of k-tuples up to order k.
+
+    >>> import clusim.clugen as clugen
+    >>> import clusim.sim as sim
+    >>> clustering1 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
+                                                    random_model='num')
+    >>> clustering2 = clugen.make_random_clustering(n_elements=9, n_clusters=3,
+                                                    random_model='num')
+    >>> print(sim.normed_ktuple_approximate_mi(clustering1, clustering2, k=3))
+    >>> print(sim.normed_ktuple_approximate_mi(clustering1, clustering2, k=4))
+
+    
+    """
+    I1 = ktuple_approximate_mi(clustering1, clustering1, k=k, smooth=smooth, logbase=logbase)
+    I2 = ktuple_approximate_mi(clustering2, clustering2, k=k, smooth=smooth, logbase=logbase)
+    if norm_type == 'sum':
+        denom = 0.5*(I1+I2)
+    elif norm_type == 'max':
+        denom = max([I1,I2])
+    if norm_type == 'min':
+        denom = min([I1,I2])
+    if norm_type == 'sqrt':
+        denom = np.sqrt(I1*I2)
+    elif norm_type == 'none':
+        denom = 1.0
+
+    return ktuple_approximate_mi(clustering1, clustering2, k=k, smooth=smooth, logbase=logbase)/denom
+
+
+def independent_table(clustering1, clustering2):
+    """
+    The random contigency table.
+    """
+    return np.array([[clu1*clu2
+             for clu2 in clustering2.clu_size_seq]
+            for clu1 in clustering1.clu_size_seq]) / (clustering1.n_elements**2)
+
+def residual_table(clustering1, clustering2):
+    """
+    The residual contigency table as introduced in :cite:`Gates2026unify`.
+    """
+    cont_tbl = np.array(contingency_table(clustering1, clustering2)) / clustering1.n_elements
+    return cont_tbl - independent_table(clustering1, clustering2)
+
+def mutual_information_residual(clustering1, clustering2, highest_order=2):
+    """
+    The residual contigency table expansion for MI to order `highest_order'
+    as introduced in :cite:`Gates2026unify`.
+    """
+    random_tbl = independent_table(clustering1, clustering2)
+    resid_tbl = residual_table(clustering1, clustering2)
+    if highest_order == 2:
+        return 0.5*np.square(resid_tbl)/random_tbl
+    elif highest_order == 3:
+        return 0.5*np.square(resid_tbl)/random_tbl - (1/6.)*np.power(resid_tbl,3)/np.square(random_tbl)
+    else:
+        raise NotImplementedError("The residual approximations are only available for orders 2 and 3.")
+
+def adjusted_rand_residual(clustering1, clustering2, highest_order=2):
+    """
+    The residual contigency table expansion for ARI
+    as introduced in :cite:`Gates2026unify`.
+    """
+    random_tbl = independent_table(clustering1, clustering2)
+    resid_tbl = residual_table(clustering1, clustering2)
+    return 4*random_tbl*resid_tbl + 2*np.square(resid_tbl)
 
 
 def vi(clustering1, clustering2, norm_type='none'):

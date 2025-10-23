@@ -210,6 +210,73 @@ def shuffle_memberships(clustering, percent=1.0):
         new_clustering = Clustering(elm2clu_dict=new_elm2clu_dict)
     return new_clustering
 
+def partition_from_size_sequence(clu_size_seq, rand_shuffle=False):
+    """
+    This function creates a random clustering from a cluster size sequence.
+
+    :param list clu_size_seq:
+        The sizes of each cluster in the clustering
+
+    :param bool rand_shuffle: optional (default False)
+        Make sure the elements are fully shuffled.  If False,
+        they will be assigned by ordinal values.
+
+    :returns:
+        The new clustering
+
+    >>> import clusim.clugen as clugen
+    >>> from clusim.clustering import print_clustering
+    >>> clu = clugen.partition_from_size_sequence([3,2,1])
+    >>> print_clustering(clu)
+    """
+    clu_size_seq = [k for k in clu_size_seq if k>0]
+    n_elements = sum(clu_size_seq)
+    n_clusters = len(clu_size_seq)
+    elm_list = np.arange(n_elements)
+    if rand_shuffle:
+        elm_list = np.random.permutation()
+    clu_idx = np.hstack([[0], np.cumsum(clu_size_seq)])
+    cluster_list = [elm_list[clu_idx[iclus]:clu_idx[iclus + 1]]
+                    for iclus in range(n_clusters)]
+    new_clustering = Clustering()
+    new_clustering.from_cluster_list(cluster_list)
+    return new_clustering
+
+def flip_memberships(clustering, num_elements=0, clu2flip=[0,1]):
+    """
+    This function creates a new clustering by exchanging (flipping) the element
+    memberships between two clusters of the original clustering.
+
+    :param Clustering clustering: The original clustering.
+
+    :param int num_elements: optional (default 0)
+        The number of elements to exchange between clusters.
+
+    :param list clu2flip: optional (default [0,1])
+        The two clusters to exchange elements
+
+    :returns: The new clustering.
+
+    >>> import clusim.clugen as clugen
+    >>> from clusim.clustering import print_clustering
+    >>> orig_clu = clugen.make_random_clustering(n_elements = 9, n_clusters = 3,
+                                          random_model = 'num')
+    >>> print_clustering(orig_clu)
+    >>> flip_clu = clugen.flip_memberships(orig_clu, num_elements=2, clu2flip=[0,1])
+    >>> print_clustering(flip_clu)
+    """
+    ci, cj = clu2flip
+    ci_elm = np.random.choice(list(clustering.clu2elm_dict[ci]), num_elements, replace=False)
+    cj_elm = np.random.choice(list(clustering.clu2elm_dict[cj]), num_elements, replace=False)
+
+    new_elm2clu_dict = copy.deepcopy(clustering.elm2clu_dict)
+    for el in ci_elm:
+        new_elm2clu_dict[el] = set([cj])
+    for el in cj_elm:
+        new_elm2clu_dict[el] = set([ci])
+
+    return Clustering(elm2clu_dict=new_elm2clu_dict)
+
 
 def shuffle_memberships_pa(clustering, n_steps=1, constant_num_clusters=True):
     """
